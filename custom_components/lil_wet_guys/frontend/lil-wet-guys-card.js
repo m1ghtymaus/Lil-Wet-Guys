@@ -2,7 +2,7 @@
 // most urgent first. Tap the watering can to mark a plant watered (with Undo),
 // or tap the plant for its photo, care details and editable notes.
 
-import { ART_CSS, SPECIES, drawPlant } from './art/index.js';
+import { ART_CSS, LIMB_STYLES, SPECIES, drawPlant } from './art/index.js';
 
 const DAY = 86400000;
 const GHOST_AT = 3;
@@ -29,6 +29,19 @@ function savedUnit() {
   } catch {
     return null; // storage can be blocked; fall back to the default
   }
+}
+
+// Each plant gets a random pose every time the page loads; it stays put until the
+// next reload so plants don't fidget when the card redraws.
+const POSES = new Map();
+function poseFor(id) {
+  if (!POSES.has(id)) {
+    const rand = (lo, hi) => lo + Math.random() * (hi - lo);
+    const side = () => ({ arm: [rand(-3, 3), rand(-3, 3)], foot: [rand(-2.5, 2.5), rand(-1.5, 1)], tilt: rand(-8, 8) });
+    const base = LIMB_STYLES[Math.floor(Math.random() * LIMB_STYLES.length)];
+    POSES.set(id, { ...base, nudge: { L: side(), R: side() } });
+  }
+  return POSES.get(id);
 }
 
 function statusOf(overdue) {
@@ -255,7 +268,7 @@ class LilWetGuysCard extends HTMLElement {
       this._keys.set(p.id, key);
       tile.querySelector('.art').innerHTML = drawPlant({
         species: p.a.shape, potColor: p.a.pot_color, dryness, ghost, seed: p.id,
-        limbs: this._config.limbs !== false, label: p.name,
+        limbs: this._config.limbs !== false && poseFor(p.id), label: p.name,
       });
     }
     tile.querySelector('.name').textContent = p.name;
@@ -386,7 +399,7 @@ class LilWetGuysCard extends HTMLElement {
       `<button type="button" data-act="unit" data-unit="${u}" aria-pressed="${u === unit}">°${u}</button>`).join('')}</span>`;
     const drawing = drawPlant({
       species: a.shape, potColor: a.pot_color, dryness: clamp(overdue / GHOST_AT, 0, 1), ghost: overdue >= GHOST_AT,
-      seed: id, limbs: this._config.limbs !== false, label: name,
+      seed: id, limbs: this._config.limbs !== false && poseFor(id), label: name,
     });
     const sub = a.species === 'other' ? '' : `${esc(a.species_name || art?.name || '')}${art?.latin ? ` · <i>${esc(art.latin)}</i>` : ''}`;
     const rows = [

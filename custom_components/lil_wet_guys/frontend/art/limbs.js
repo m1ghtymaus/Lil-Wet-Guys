@@ -38,6 +38,14 @@ const ease = (t) => t * t * (3 - 2 * t);
 const limbColor = (pot) => (luminance(pot) < 0.2 ? shade(pot, 0.16) : shade(pot, -0.03));
 const mix = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
 const mirror = ([x, y], sd) => (sd > 0 ? [x, y] : [200 - x, y]);
+const add = ([x, y], [dx, dy], k = 1) => [x + dx * k, y + dy * k];
+
+/**
+ * Optional per-side nudges on top of a style, written for the right side
+ * (positive x = outward) and mirrored for the left:
+ * { L: { arm: [dx, dy], foot: [dx, dy], tilt }, R: { ... } }.
+ */
+const nudgeFor = (style, i) => style.nudge?.[i === 0 ? 'L' : 'R'];
 
 function stub(ctx, d, color, w) {
   return `<path d="${d}" fill="none" stroke="${ctx.line}" stroke-width="${w + 2.8}" stroke-linecap="round" stroke-linejoin="round"/>`
@@ -53,8 +61,9 @@ export function drawFeet(ctx, style, potColor) {
   style.feet.forEach((name, i) => {
     const sd = i === 0 ? -1 : 1;
     const f = FEET[name];
-    const [x, y] = mirror(mix(f.foot, FLOP.foot, k), sd);
-    const tilt = sd * lerp(f.tilt, FLOP.tilt, k);
+    const n = nudgeFor(style, i);
+    const [x, y] = mirror(n ? add(mix(f.foot, FLOP.foot, k), n.foot) : mix(f.foot, FLOP.foot, k), sd);
+    const tilt = sd * (lerp(f.tilt, FLOP.tilt, k) + (n?.tilt ?? 0));
     s += `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="6.6" ry="8.2" transform="rotate(${f1(tilt)} ${f1(x)} ${f1(y)})" `
       + `fill="${color}" stroke="${ctx.line}" stroke-width="1.9"/>`;
   });
@@ -70,8 +79,11 @@ export function drawArms(ctx, style, potColor) {
     const sd = i === 0 ? -1 : 1;
     const pose = ARM[name];
     const [sx, sy] = mirror(SHOULDER, sd);
-    const [ex, ey] = mirror(mix(pose.elbow, LIMP.elbow, k), sd);
-    const [hx, hy] = mirror(mix(pose.hand, LIMP.hand, k), sd);
+    const n = nudgeFor(style, i);
+    const elbow = mix(pose.elbow, LIMP.elbow, k);
+    const hand = mix(pose.hand, LIMP.hand, k);
+    const [ex, ey] = mirror(n ? add(elbow, n.arm, 0.5) : elbow, sd);
+    const [hx, hy] = mirror(n ? add(hand, n.arm) : hand, sd);
     const arm = stub(ctx, `M${sx} ${sy}Q${f1(ex)} ${f1(ey)} ${f1(hx)} ${f1(hy)}`, color, 9.5);
     const waving = name === 'wave' && ctx.d === 0 && !ctx.ghost;
     s += waving ? `<g class="pt-wave" style="transform-origin:${sx}px ${sy}px">${arm}</g>` : arm;
