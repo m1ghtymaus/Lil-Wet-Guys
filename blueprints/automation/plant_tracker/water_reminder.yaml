@@ -1,0 +1,80 @@
+blueprint:
+  name: Plant Tracker – water reminders
+  description: >-
+    Once a day, sends one notification per plant that needs water, each with a
+    "Watered" button that marks it watered. Finds Plant Tracker plants on its
+    own, so new plants need no changes here.
+  domain: automation
+  input:
+    notify_device:
+      name: Phone
+      description: The phone (Home Assistant Companion app) to notify.
+      selector:
+        device:
+          integration: mobile_app
+    remind_at:
+      name: Time of day
+      default: "09:00:00"
+      selector:
+        time: {}
+    include_temperature:
+      name: Also warn about room temperature
+      default: false
+      selector:
+        boolean: {}
+
+mode: queued
+
+variables:
+  notify_service: "notify.mobile_app_{{ device_attr(!input notify_device, 'name') | slugify }}"
+  include_temperature: !input include_temperature
+
+triggers:
+  - trigger: time
+    at: !input remind_at
+    id: daily
+  - trigger: event
+    event_type: mobile_app_notification_action
+    id: action
+
+actions:
+  - choose:
+      - conditions: "{{ trigger.id == 'action' and trigger.event.data.action.startswith('PLANT_WATERED::') }}"
+        sequence:
+          - action: button.press
+            target:
+              entity_id: "{{ trigger.event.data.action.split('::')[1] }}"
+      - conditions: "{{ trigger.id == 'daily' }}"
+        sequence:
+          - repeat:
+              for_each: >-
+                {{ integration_entities('plant_tracker') | select('match', 'sensor\\.')
+                   | select('is_state_attr', 'plant_tracker', true)
+                   | reject('is_state', 'happy') | list }}
+              sequence:
+                - action: "{{ notify_service }}"
+                  data:
+                    title: "{{ device_attr(device_id(repeat.item), 'name') }} needs water"
+                    message: >-
+                      {{ {'thirsty': 'It is due today.', 'wilting': 'It is starting to wilt.',
+                          'ghost': 'It has been dry for 3+ days.'}[states(repeat.item)] }}
+                    data:
+                      tag: "plant-{{ repeat.item }}"
+                      actions:
+                        - action: "PLANT_WATERED::{{ state_attr(repeat.item, 'button_entity') }}"
+                          title: Watered
+          - if: "{{ include_temperature }}"
+            then:
+              - repeat:
+                  for_each: >-
+                    {{ integration_entities('plant_tracker') | select('match', 'binary_sensor\.')
+                       | select('is_state', 'on') | list }}
+                  sequence:
+                    - action: "{{ notify_service }}"
+                      data:
+                        title: "{{ device_attr(device_id(repeat.item), 'name') }} is too {{ state_attr(repeat.item, 'problem') }}"
+                        message: >-
+                          The room is {{ state_attr(repeat.item, 'temperature') }}°, outside its
+                          {{ state_attr(repeat.item, 'minimum') }}–{{ state_attr(repeat.item, 'maximum') }}° range.
+                        data:
+                          tag: "plant-temp-{{ repeat.item }}"

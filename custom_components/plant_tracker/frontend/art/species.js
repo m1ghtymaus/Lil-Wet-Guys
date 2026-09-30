@@ -1,0 +1,188 @@
+// How each species is drawn: a rig plus its parameters. Care data (watering,
+// light, temperature) lives in the integration's species.py; ids must match.
+
+export const SPECIES = {
+  arrowhead_plant: {
+    name: 'Arrowhead plant', latin: 'Syngonium podophyllum', rig: 'upright_leaf',
+    count: 7, len: [34, 70], spread: 0.95, tilt: 0.45, stem: '#86b565',
+    leaf: { shape: 'arrow', L: 36, W: 30, color: '#6aa84f', vari: '#dff0cc', variType: 'veins', rib: false },
+  },
+  asparagus_fern: {
+    name: "Asparagus fern 'Sprengeri'", latin: "Asparagus densiflorus 'Sprengeri'", rig: 'bushy', form: 'fern',
+    count: 14, stem: '#6f9a3a', dryHue: 50,
+    leaf: { color: '#7cb342' },
+  },
+  banana_plant: {
+    name: 'Banana plant', latin: 'Musa spp.', rig: 'canes', form: 'banana', scale: 0.96,
+    trunk: 74, trunkColor: '#9dbb5f', len: [70, 92], W: 29, leafAngles: [-1.1, -0.45, 0.5, 1.12],
+    strap: { color: '#6fb24a', rib: '#dcebb0', veins: 10, tears: true, scorch: true },
+  },
+  cylindrical_snake_plant: {
+    name: 'Cylindrical snake plant', latin: 'Dracaena angolensis', rig: 'spikes',
+    count: 6, len: [72, 128], width: 9.5, spread: 0.75, base: 14, curl: 0.15, lean: 0.4, flop: 0.35,
+    profile: 'spike', drop: 0,
+    strap: {
+      color: '#58795a', tip: 'round', cap: '#8b6a4a', highlight: true, groove: true, wrinkle: true,
+      bands: { n: 9, color: '#9dbb97', ring: true, w: 1.3 },
+    },
+  },
+  dragon_tree: {
+    name: 'Dragon tree', latin: 'Dracaena marginata', rig: 'canes', form: 'dragon',
+    cane: '#8a7663', crown: 15, crownLen: [24, 38], stripW: 4.8,
+    canes: [{ x: -9, h: 72, a: -0.2 }, { x: 11, h: 128, a: 0.1 }, { x: 2, h: 100, a: -0.03 }],
+    strap: { color: '#3a6b35', edge: '#b8394e', edgeScale: 0.5, tips: true },
+  },
+  easter_cactus: {
+    name: 'Easter cactus', latin: 'Schlumbergera gaertneri', rig: 'bushy', form: 'cactus',
+    count: 7, flower: '#e2485a', dryHue: 350,
+    leaf: { shape: 'segment', L: 21, W: 15, color: '#4f8a45', vari: '#9c4a55', variType: 'edge', edgeScale: 0.78, rib: false },
+  },
+  gasteria: {
+    name: 'Gasteria', latin: 'Gasteria spp.', rig: 'sword',
+    count: 8, len: [42, 66], width: 15.5, fanned: true, spread: 0.95, base: 6, curl: 0.2, lean: 0.25, flop: 0.2,
+    profile: 'tongue', drop: 0, dryHue: 20,
+    strap: { color: '#35523a', tip: 'round', wrinkle: true, spots: { n: 11, color: '#e6efe0', r: 1.3 } },
+  },
+  golden_pothos: {
+    name: 'Golden pothos', latin: 'Epipremnum aureum', rig: 'trailing',
+    top: 8, topLen: 26, vines: 4, vineLen: 74, perVine: 7, stem: '#6a9a3f',
+    leaf: { shape: 'heart', L: 22, W: 18, color: '#3f8f3a', vari: '#ecd95a', variType: 'streaks', gloss: true },
+  },
+  heartleaf_philodendron: {
+    name: 'Heartleaf philodendron', latin: 'Philodendron hederaceum', rig: 'trailing',
+    top: 8, topLen: 24, vines: 4, vineLen: 78, perVine: 8, stem: '#5f8f3a',
+    leaf: { shape: 'heart', L: 18, W: 14, color: '#2f7d32', gloss: true },
+  },
+  lipstick_plant: {
+    name: 'Lipstick plant', latin: 'Aeschynanthus radicans', rig: 'trailing',
+    top: 9, topLen: 22, vines: 4, vineLen: 76, perVine: 9, stem: '#6b5a3a', flowers: '#d22e3a',
+    leaf: { shape: 'lance', L: 16, W: 9, color: '#2f6b2f', gloss: true },
+  },
+  lucky_bamboo: {
+    name: 'Lucky bamboo', latin: 'Dracaena sanderiana', rig: 'canes', form: 'bamboo', dryHue: 52,
+    stalk: '#9cc05a', stalks: [{ x: -14, h: 62 }, { x: 14, h: 90 }, { x: 0, h: 116 }],
+    leaf: { color: '#5fa13f', tips: true },
+  },
+  monkey_mask: {
+    name: 'Monkey mask', latin: 'Monstera adansonii', rig: 'trailing',
+    top: 6, topLen: 30, vines: 3, vineLen: 74, perVine: 5, stem: '#5f8f3a',
+    leaf: { shape: 'holes', L: 30, W: 21, color: '#3f8a3a', rib: true },
+  },
+  peperomia: {
+    name: 'Peperomia', latin: 'Peperomia spp.', rig: 'bushy', form: 'peperomia',
+    count: 9, stem: '#6f9a4a',
+    leaf: { shape: 'heart', L: 23, W: 21, color: '#2f5a2c', variType: 'ripple', gloss: true },
+  },
+  peperomia_hope: {
+    name: "Peperomia 'Hope'", latin: "Peperomia 'Hope'", rig: 'trailing',
+    top: 8, topLen: 20, vines: 4, vineLen: 60, perVine: 7, pairs: true, stem: '#7a8f4a',
+    leaf: { shape: 'round', L: 9.5, W: 9, color: '#4f8a3a', vari: '#9cc58a', variType: 'streaks', rib: false, gloss: true },
+  },
+  pink_princess_philodendron: {
+    name: 'Pink Princess philodendron', latin: "Philodendron erubescens 'Pink Princess'", rig: 'tree', form: 'climber',
+    h: 104, count: 6, stem: '#7a3b4a', root: '#8a6a50', young: '#e67fa3',
+    leaf: { shape: 'heart', L: 43, W: 28, color: '#2d3f28', vari: '#f08fb0', variType: 'splash', ribColor: '#5a3a48', gloss: true },
+  },
+  rubber_plant_ruby: {
+    name: "Rubber plant 'Ruby'", latin: "Ficus elastica 'Ruby'", rig: 'tree', form: 'rubber',
+    h: 100, count: 7, trunk: '#7a6a4f', sheath: '#c2344d',
+    leaf: { shape: 'oval', L: 52, W: 33, color: '#3b5f3a', vari: '#f1d2c6', variType: 'edge', edgeScale: 0.74, ribColor: '#d0607a', gloss: true },
+  },
+  satin_pothos: {
+    name: 'Satin pothos', latin: 'Scindapsus pictus', rig: 'trailing',
+    top: 8, topLen: 24, vines: 3, vineLen: 74, perVine: 7, stem: '#58704a',
+    leaf: { shape: 'heart', L: 21, W: 15, color: '#2e5a3e', vari: '#c3d3cf', variType: 'spots', curl: 1.8 },
+  },
+  snake_plant_laurentii: {
+    name: "Snake plant 'Laurentii'", latin: "Dracaena trifasciata 'Laurentii'", rig: 'sword',
+    count: 7, len: [86, 136], width: 16, spread: 0.36, base: 22, flop: 0.3, drop: 0,
+    strap: {
+      color: '#2f5d3a', edge: '#d8c85a', edgeScale: 0.78, wrinkle: true,
+      bands: { n: 9, color: '#86ab80', w: 1.4 },
+    },
+  },
+  snake_plant_zeylanica: {
+    name: "Snake plant 'Zeylanica'", latin: "Dracaena trifasciata 'Zeylanica'", rig: 'sword',
+    count: 8, len: [80, 128], width: 13.5, spread: 0.4, base: 22, flop: 0.3, drop: 0,
+    strap: {
+      color: '#27432e', edge: '#6b4a3a', edgeScale: 0.9, wrinkle: true,
+      bands: { n: 13, color: '#a6c3a0', w: 1.7 },
+    },
+  },
+  snake_plant_moonshine: {
+    name: "Snake plant 'Moonshine'", latin: "Dracaena trifasciata 'Moonshine'", rig: 'sword',
+    count: 5, len: [72, 112], width: 21, spread: 0.4, base: 17, flop: 0.3, drop: 0,
+    strap: {
+      color: '#b3cbbb', edge: '#3f6b4a', edgeScale: 0.9, wrinkle: true,
+      bands: { n: 6, color: '#c9dccf', w: 1.3 },
+    },
+  },
+  spider_plant: {
+    name: 'Spider plant', latin: 'Chlorophytum comosum', rig: 'arching',
+    count: 14, len: [36, 72], width: 7, runners: 2, drop: 0.25,
+    strap: { color: '#4f9a3f', stripe: '#f1f0d6', tips: true },
+  },
+  split_leaf_philodendron: {
+    name: 'Split-leaf philodendron', latin: 'Thaumatophyllum bipinnatifidum', rig: 'upright_leaf', scale: 0.95,
+    count: 5, len: [30, 62], spread: 1.05, tilt: 0.75, stem: '#6c8f45', stemW: 3,
+    leaf: { shape: 'lobed', L: 56, W: 54, lobes: 5, depth: 0.55, color: '#3f7f3a', gloss: true },
+  },
+  tiger_aloe: {
+    name: 'Tiger aloe', latin: 'Gonialoe variegata', rig: 'rosette',
+    count: 9, len: [30, 56], width: 21, spread: 1.2, dryHue: 12, profile: 'plump',
+    strap: { color: '#3f5f3a', edge: '#f0f1e6', edgeScale: 0.84, dashes: { n: 4, color: '#e9efe3' } },
+  },
+  tiger_tooth_aloe: {
+    name: 'Tiger tooth aloe', latin: 'Aloe juvenna', rig: 'rosette',
+    count: 10, len: [34, 56], width: 15, spread: 0.95, clusters: 3, dryHue: 12, profile: 'plump',
+    strap: { color: '#5f9a45', teeth: { n: 4, color: '#f4f4ea', size: 2.6 }, spots: { n: 6, color: '#eef3e2', r: 1 } },
+  },
+  umbrella_plant: {
+    name: 'Umbrella plant', latin: 'Schefflera arboricola', rig: 'tree', form: 'umbrella',
+    stem: '#6f7a45', petiole: '#86a04a', leaflets: 8,
+    stems: [{ x: -9, h: 74, a: -0.2 }, { x: 11, h: 56, a: 0.3 }, { x: 1, h: 98, a: 0.03 }],
+    leaf: { shape: 'obovate', L: 23, W: 9.5, color: '#3f7d34', gloss: true },
+  },
+  variegated_peperomia: {
+    name: 'Variegated peperomia', latin: "Peperomia obtusifolia 'Variegata'", rig: 'bushy', form: 'obtusifolia',
+    count: 3, stem: '#8aa35a',
+    leaf: { shape: 'round', L: 22, W: 19, color: '#5a8a3c', vari: '#efe6b0', variType: 'edge', gloss: true },
+  },
+  weeping_fig: {
+    name: 'Weeping fig', latin: 'Ficus benjamina', rig: 'tree', form: 'fig', dryHue: 50, drop: 0.6,
+    h: 74, branches: 9, trunk: '#9b8565',
+    leaf: { shape: 'lance', L: 15, W: 8, color: '#3e7b36', gloss: true },
+  },
+  zz_plant: {
+    name: 'ZZ plant', latin: 'Zamioculcas zamiifolia', rig: 'canes', form: 'zz', drop: 0.3,
+    count: 6, len: [56, 102], leaflets: 8, stem: '#4c7a37',
+    leaf: { shape: 'oval', L: 17.5, W: 9.5, color: '#2f5f2a', gloss: true, rib: false },
+  },
+
+  // Shapes offered for plants without a preset.
+  generic_leafy: {
+    name: 'Leafy plant', rig: 'upright_leaf', generic: true,
+    count: 7, len: [30, 62], spread: 0.95, tilt: 0.4, stem: '#6c9a45',
+    leaf: { shape: 'oval', L: 30, W: 18, color: '#4a8a3c', gloss: true },
+  },
+  generic_trailing: {
+    name: 'Trailing vine', rig: 'trailing', generic: true,
+    top: 8, topLen: 24, vines: 4, vineLen: 74, perVine: 7, stem: '#6a9a3f',
+    leaf: { shape: 'heart', L: 20, W: 16, color: '#3f8a3a', gloss: true },
+  },
+  generic_succulent: {
+    name: 'Succulent', rig: 'rosette', generic: true,
+    count: 9, len: [30, 50], width: 18, spread: 1.1, dryHue: 12, profile: 'plump',
+    strap: { color: '#6a9a70' },
+  },
+  generic_spiky: {
+    name: 'Upright spiky', rig: 'sword', generic: true,
+    count: 7, len: [70, 118], width: 13, spread: 0.4, base: 20, drop: 0,
+    strap: { color: '#3f6f45', wrinkle: true },
+  },
+  generic_tree: {
+    name: 'Small tree', rig: 'tree', form: 'rubber', generic: true,
+    h: 108, count: 7, trunk: '#7a6a4f', sheath: '#8fb86a',
+    leaf: { shape: 'oval', L: 40, W: 23, color: '#3f7a38', gloss: true },
+  },
+};

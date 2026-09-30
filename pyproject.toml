@@ -1,0 +1,15 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["preview", ".venv"]
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP", "B", "SIM", "D"]
+ignore = ["E501", "D203", "D213"]
+
+[tool.ruff.lint.isort]
+# Match Home Assistant's own layout: homeassistant gets its own block.
+known-first-party = ["homeassistant"]

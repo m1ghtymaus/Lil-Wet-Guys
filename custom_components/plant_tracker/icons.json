@@ -1,0 +1,40 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "temperature": {
+        "default": "mdi:thermometer-check",
+        "state": {
+          "on": "mdi:thermometer-alert"
+        }
+      }
+    },
+    "button": {
+      "watered": {
+        "default": "mdi:watering-can"
+      }
+    },
+    "datetime": {
+      "last_watered": {
+        "default": "mdi:calendar-check"
+      }
+    },
+    "image": {
+      "photo": {
+        "default": "mdi:image"
+      }
+    },
+    "sensor": {
+      "next_watering": {
+        "default": "mdi:water-outline"
+      },
+      "status": {
+        "default": "mdi:flower",
+        "state": {
+          "thirsty": "mdi:water-alert",
+          "wilting": "mdi:flower-outline",
+          "ghost": "mdi:ghost"
+        }
+      }
+    }
+  }
+}

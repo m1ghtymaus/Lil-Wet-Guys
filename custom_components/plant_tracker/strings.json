@@ -1,0 +1,167 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Plant Tracker",
+        "description": "Plant Tracker keeps a watering countdown for each of your plants. After setup, add each plant with the **Add plant** button on this integration's page."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Plant Tracker is already set up. Add plants with the **Add plant** button on its integration page."
+    }
+  },
+  "config_subentries": {
+    "plant": {
+      "entry_type": "Plant",
+      "initiate_flow": {
+        "user": "Add plant",
+        "reconfigure": "Edit plant"
+      },
+      "step": {
+        "user": {
+          "title": "Add a plant",
+          "description": "Choose a plant type to fill in its care details for you. You can change any of them on the next page.",
+          "data": {
+            "name": "Name",
+            "species": "Plant type"
+          },
+          "data_description": {
+            "name": "How the plant appears on your dashboard, for example \"Monstera by the window\".",
+            "species": "Pick **Other** if your plant isn't listed; you'll choose a drawing and fill in its care yourself."
+          }
+        },
+        "details": {
+          "title": "{name}",
+          "description": "Care details for {species}. The watering interval is for bright, indirect light; the light setting shortens it in direct sun and stretches it in lower light.",
+          "data": {
+            "light": "Light where it lives",
+            "base_days": "Water every (in bright, indirect light)",
+            "temp_min": "Lowest comfortable temperature",
+            "temp_max": "Highest comfortable temperature",
+            "pot_color": "Pot colour",
+            "shape": "Drawing",
+            "photo": "Photo",
+            "last_watered": "Last watered"
+          },
+          "data_description": {
+            "light": "Direct sun ×0.75, bright indirect ×1, medium ×1.25, low ×1.5.",
+            "shape": "Which cartoon to draw for this plant.",
+            "photo": "Optional. Shown when you tap the plant on the dashboard.",
+            "last_watered": "When you last watered it. The countdown starts from here."
+          },
+          "sections": {
+            "sensors": {
+              "name": "Sensors (optional)",
+              "description": "Link a room thermometer to get a warning when it's too cold or hot, or a soil moisture sensor to mark the plant as watered automatically.",
+              "data": {
+                "temperature_sensor": "Room temperature sensor",
+                "moisture_sensor": "Soil moisture sensor",
+                "moisture_jump": "Moisture rise that counts as watering"
+              },
+              "data_description": {
+                "moisture_jump": "A rise of this many percentage points within an hour marks the plant as watered."
+              }
+            }
+          }
+        },
+        "reconfigure": {
+          "title": "Edit {name}",
+          "description": "Changing the plant type doesn't overwrite the care details below. To reset the countdown, use the plant's **Last watered** entity or its **Watered** button.",
+          "data": {
+            "name": "[%key:component::plant_tracker::config_subentries::plant::step::user::data::name%]",
+            "species": "[%key:component::plant_tracker::config_subentries::plant::step::user::data::species%]",
+            "light": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::light%]",
+            "base_days": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::base_days%]",
+            "temp_min": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::temp_min%]",
+            "temp_max": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::temp_max%]",
+            "pot_color": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::pot_color%]",
+            "shape": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::shape%]",
+            "photo": "New photo",
+            "remove_photo": "Remove the current photo"
+          },
+          "data_description": {
+            "light": "[%key:component::plant_tracker::config_subentries::plant::step::details::data_description::light%]",
+            "shape": "Only used when the plant type is Other.",
+            "photo": "Optional. Replaces the current photo."
+          },
+          "sections": {
+            "sensors": {
+              "name": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::name%]",
+              "description": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::description%]",
+              "data": {
+                "temperature_sensor": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::data::temperature_sensor%]",
+                "moisture_sensor": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::data::moisture_sensor%]",
+                "moisture_jump": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::data::moisture_jump%]"
+              },
+              "data_description": {
+                "moisture_jump": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::data_description::moisture_jump%]"
+              }
+            }
+          }
+        }
+      },
+      "error": {
+        "temp_range": "The lowest temperature has to be below the highest.",
+        "bad_photo": "That file couldn't be read as a photo. Try a JPEG or PNG."
+      },
+      "abort": {
+        "reconfigure_successful": "The plant has been updated."
+      }
+    }
+  },
+  "selector": {
+    "light": {
+      "options": {
+        "direct": "Direct sun",
+        "bright_indirect": "Bright, indirect light",
+        "medium": "Medium light",
+        "low": "Low light"
+      }
+    },
+    "shape": {
+      "options": {
+        "generic_leafy": "Leafy plant",
+        "generic_trailing": "Trailing vine",
+        "generic_succulent": "Succulent",
+        "generic_spiky": "Upright spiky",
+        "generic_tree": "Small tree"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "temperature": {
+        "name": "Temperature"
+      }
+    },
+    "button": {
+      "watered": {
+        "name": "Watered"
+      }
+    },
+    "datetime": {
+      "last_watered": {
+        "name": "Last watered"
+      }
+    },
+    "image": {
+      "photo": {
+        "name": "Photo"
+      }
+    },
+    "sensor": {
+      "next_watering": {
+        "name": "Next watering"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "happy": "Happy",
+          "thirsty": "Thirsty",
+          "wilting": "Wilting",
+          "ghost": "Ghost"
+        }
+      }
+    }
+  }
+}

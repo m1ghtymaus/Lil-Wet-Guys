@@ -1,0 +1,314 @@
+<title>Plant Tracker Drawings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fredoka:wght@500;600&family=Newsreader:ital,opsz@1,6..72&display=swap">
+<style>
+  /* Layout: a greenhouse bench. Sticky watering-day control on top, specimen cards on a wrapping grid below. */
+  :root {
+    --paper: #eef2eb;
+    --card: #fbfcf8;
+    --shelf: #e3eadf;
+    --ink: #1d2b22;
+    --muted: #5b6a60;
+    --rule: #d3dccf;
+    --water: #2a74bd;
+    --happy: #2f8645;
+    --thirsty: #b07a10;
+    --wilting: #b0502b;
+    --ghost: #6b70ad;
+    --font-display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+    --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-latin: "Newsreader", Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #111914; --card: #18221b; --shelf: #1f2b22; --ink: #e2eadf; --muted: #9aa99e;
+      --rule: #2a392e; --water: #6aa8e8; --happy: #6cc585; --thirsty: #e0b040; --wilting: #ec8a60; --ghost: #a9aee6;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #111914; --card: #18221b; --shelf: #1f2b22; --ink: #e2eadf; --muted: #9aa99e;
+    --rule: #2a392e; --water: #6aa8e8; --happy: #6cc585; --thirsty: #e0b040; --wilting: #ec8a60; --ghost: #a9aee6;
+    color-scheme: dark;
+  }
+
+  body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--font-body); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; display: grid; gap: 22px; }
+
+  header { display: grid; gap: 8px; max-width: 68ch; }
+  h1 { font: 600 clamp(28px, 5vw, 40px)/1.05 var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  .lede { margin: 0; color: var(--muted); font-size: 16px; }
+
+  .controls {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 14px 16px; display: grid; gap: 14px;
+    box-shadow: 0 6px 18px -14px rgba(20, 40, 25, .5);
+  }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+  .label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+  .status { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
+  .chip {
+    font: 600 13px/1 var(--font-body); padding: 5px 10px; border-radius: 999px;
+    color: var(--card); background: var(--happy); letter-spacing: .02em;
+  }
+  .chip[data-s="thirsty"] { background: var(--thirsty); }
+  .chip[data-s="wilting"] { background: var(--wilting); }
+  .chip[data-s="ghost"] { background: var(--ghost); }
+  .countdown { font: 500 16px/1.2 var(--font-body); font-variant-numeric: tabular-nums; }
+
+  .dial { display: grid; gap: 4px; flex: 1 1 320px; min-width: 0; }
+  input[type="range"] { width: 100%; accent-color: var(--water); margin: 0; height: 28px; }
+  .ticks { display: grid; grid-template-columns: repeat(7, 1fr); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ticks span { text-align: center; white-space: nowrap; }
+  .ticks span:first-child { text-align: left; }
+  .ticks span:last-child { text-align: right; }
+  .ticks .due { color: var(--water); font-weight: 600; }
+
+  button {
+    font: 600 14px/1 var(--font-body); color: var(--card); background: var(--water);
+    border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer;
+  }
+  button.quiet { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+  button:focus-visible, .swatch:focus-visible, input:focus-visible { outline: 2px solid var(--water); outline-offset: 2px; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .swatch {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--rule); cursor: pointer; padding: 0;
+    background: var(--c);
+  }
+  .swatch[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--card) inset; }
+  .swatch.mixed { background: conic-gradient(#c8643c 0 25%, #9fb59a 0 50%, #2f4a6d 0 75%, #d9a52b 0); }
+  .custom { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+  .custom input { width: 34px; height: 28px; border: 1px solid var(--rule); border-radius: 8px; padding: 0 2px; background: var(--card); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+  .legend b { font-weight: 600; }
+  .legend .k { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+
+  h2 { font: 600 20px/1.2 var(--font-display); margin: 12px 0 0; }
+  .note { margin: -6px 0 0; color: var(--muted); font-size: 14px; max-width: 68ch; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+  .art { background: var(--shelf); padding: 10px 12px 4px; aspect-ratio: 200 / 248; max-width: 100%; }
+  .art svg { width: 100%; height: 100%; }
+  .meta { padding: 10px 12px 12px; display: grid; gap: 2px; align-content: start; min-width: 0; }
+  .name { font-weight: 600; font-size: 14.5px; line-height: 1.25; }
+  .latin { font: italic 14px/1.3 var(--font-latin); color: var(--muted); }
+  .care { margin-top: 6px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .care strong { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 520px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .ticks span:nth-child(2n) { visibility: hidden; }
+    .controls { padding: 12px; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Plant Tracker Drawings</h1>
+    <p class="lede">All 30 of your houseplants, one card each, drawn the way the dashboard will show them. Drag the day marker past the watering date to watch them dry out. Three days late, they turn into ghosts.</p>
+  </header>
+
+  <section class="controls" aria-label="Preview controls">
+    <div class="row">
+      <div class="status" aria-live="polite">
+        <span class="chip" id="chip" data-s="happy">Happy</span>
+        <span class="countdown" id="countdown">Water in 1 day</span>
+      </div>
+      <button id="play" type="button">Play the week</button>
+      <button id="water" type="button" class="quiet">Water everything</button>
+    </div>
+    <div class="dial">
+      <label class="label" for="day">Day, relative to the watering date</label>
+      <input id="day" type="range" min="-2" max="4" step="0.05" value="-1">
+      <div class="ticks" aria-hidden="true">
+        <span>2 days left</span><span>1 day left</span><span class="due">Due</span><span>+1 day</span><span>+2 days</span><span>+3 ghost</span><span>+4</span>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label" id="potlabel">Pot colour</span>
+      <div class="swatches" role="group" aria-labelledby="potlabel" id="swatches"></div>
+      <label class="custom" for="custom">Custom <input id="custom" type="color" value="#c8643c"></label>
+    </div>
+    <div class="legend">
+      <span><i class="k" style="background:var(--happy)"></i><b>Happy</b> before the date</span>
+      <span><i class="k" style="background:var(--thirsty)"></i><b>Thirsty</b> 0 to 1½ days late</span>
+      <span><i class="k" style="background:var(--wilting)"></i><b>Wilting</b> 1½ to 3 days late</span>
+      <span><i class="k" style="background:var(--ghost)"></i><b>Ghost</b> 3 days late or more</span>
+    </div>
+  </section>
+
+  <div class="grid" id="plants"></div>
+
+  <h2>Shapes for other plants</h2>
+  <p class="note">When you add a plant that has no preset, you pick one of these shapes and fill in its care details yourself.</p>
+  <div class="grid" id="generics"></div>
+</div>
+
+<script type="module">
+  import { drawPlant, SPECIES, ART_CSS } from './art/index.js';
+
+  const style = document.createElement('style');
+  style.textContent = ART_CSS;
+  document.head.append(style);
+
+  // Draft care presets (the integration's species.py holds the real ones).
+  const CARE = {
+    arrowhead_plant: [7, 'Bright indirect', '60–85'],
+    asparagus_fern: [5, 'Bright indirect', '50–80'],
+    banana_plant: [3, 'Direct sun', '65–85'],
+    cylindrical_snake_plant: [21, 'Low to bright', '60–85'],
+    dragon_tree: [12, 'Medium to bright', '65–80'],
+    easter_cactus: [8, 'Bright indirect', '60–75'],
+    gasteria: [16, 'Bright indirect', '60–80'],
+    golden_pothos: [8, 'Low to bright', '60–85'],
+    heartleaf_philodendron: [8, 'Medium to bright', '60–85'],
+    lipstick_plant: [6, 'Bright indirect', '65–80'],
+    lucky_bamboo: [7, 'Low to medium', '65–90'],
+    monkey_mask: [7, 'Bright indirect', '60–85'],
+    peperomia: [10, 'Medium to bright', '65–80'],
+    peperomia_hope: [12, 'Medium to bright', '65–80'],
+    pink_princess_philodendron: [7, 'Bright indirect', '65–85'],
+    rubber_plant_ruby: [10, 'Bright indirect', '60–85'],
+    satin_pothos: [10, 'Medium to bright', '65–85'],
+    snake_plant_laurentii: [21, 'Low to bright', '60–85'],
+    snake_plant_zeylanica: [21, 'Low to bright', '60–85'],
+    snake_plant_moonshine: [21, 'Low to bright', '60–85'],
+    spider_plant: [7, 'Bright indirect', '55–80'],
+    split_leaf_philodendron: [7, 'Bright indirect', '60–85'],
+    tiger_aloe: [18, 'Bright, some sun', '55–85'],
+    tiger_tooth_aloe: [18, 'Bright to direct', '50–85'],
+    umbrella_plant: [9, 'Bright indirect', '60–80'],
+    variegated_peperomia: [10, 'Medium to bright', '65–80'],
+    weeping_fig: [7, 'Bright indirect', '60–80'],
+    zz_plant: [18, 'Low to bright', '60–85'],
+  };
+  // Your plants, one entry each. Duplicates get their own card and a slightly different shape.
+  const MINE = [
+    'arrowhead_plant', 'asparagus_fern', 'banana_plant', 'cylindrical_snake_plant', 'dragon_tree',
+    'easter_cactus', 'gasteria', 'golden_pothos', 'heartleaf_philodendron', 'lipstick_plant',
+    'lucky_bamboo', 'monkey_mask', 'peperomia', 'peperomia_hope', 'pink_princess_philodendron',
+    'rubber_plant_ruby', 'satin_pothos', 'snake_plant_laurentii', 'snake_plant_zeylanica', 'snake_plant_moonshine',
+    'spider_plant', 'spider_plant', 'split_leaf_philodendron', 'tiger_aloe', 'tiger_tooth_aloe',
+    'umbrella_plant', 'umbrella_plant', 'variegated_peperomia', 'weeping_fig', 'zz_plant',
+  ];
+
+  const POTS = [
+    ['Terracotta', '#c8643c'], ['Glazed white', '#eeeae2'], ['Sage', '#9fb59a'], ['Navy', '#2f4a6d'],
+    ['Mustard', '#d9a52b'], ['Blush', '#e8a9a4'], ['Charcoal', '#3b3b3d'], ['Cobalt', '#2d5fb8'],
+  ];
+
+  const state = { day: -1, pot: 'mixed' };
+  const ids = Object.keys(SPECIES);
+  const generics = ids.filter((id) => SPECIES[id].generic);
+
+  const days = (n) => {
+    const v = Math.abs(n);
+    if (v < 1) return `${Math.max(1, Math.round(v * 24))} h`;
+    const r = Math.round(v * 2) / 2;
+    return `${r % 1 ? r.toFixed(1) : r} day${r === 1 ? '' : 's'}`;
+  };
+  const statusOf = (d) => (d < 0 ? 'happy' : d < 1.5 ? 'thirsty' : d < 3 ? 'wilting' : 'ghost');
+  const LABEL = { happy: 'Happy', thirsty: 'Thirsty', wilting: 'Wilting', ghost: 'Ghost' };
+
+  function card(id, i, name, seed) {
+    const s = SPECIES[id];
+    const el = document.createElement('article');
+    el.className = 'card';
+    const care = CARE[id];
+    el.innerHTML = `<div class="art"></div><div class="meta"><span class="name">${name}</span>`
+      + (s.latin ? `<span class="latin">${s.latin}</span>` : '')
+      + (care ? `<span class="care">Every <strong>${care[0]} days</strong> · ${care[1]} · ${care[2]}°F</span>` : '')
+      + '</div>';
+    el.dataset.id = id;
+    el.dataset.i = i;
+    el.dataset.seed = seed;
+    return el;
+  }
+
+  const grid = document.getElementById('plants');
+  const ggrid = document.getElementById('generics');
+  const seen = {};
+  MINE.forEach((id, i) => {
+    seen[id] = (seen[id] ?? 0) + 1;
+    const name = seen[id] > 1 ? `${SPECIES[id].name} ${seen[id]}` : SPECIES[id].name;
+    grid.append(card(id, i, name, `plant-${i}`));
+  });
+  generics.forEach((id, i) => ggrid.append(card(id, i + 3, SPECIES[id].name, id)));
+  const cards = [...document.querySelectorAll('.card')];
+
+  const sw = document.getElementById('swatches');
+  const mixed = document.createElement('button');
+  mixed.type = 'button'; mixed.className = 'swatch mixed'; mixed.title = 'Mixed'; mixed.setAttribute('aria-label', 'Mixed pot colours');
+  mixed.dataset.pot = 'mixed';
+  sw.append(mixed);
+  for (const [name, hex] of POTS) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'swatch'; b.style.setProperty('--c', hex); b.title = name;
+    b.setAttribute('aria-label', `${name} pots`); b.dataset.pot = hex;
+    sw.append(b);
+  }
+  sw.addEventListener('click', (e) => {
+    const b = e.target.closest('.swatch');
+    if (!b) return;
+    state.pot = b.dataset.pot;
+    schedule();
+  });
+  document.getElementById('custom').addEventListener('input', (e) => { state.pot = e.target.value; schedule(); });
+
+  const dayInput = document.getElementById('day');
+  dayInput.addEventListener('input', () => { stop(); state.day = Number(dayInput.value); schedule(); });
+
+  let queued = false;
+  function schedule() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; render(); });
+  }
+
+  function render() {
+    const d = state.day;
+    const s = statusOf(d);
+    const chip = document.getElementById('chip');
+    chip.dataset.s = s;
+    chip.textContent = LABEL[s];
+    document.getElementById('countdown').textContent =
+      d < 0 ? `Water in ${days(d)}` : d < 0.05 ? 'Due now' : `${days(d)} late`;
+    const dryness = Math.min(1, Math.max(0, d / 3));
+    const ghost = d >= 3;
+    for (const el of cards) {
+      const pot = state.pot === 'mixed' ? POTS[Number(el.dataset.i) % POTS.length][1] : state.pot;
+      el.querySelector('.art').innerHTML = drawPlant({ species: el.dataset.id, potColor: pot, dryness, ghost, seed: el.dataset.seed });
+    }
+    for (const b of sw.children) b.setAttribute('aria-pressed', String(b.dataset.pot === state.pot));
+  }
+
+  // Play the week: from a day early to past ghost-time, then stop.
+  const play = document.getElementById('play');
+  let raf = 0, t0 = 0, from = -1;
+  function stop() { cancelAnimationFrame(raf); raf = 0; play.textContent = 'Play the week'; }
+  function tick(now) {
+    const t = (now - t0) / 9000;
+    state.day = from + (3.8 - from) * Math.min(1, t);
+    dayInput.value = state.day;
+    render();
+    if (t < 1) raf = requestAnimationFrame(tick); else stop();
+  }
+  play.addEventListener('click', () => {
+    if (raf) { stop(); return; }
+    from = state.day >= 3.7 ? -1 : state.day;
+    t0 = performance.now();
+    play.textContent = 'Pause';
+    raf = requestAnimationFrame(tick);
+  });
+  document.getElementById('water').addEventListener('click', () => {
+    stop(); state.day = -1; dayInput.value = -1; render();
+  });
+
+  render();
+</script>

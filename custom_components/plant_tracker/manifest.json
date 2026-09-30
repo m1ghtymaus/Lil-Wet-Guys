@@ -1,0 +1,15 @@
+{
+  "domain": "plant_tracker",
+  "name": "Plant Tracker",
+  "after_dependencies": ["frontend"],
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": ["file_upload", "http"],
+  "documentation": "https://github.com/m1ghtymaus/Lil-Wet-Guys",
+  "integration_type": "hub",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/m1ghtymaus/Lil-Wet-Guys/issues",
+  "requirements": ["Pillow"],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}
