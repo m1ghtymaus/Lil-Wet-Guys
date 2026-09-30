@@ -1,7 +1,7 @@
 // The pot, the soil, the face on the pot and anything lying on the ground.
 // Drawing space is a 200 x 248 viewBox; stems leave the soil at (100, 167) and the pot stands on y = 236.
 
-import { clamp, lerp, luminance, mix, shade } from './color.js';
+import { clamp, hexToRgb, lerp, mix, shade } from './color.js';
 import { f1 } from './geom.js';
 import { leaf, strap } from './leaves.js';
 
@@ -76,7 +76,9 @@ export function potFront(ctx, color) {
 
 function face(ctx, potColor) {
   const d = ctx.d;
-  const ink = ctx.ghost ? '#3d4263' : luminance(potColor) < 0.42 ? '#fff6ea' : '#2b2320';
+  // Black features on every pot except a black (or near-black) one, where they'd vanish.
+  const blackPot = Math.max(...hexToRgb(potColor)) <= 72;
+  const ink = ctx.ghost ? '#3d4263' : blackPot ? '#fff6ea' : '#2b2320';
   const ey = 203, ex = [86, 114];
   let s = '';
   if (ctx.ghost) {
@@ -84,13 +86,12 @@ function face(ctx, potColor) {
     s += `<ellipse cx="100" cy="217" rx="3.6" ry="4.6" fill="${ink}"/>`;
     return s;
   }
-  // Eyes: full ovals with a glint, closing from the top as the plant dries.
+  // Eyes: plain ovals, closing from the top as the plant dries.
   const lid = clamp((d - 0.12) / 0.7) * 0.85;
   const rx = 3.6, ry = 4.8;
   for (const x of ex) {
     if (lid < 0.02) {
       s += `<ellipse cx="${x}" cy="${ey}" rx="${rx}" ry="${ry}" fill="${ink}"/>`;
-      s += `<circle cx="${x + 1.2}" cy="${ey - 1.8}" r="1.3" fill="${ink === '#2b2320' ? '#fff' : '#2b2320'}"/>`;
     } else {
       const cut = lerp(-ry, ry * 0.45, lid);
       const w = rx * Math.sqrt(1 - (cut / ry) ** 2);

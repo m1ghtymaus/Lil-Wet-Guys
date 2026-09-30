@@ -181,7 +181,7 @@ class LilWetGuysCard extends HTMLElement {
     header.hidden = !this._config.title;
     header.textContent = this._config.title || '';
     this._keys = new Map(); // force a redraw with the new options
-    this._render();
+    this._render(true);
   }
 
   set hass(hass) {
@@ -228,13 +228,18 @@ class LilWetGuysCard extends HTMLElement {
     return device?.name_by_user || device?.name || String(st.attributes.friendly_name || id).replace(/ Status$/, '');
   }
 
-  _render() {
+  _render(force = false) {
     if (!this._hass || !this.shadowRoot) return;
-    const grid = this.shadowRoot.querySelector('.grid');
     const plants = this._plants();
+    // Home Assistant hands the card a fresh state object whenever anything in the house
+    // changes. Only do work when a plant changed or the minute ticked over.
+    const signature = `${Math.floor(Date.now() / 60000)}|${plants.map((p) => `${p.id}@${p.st.last_updated}`).join(',')}`;
+    if (!force && signature === this._signature) return;
+    this._signature = signature;
+    const grid = this.shadowRoot.querySelector('.grid');
     this.shadowRoot.querySelector('.empty').hidden = plants.length > 0;
     const seen = new Set();
-    for (const p of plants) {
+    plants.forEach((p, index) => {
       seen.add(p.id);
       let tile = this._tiles.get(p.id);
       if (!tile) {
@@ -248,8 +253,9 @@ class LilWetGuysCard extends HTMLElement {
         this._tiles.set(p.id, tile);
       }
       this._updateTile(tile, p);
-      grid.appendChild(tile); // keeps tiles in sorted order
-    }
+      // Move a tile only when it's out of place: moving an element restarts its animations.
+      if (grid.children[index] !== tile) grid.insertBefore(tile, grid.children[index] ?? null);
+    });
     for (const [id, tile] of this._tiles) {
       if (!seen.has(id)) {
         tile.remove();
@@ -263,12 +269,14 @@ class LilWetGuysCard extends HTMLElement {
     const dryness = clamp(p.overdue / GHOST_AT, 0, 1);
     const ghost = p.overdue >= GHOST_AT;
     const status = statusOf(p.overdue);
-    const key = [p.st.last_updated, p.name, ghost, Math.round(dryness * 100), this._config.limbs].join('|');
+    // Not keyed on last_updated: temperature or moisture updates don't change the drawing,
+    // and redrawing would restart its animation.
+    const key = [p.a.next_watering, p.a.shape, p.a.pot_color, p.name, ghost, Math.round(dryness * 100), this._config.limbs].join('|');
     if (this._keys.get(p.id) !== key) {
       this._keys.set(p.id, key);
       tile.querySelector('.art').innerHTML = drawPlant({
         species: p.a.shape, potColor: p.a.pot_color, dryness, ghost, seed: p.id,
-        limbs: this._config.limbs !== false && poseFor(p.id), label: p.name,
+        limbs: this._config.limbs !== false && poseFor(p.id), label: p.name, layered: true,
       });
     }
     tile.querySelector('.name').textContent = p.name;
@@ -302,7 +310,7 @@ class LilWetGuysCard extends HTMLElement {
       el.textContent = `${inUnit(Number(el.dataset.min), unit)}–${inUnit(Number(el.dataset.max), unit)} °${unit}`;
     });
     dialog.querySelectorAll('.unit button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.unit === unit)));
-    this._render(); // tile badges
+    this._render(true); // tile badges
   }
 
   _badges(a) {
@@ -370,14 +378,10 @@ class LilWetGuysCard extends HTMLElement {
       dialog.close();
       return;
     }
-    // Redraw only when the plant changes or a minute passes, so the photo doesn't flicker.
+    // Refresh only when the plant changes or a minute passes.
     const key = `${id}|${st.last_updated}|${Math.floor(Date.now() / 60000)}`;
     if (!force && key === this._dialogKey) return;
-    // Never redraw over notes that are being typed.
-    const typing = this.shadowRoot.activeElement?.matches?.('textarea[data-notes]');
-    if (!force && (this._notesDirty || typing)) return;
     this._dialogKey = key;
-    this._notesDirty = false;
     const a = st.attributes;
     const name = this._name(id, st);
     const overdue = (Date.now() - new Date(a.next_watering).getTime()) / DAY;
@@ -397,9 +401,11 @@ class LilWetGuysCard extends HTMLElement {
     const maxC = toCelsius(a.temperature_max, haUnit);
     const unitToggle = `<span class="unit" role="group" aria-label="Temperature unit">${['C', 'F'].map((u) =>
       `<button type="button" data-act="unit" data-unit="${u}" aria-pressed="${u === unit}">°${u}</button>`).join('')}</span>`;
-    const drawing = drawPlant({
-      species: a.shape, potColor: a.pot_color, dryness: clamp(overdue / GHOST_AT, 0, 1), ghost: overdue >= GHOST_AT,
-      seed: id, limbs: this._config.limbs !== false && poseFor(id), label: name,
+    const dryness = clamp(overdue / GHOST_AT, 0, 1);
+    const drawKey = [a.next_watering, a.shape, a.pot_color, overdue >= GHOST_AT, Math.round(dryness * 100), this._config.limbs].join('|');
+    const drawing = () => drawPlant({
+      species: a.shape, potColor: a.pot_color, dryness, ghost: overdue >= GHOST_AT,
+      seed: id, limbs: this._config.limbs !== false && poseFor(id), label: name, layered: true,
     });
     const sub = a.species === 'other' ? '' : `${esc(a.species_name || art?.name || '')}${art?.latin ? ` · <i>${esc(art.latin)}</i>` : ''}`;
     const rows = [
@@ -414,6 +420,23 @@ class LilWetGuysCard extends HTMLElement {
       rows.push(['Room', roomC == null ? 'No reading' : `<span data-temp="${roomC}">${inUnit(roomC, unit)} °${unit}</span>${verdict}`]);
     }
     if (a.moisture != null) rows.push(['Soil moisture', `${esc(Math.round(a.moisture))}%`]);
+    const stateHtml = `<span class="chip ${status}">${STATUS_LABEL[status]}</span><span>${esc(countdown(overdue))}</span>`;
+    const rowsHtml = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+
+    if (!force) {
+      // Refresh in place: the notes box is left alone, and the drawing (with its animation)
+      // is only replaced when the plant itself changed.
+      dialog.querySelector('.state').innerHTML = stateHtml;
+      dialog.querySelector('dl').innerHTML = rowsHtml;
+      if (drawKey !== this._drawKey) {
+        this._drawKey = drawKey;
+        dialog.querySelector('.hero .art').innerHTML = drawing();
+      }
+      return;
+    }
+
+    this._drawKey = drawKey;
+    this._notesDirty = false;
     this._notesEntity = a.notes_entity || null;
     const rawNotes = this._notesEntity ? this._hass.states[this._notesEntity]?.state : null;
     const notes = rawNotes && !['unknown', 'unavailable'].includes(rawNotes) ? rawNotes : '';
@@ -421,9 +444,9 @@ class LilWetGuysCard extends HTMLElement {
     dialog.innerHTML = `<div class="sheet">
       <div class="top"><div><h2>${esc(name)}</h2>${sub ? `<div class="sub">${sub}</div>` : ''}</div>
         <button class="close" type="button" data-act="close" aria-label="Close"><ha-icon icon="mdi:close"></ha-icon></button></div>
-      <div class="hero${photo ? '' : ' solo'}"><div class="art">${drawing}</div>${photo ? `<img src="${esc(photo)}" alt="Photo of ${esc(name)}">` : ''}</div>
-      <div class="state"><span class="chip ${status}">${STATUS_LABEL[status]}</span><span>${esc(countdown(overdue))}</span></div>
-      <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+      <div class="hero${photo ? '' : ' solo'}"><div class="art">${drawing()}</div>${photo ? `<img src="${esc(photo)}" alt="Photo of ${esc(name)}">` : ''}</div>
+      <div class="state">${stateHtml}</div>
+      <dl>${rowsHtml}</dl>
       ${a.care_note ? `<p class="note">${esc(a.care_note)}</p>` : ''}
       ${this._notesEntity ? `<div class="notes"><label for="pt-notes">Notes</label>
         <textarea id="pt-notes" data-notes maxlength="255" rows="3" placeholder="Repotted in spring, likes the east window…">${esc(notes)}</textarea>

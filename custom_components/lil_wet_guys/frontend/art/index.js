@@ -11,6 +11,11 @@ export { LIMB_STYLES, SPECIES };
 /** Styles the host page must include once (the card puts them in its shadow root). */
 export const ART_CSS = `
 .pt-art{display:block;width:100%;height:auto;overflow:visible}
+.pt-stack{position:relative;width:100%;aspect-ratio:200/248}
+.pt-layer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.pt-happy .pt-lsway{transform-origin:50% 67.34%;will-change:transform;animation:pt-sway 5.5s ease-in-out infinite}
+.pt-happy .pt-lwave{will-change:transform;animation:pt-wave 1.1s ease-in-out infinite}
+.pt-stack.pt-ghost{will-change:transform;animation:pt-float 3.4s ease-in-out infinite}
 .pt-sway{transform-box:view-box;transform-origin:100px 167px}
 .pt-happy .pt-sway{animation:pt-sway 5.5s ease-in-out infinite}
 .pt-ghost .pt-float{animation:pt-float 3.4s ease-in-out infinite}
@@ -19,7 +24,7 @@ export const ART_CSS = `
 @keyframes pt-sway{0%,100%{transform:rotate(-1.3deg)}50%{transform:rotate(1.3deg)}}
 @keyframes pt-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes pt-wave{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(10deg)}}
-@media (prefers-reduced-motion:reduce){.pt-sway,.pt-float,.pt-wave{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.pt-sway,.pt-float,.pt-wave,.pt-lsway,.pt-lwave,.pt-stack{animation:none!important}}
 `;
 
 function hashStr(s) {
@@ -84,8 +89,12 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
  * @param {string} o.seed      varies angles between plants of the same species
  * @param {string} o.label     accessible name
  * @param {number|object|boolean} o.limbs  arms and feet: true picks a pose from the seed (default), a LIMB_STYLES index or style picks one, false draws none
+ * @param {boolean} o.layered  return stacked SVG layers in a <div> instead of one <svg>. Moving
+ *   whole layers lets the browser animate on the GPU instead of redrawing every path each frame.
  */
-export function drawPlant({ species, potColor = '#c8643c', dryness = 0, ghost = false, seed = '', label = '', limbs = true } = {}) {
+export function drawPlant({
+  species, potColor = '#c8643c', dryness = 0, ghost = false, seed = '', label = '', limbs = true, layered = false,
+} = {}) {
   const def = SPECIES[species] ?? SPECIES.generic_leafy;
   const d = ghost ? 0 : clamp(dryness);
   const ctx = makeCtx(def, d, ghost, `${species}|${seed}`);
@@ -97,8 +106,25 @@ export function drawPlant({ species, potColor = '#c8643c', dryness = 0, ghost = 
   const plantOpacity = ghost ? ' opacity=".88"' : '';
   const layer = (body) => (body ? `<g class="pt-sway" style="${delay}"${plantOpacity}><g${scale}>${body}</g></g>` : '');
   const feet = style ? drawFeet(ctx, style, potColor) : '';
-  const arms = style ? drawArms(ctx, style, potColor) : '';
-  return `<svg class="pt-art ${state}" viewBox="0 0 200 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(label || def.name)}">`
-    + `<g class="pt-float">${ground(ctx)}${potBack(ctx, potColor)}${layer(back)}${arms}`
-    + `${potFront(ctx, potColor)}${feet}${layer(front)}</g></svg>`;
+  const arms = style ? drawArms(ctx, style, potColor) : [];
+  const stillArms = arms.filter((a) => !a.waving).map((a) => a.svg).join('');
+  const wavingArms = arms.filter((a) => a.waving);
+  const base = `${ground(ctx)}${potBack(ctx, potColor)}`;
+  const pot = `${potFront(ctx, potColor)}${feet}`;
+  const aria = `role="img" aria-label="${esc(label || def.name)}"`;
+
+  if (!layered) {
+    const wave = wavingArms.map((a) => `<g class="pt-wave" style="transform-origin:${a.origin[0]}px ${a.origin[1]}px">${a.svg}</g>`).join('');
+    return `<svg class="pt-art ${state}" viewBox="0 0 200 248" xmlns="http://www.w3.org/2000/svg" ${aria}>`
+      + `<g class="pt-float">${base}${layer(back)}${stillArms}${wave}${pot}${layer(front)}</g></svg>`;
+  }
+
+  // Same drawing as separate stacked SVGs, in paint order.
+  const svg = (body, cls = '', css = '') => (body
+    ? `<svg class="pt-layer${cls}" viewBox="0 0 200 248" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"${css ? ` style="${css}"` : ''}>${body}</svg>`
+    : '');
+  const plant = (body) => svg(scale ? `<g${scale}>${body}</g>` : body, ' pt-lsway', `${delay}${ghost ? ';opacity:.88' : ''}`);
+  const pct = ([x, y]) => `${((x / 200) * 100).toFixed(2)}% ${((y / 248) * 100).toFixed(2)}%`;
+  const wave = wavingArms.map((a) => svg(a.svg, ' pt-lwave', `transform-origin:${pct(a.origin)}`)).join('');
+  return `<div class="pt-stack ${state}" ${aria}>${svg(base)}${plant(back)}${svg(stillArms)}${wave}${svg(pot)}${plant(front)}</div>`;
 }

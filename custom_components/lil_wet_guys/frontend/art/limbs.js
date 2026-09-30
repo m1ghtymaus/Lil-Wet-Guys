@@ -70,11 +70,14 @@ export function drawFeet(ctx, style, potColor) {
   return s;
 }
 
-/** Nub arms with rounded ends, coming out from behind the pot. Ghosts let theirs hang. */
+/**
+ * Nub arms with rounded ends, coming out from behind the pot. Ghosts let theirs hang.
+ * Returns one part per arm: { svg, waving, origin: [x, y] } (origin = the shoulder).
+ */
 export function drawArms(ctx, style, potColor) {
   const color = ctx.ghost ? ctx.fill(potColor) : limbColor(potColor);
   const k = ctx.ghost ? 1 : ease(clamp(ctx.d * 1.3));
-  let s = '';
+  const parts = [];
   style.arms.forEach((name, i) => {
     const sd = i === 0 ? -1 : 1;
     const pose = ARM[name];
@@ -84,9 +87,8 @@ export function drawArms(ctx, style, potColor) {
     const hand = mix(pose.hand, LIMP.hand, k);
     const [ex, ey] = mirror(n ? add(elbow, n.arm, 0.5) : elbow, sd);
     const [hx, hy] = mirror(n ? add(hand, n.arm) : hand, sd);
-    const arm = stub(ctx, `M${sx} ${sy}Q${f1(ex)} ${f1(ey)} ${f1(hx)} ${f1(hy)}`, color, 9.5);
-    const waving = name === 'wave' && ctx.d === 0 && !ctx.ghost;
-    s += waving ? `<g class="pt-wave" style="transform-origin:${sx}px ${sy}px">${arm}</g>` : arm;
+    const svg = stub(ctx, `M${sx} ${sy}Q${f1(ex)} ${f1(ey)} ${f1(hx)} ${f1(hy)}`, color, 9.5);
+    parts.push({ svg, waving: name === 'wave' && ctx.d === 0 && !ctx.ghost, origin: [sx, sy] });
   });
-  return s;
+  return parts;
 }
