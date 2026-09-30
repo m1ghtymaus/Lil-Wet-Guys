@@ -1,4 +1,4 @@
-"""Care presets for the plants Plant Tracker knows how to draw.
+"""Care presets for the plants Lil Wet Guys knows how to draw.
 
 Ids must match frontend/art/species.js. Watering intervals are for bright,
 indirect light; the light setting stretches or shortens them. Temperatures are

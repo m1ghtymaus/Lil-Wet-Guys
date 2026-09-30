@@ -12,7 +12,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util.unit_conversion import TemperatureConverter
 
-from . import PlantTrackerConfigEntry
+from . import LilWetGuysConfigEntry
 from .const import DOMAIN
 from .entity import PlantEntity
 from .model import STATUSES
@@ -20,7 +20,7 @@ from .model import STATUSES
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: PlantTrackerConfigEntry,
+    entry: LilWetGuysConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Add the sensors for every plant."""
@@ -70,7 +70,7 @@ class StatusSensor(PlantEntity, SensorEntity):
             return round(TemperatureConverter.convert(value_c, UnitOfTemperature.CELSIUS, unit), 1)
 
         attrs: dict[str, Any] = {
-            "plant_tracker": True,
+            "lil_wet_guys": True,
             "species": plant.species_id,
             "species_name": plant.species.name if plant.species_id != "other" else None,
             "shape": plant.shape,
@@ -87,6 +87,7 @@ class StatusSensor(PlantEntity, SensorEntity):
             "temperature_unit": unit,
             "button_entity": self._sibling("button", "watered"),
             "last_watered_entity": self._sibling("datetime", "last_watered"),
+            "notes_entity": self._sibling("text", "notes"),
         }
         if plant.photo_file:
             attrs["photo_entity"] = self._sibling("image", "photo")

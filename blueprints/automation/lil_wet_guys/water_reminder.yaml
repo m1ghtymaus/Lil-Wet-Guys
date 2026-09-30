@@ -1,8 +1,8 @@
 blueprint:
-  name: Plant Tracker – water reminders
+  name: Lil Wet Guys – water reminders
   description: >-
     Once a day, sends one notification per plant that needs water, each with a
-    "Watered" button that marks it watered. Finds Plant Tracker plants on its
+    "Watered" button that marks it watered. Finds Lil Wet Guys plants on its
     own, so new plants need no changes here.
   domain: automation
   input:
@@ -48,8 +48,8 @@ actions:
         sequence:
           - repeat:
               for_each: >-
-                {{ integration_entities('plant_tracker') | select('match', 'sensor\\.')
-                   | select('is_state_attr', 'plant_tracker', true)
+                {{ integration_entities('lil_wet_guys') | select('match', 'sensor\\.')
+                   | select('is_state_attr', 'lil_wet_guys', true)
                    | reject('is_state', 'happy') | list }}
               sequence:
                 - action: "{{ notify_service }}"
@@ -67,7 +67,7 @@ actions:
             then:
               - repeat:
                   for_each: >-
-                    {{ integration_entities('plant_tracker') | select('match', 'binary_sensor\.')
+                    {{ integration_entities('lil_wet_guys') | select('match', 'binary_sensor\.')
                        | select('is_state', 'on') | list }}
                   sequence:
                     - action: "{{ notify_service }}"

@@ -1,9 +1,9 @@
-"""The Plant Tracker integration.
+"""The Lil Wet Guys plant tracker integration.
 
 One config entry holds every plant as a config subentry. Each plant becomes a
 device with a next-watering countdown, a status, a "Watered" button, an
-editable last-watered time and, when configured, a photo and a temperature
-warning. The integration also serves the dashboard card.
+editable last-watered time, notes and, when configured, a photo and a
+temperature warning. The integration also serves the dashboard card.
 """
 
 from __future__ import annotations
@@ -28,20 +28,21 @@ PLATFORMS: list[Platform] = [
     Platform.DATETIME,
     Platform.IMAGE,
     Platform.SENSOR,
+    Platform.TEXT,
 ]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 @dataclass
-class PlantTrackerData:
+class LilWetGuysData:
     """Runtime data: the store and every plant, keyed by subentry id."""
 
     store: PlantStore
     plants: dict[str, Plant]
 
 
-type PlantTrackerConfigEntry = ConfigEntry[PlantTrackerData]
+type LilWetGuysConfigEntry = ConfigEntry[LilWetGuysData]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -58,7 +59,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: PlantTrackerConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: LilWetGuysConfigEntry) -> bool:
     """Set up every plant in the entry."""
     store = PlantStore(hass)
     await store.async_load()
@@ -73,7 +74,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PlantTrackerConfigEntry)
     )
     for plant in plants.values():
         await plant.async_start()
-    entry.runtime_data = PlantTrackerData(store, plants)
+    entry.runtime_data = LilWetGuysData(store, plants)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     # The status sensor lists its sibling entities; they all exist now.
@@ -84,7 +85,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PlantTrackerConfigEntry)
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: PlantTrackerConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: LilWetGuysConfigEntry) -> bool:
     """Unload the entry and stop every plant."""
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
@@ -94,5 +95,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: PlantTrackerConfigEntry
     return unloaded
 
 
-async def _async_reload(hass: HomeAssistant, entry: PlantTrackerConfigEntry) -> None:
+async def _async_reload(hass: HomeAssistant, entry: LilWetGuysConfigEntry) -> None:
     await hass.config_entries.async_reload(entry.entry_id)

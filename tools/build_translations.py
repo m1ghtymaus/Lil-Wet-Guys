@@ -8,8 +8,8 @@ import json
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent / "custom_components" / "plant_tracker"
-PREFIX = "component::plant_tracker::"
+ROOT = Path(__file__).resolve().parent.parent / "custom_components" / "lil_wet_guys"
+PREFIX = "component::lil_wet_guys::"
 REF = re.compile(r"^\[%key:([^%]+)%\]$")
 
 

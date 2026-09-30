@@ -1,4 +1,4 @@
-"""Config flow: one Plant Tracker entry, then an "Add plant" flow per plant."""
+"""Config flow: one Lil Wet Guys entry, then an "Add plant" flow per plant."""
 
 from __future__ import annotations
 
@@ -43,6 +43,7 @@ from .const import (
     DEFAULT_MOISTURE_JUMP,
     DEFAULT_POT_COLOR,
     DOMAIN,
+    INTEGRATION_NAME,
     LIGHT_LEVELS,
     PHOTO_DIR,
     SECTION_SENSORS,
@@ -75,15 +76,15 @@ def save_photo(hass: HomeAssistant, file_id: str) -> str:
     return name
 
 
-class PlantTrackerConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Create the single Plant Tracker entry."""
+class LilWetGuysConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Create the single Lil Wet Guys entry."""
 
     VERSION = 1
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Confirm setup."""
         if user_input is not None:
-            return self.async_create_entry(title="Plant Tracker", data={})
+            return self.async_create_entry(title=INTEGRATION_NAME, data={})
         return self.async_show_form(step_id="user")
 
     @classmethod

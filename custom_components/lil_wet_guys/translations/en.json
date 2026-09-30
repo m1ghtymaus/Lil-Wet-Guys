@@ -2,12 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "title": "Plant Tracker",
-        "description": "Plant Tracker keeps a watering countdown for each of your plants. After setup, add each plant with the **Add plant** button on this integration's page."
+        "title": "Lil Wet Guys",
+        "description": "Lil Wet Guys keeps a watering countdown for each of your plants. After setup, add each plant with the **Add plant** button on this integration's page."
       }
     },
     "abort": {
-      "single_instance_allowed": "Plant Tracker is already set up. Add plants with the **Add plant** button on its integration page."
+      "single_instance_allowed": "Lil Wet Guys is already set up. Add plants with the **Add plant** button on its integration page."
     }
   },
   "config_subentries": {
@@ -161,6 +161,11 @@
           "wilting": "Wilting",
           "ghost": "Ghost"
         }
+      }
+    },
+    "text": {
+      "notes": {
+        "name": "Notes"
       }
     }
   }

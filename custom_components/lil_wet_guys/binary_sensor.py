@@ -10,13 +10,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util.unit_conversion import TemperatureConverter
 
-from . import PlantTrackerConfigEntry
+from . import LilWetGuysConfigEntry
 from .entity import PlantEntity
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: PlantTrackerConfigEntry,
+    entry: LilWetGuysConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Add a temperature warning for every plant with a room sensor."""

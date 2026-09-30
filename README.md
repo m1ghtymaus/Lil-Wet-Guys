@@ -1,11 +1,13 @@
-# Plant Tracker for Home Assistant
+# Lil Wet Guys
+
+A plant tracker for Home Assistant.
 
 Keeps a watering countdown for each of your houseplants and shows them on your
 dashboard as cartoons in their own pots, most thirsty first. When a plant's
 watering date passes it slowly droops, browns and frowns; three days late it
 turns into a ghost. Tap the watering can to bring it back.
 
-![The Plant Tracker card](docs/dashboard.jpg)
+![The Lil Wet Guys card](docs/dashboard.jpg)
 
 ## What you get
 
@@ -17,6 +19,7 @@ Each plant is its own device with these entities:
 | `sensor.<plant>_status` | `happy`, `thirsty` (0–1½ days late), `wilting` (1½–3 days late) or `ghost` (3+ days late). Its attributes carry everything the card needs. |
 | `button.<plant>_watered` | Press after watering; the countdown starts again. |
 | `datetime.<plant>_last_watered` | When it was last watered. Change it if you watered yesterday and forgot to press the button. |
+| `text.<plant>_notes` | Free-text notes (up to 255 characters). Also editable in the card's plant popup. |
 | `image.<plant>_photo` | The plant's photo, if you added one. |
 | `binary_sensor.<plant>_temperature` | On when the room is too cold or hot for the plant (only if you linked a thermometer). |
 
@@ -50,9 +53,9 @@ change this) within an hour counts as watering and resets the countdown.
 
 This repository is private, and [HACS can't install from private
 repositories](https://www.hacs.xyz/docs/faq/private_repositories/), so install by
-hand: copy `custom_components/plant_tracker` into your Home Assistant config
+hand: copy `custom_components/lil_wet_guys` into your Home Assistant config
 directory, next to `configuration.yaml`, and restart. The result should be
-`<config>/custom_components/plant_tracker/manifest.json`.
+`<config>/custom_components/lil_wet_guys/manifest.json`.
 
 | Install type | Config directory | How to get files in |
 | --- | --- | --- |
@@ -66,8 +69,8 @@ repository.)
 
 ## Set up
 
-1. **Settings → Devices & services → Add integration → Plant Tracker.**
-2. On the Plant Tracker page, press **Add plant**.
+1. **Settings → Devices & services → Add integration → Lil Wet Guys.**
+2. On the Lil Wet Guys page, press **Add plant**.
 3. Give it a name and pick its type. The next page is filled in from the type:
    light, watering interval, comfortable temperatures. Change anything you like,
    pick a pot colour, add a photo, and set when you last watered it.
@@ -88,7 +91,7 @@ plant, Split-leaf philodendron, Tiger aloe, Tiger tooth aloe, Umbrella plant,
 Variegated peperomia, Weeping fig and ZZ plant.
 
 Each has its own drawing and care preset (see
-[`species.py`](custom_components/plant_tracker/species.py)). For anything else
+[`species.py`](custom_components/lil_wet_guys/species.py)). For anything else
 choose **Other**, pick one of five drawings (leafy, trailing vine, succulent,
 upright spiky, small tree) and fill in its care yourself.
 
@@ -97,7 +100,7 @@ upright spiky, small tree) and fill in its care yourself.
 The integration loads the card for you. Add it to a dashboard with:
 
 ```yaml
-type: custom:plant-tracker-card
+type: custom:lil-wet-guys-card
 title: My plants   # optional
 ```
 
@@ -105,27 +108,31 @@ title: My plants   # optional
 | --- | --- | --- |
 | `title` | none | Heading above the plants. |
 | `limbs` | `true` | Little arms and feet on each pot. |
+| `temperature_unit` | Home Assistant's unit | `C` or `F` for the temperatures the card shows. |
 | `entities` | all plants | A list of `sensor.<plant>_status` ids, to show only some plants. |
 
 - New plants appear on their own, sorted by how soon they need water.
 - The **watering can** marks a plant as watered, with **Undo** in the pop-up
   message.
-- **Tap a plant** for its photo, care notes, room temperature and moisture, and
-  a **Watered** button.
+- **Tap a plant** for its photo, care notes, room temperature and moisture, a
+  **Watered** button, and your own **Notes**, which you can edit right there.
+  They save when you press **Save notes** (or Cmd/Ctrl+Enter) or close the popup.
+- The **°C / °F** switch next to a plant's temperature range changes every
+  temperature on the card. Each device remembers its own choice.
 
 ![Plant details](docs/details.jpg)
 
 ## Reminders
 
-[`blueprints/automation/plant_tracker/water_reminder.yaml`](blueprints/automation/plant_tracker/water_reminder.yaml)
+[`blueprints/automation/lil_wet_guys/water_reminder.yaml`](blueprints/automation/lil_wet_guys/water_reminder.yaml)
 sends one notification per plant that needs water, once a day at a time you
 choose (9:00 by default), each with a **Watered** button. It can also warn when
 a room is too cold or hot for a plant. It finds your plants itself, so new
 plants need no changes.
 
-To use it, copy the file to `<config>/blueprints/automation/plant_tracker/` (or
+To use it, copy the file to `<config>/blueprints/automation/lil_wet_guys/` (or
 import it by URL once this repository is on GitHub), then **Settings →
-Automations & scenes → Blueprints → Plant Tracker – water reminders → Create
+Automations & scenes → Blueprints → Lil Wet Guys – water reminders → Create
 automation** and pick your phone. Notifications need the Home Assistant
 Companion app.
 
@@ -138,7 +145,7 @@ uv pip install --python .venv/bin/python pytest-homeassistant-custom-component
 uvx ruff check .
 ```
 
-- `custom_components/plant_tracker/frontend/art/` draws the plants;
+- `custom_components/lil_wet_guys/frontend/art/` draws the plants;
   `preview/index.html` shows every drawing with a watering-day slider (serve the
   project folder over HTTP and open `/preview/`).
 - After editing `strings.json`, run `python3 tools/build_translations.py` to

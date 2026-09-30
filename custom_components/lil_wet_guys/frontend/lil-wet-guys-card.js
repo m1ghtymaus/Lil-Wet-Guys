@@ -1,6 +1,6 @@
-// Plant Tracker dashboard card: every tracked plant as a cartoon in its pot,
+// Lil Wet Guys dashboard card: every tracked plant as a cartoon in its pot,
 // most urgent first. Tap the watering can to mark a plant watered (with Undo),
-// or tap the plant for its photo and care details.
+// or tap the plant for its photo, care details and editable notes.
 
 import { ART_CSS, SPECIES, drawPlant } from './art/index.js';
 
@@ -17,6 +17,19 @@ const STATUS_LABEL = { happy: 'Happy', thirsty: 'Thirsty', wilting: 'Wilting', g
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+// Temperatures arrive in Home Assistant's unit; the card can show either.
+const UNIT_KEY = 'lil-wet-guys:temperature-unit';
+const toCelsius = (value, haUnit) => (haUnit === '°F' ? ((value - 32) * 5) / 9 : value);
+const inUnit = (celsius, unit) => Math.round(unit === 'F' ? (celsius * 9) / 5 + 32 : celsius);
+function savedUnit() {
+  try {
+    const v = localStorage.getItem(UNIT_KEY);
+    return v === 'C' || v === 'F' ? v : null;
+  } catch {
+    return null; // storage can be blocked; fall back to the default
+  }
+}
 
 function statusOf(overdue) {
   if (overdue < 0) return 'happy';
@@ -85,12 +98,23 @@ dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; f
 dt { color: var(--secondary-text-color); }
 dd { margin: 0; }
 .note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--secondary-background-color, rgba(127,127,127,.08)); font-size: 14px; }
+.notes { display: grid; gap: 6px; }
+.notes label { font-size: 13px; color: var(--secondary-text-color); }
+.notes textarea { font: inherit; font-size: 14px; line-height: 1.4; resize: vertical; min-height: 64px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color, rgba(127,127,127,.3)); background: var(--secondary-background-color, rgba(127,127,127,.08)); color: var(--primary-text-color); }
+.notes textarea:focus { outline: 2px solid var(--primary-color); outline-offset: 1px; }
+.notes-foot { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+.notes-foot button { font: inherit; font-weight: 600; font-size: 13px; border-radius: 999px; padding: 6px 12px; cursor: pointer; border: 1px solid var(--divider-color, rgba(127,127,127,.3)); background: none; color: var(--primary-text-color); }
+.notes-foot button:disabled { opacity: .5; cursor: default; }
+.unit { display: inline-flex; margin-left: 8px; border: 1px solid var(--divider-color, rgba(127,127,127,.3)); border-radius: 999px; overflow: hidden; vertical-align: middle; }
+.unit button { font: inherit; font-size: 12px; font-weight: 600; padding: 2px 9px; border: 0; background: none; color: var(--secondary-text-color); cursor: pointer; }
+.unit button[aria-pressed="true"] { background: var(--primary-color); color: var(--text-primary-color, #fff); }
+.unit button:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
 .actions { display: flex; justify-content: flex-end; gap: 8px; }
 .actions button { font: inherit; font-weight: 600; border-radius: 999px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--divider-color, rgba(127,127,127,.3)); background: none; color: var(--primary-text-color); }
 .actions button.primary { background: var(--primary-color); border-color: var(--primary-color); color: var(--text-primary-color, #fff); }
 `;
 
-class PlantTrackerCard extends HTMLElement {
+class LilWetGuysCard extends HTMLElement {
   static getStubConfig() {
     return {};
   }
@@ -100,8 +124,14 @@ class PlantTrackerCard extends HTMLElement {
       schema: [
         { name: 'title', selector: { text: {} } },
         { name: 'limbs', selector: { boolean: {} } },
+        {
+          name: 'temperature_unit',
+          selector: { select: { mode: 'dropdown', options: [{ value: 'C', label: 'Celsius (°C)' }, { value: 'F', label: 'Fahrenheit (°F)' }] } },
+        },
       ],
-      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet' })[s.name],
+      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', temperature_unit: 'Temperature unit' })[s.name],
+      computeHelper: (s) => (s.name === 'temperature_unit'
+        ? "Leave empty to use Home Assistant's setting. The °C/°F switch in a plant's popup overrides it on that device." : undefined),
     };
   }
 
@@ -110,7 +140,7 @@ class PlantTrackerCard extends HTMLElement {
     if (!this.shadowRoot) {
       const root = this.attachShadow({ mode: 'open' });
       root.innerHTML = `<style>${ART_CSS}${CSS}</style><ha-card><div class="header" hidden></div><div class="grid"></div>`
-        + '<div class="empty" hidden>No plants yet. Add one from <b>Settings → Devices &amp; services → Plant Tracker → Add plant</b>.</div></ha-card>'
+        + '<div class="empty" hidden>No plants yet. Add one from <b>Settings → Devices &amp; services → Lil Wet Guys → Add plant</b>.</div></ha-card>'
         + '<dialog></dialog>';
       root.querySelector('.grid').addEventListener('click', (e) => this._onClick(e));
       root.querySelector('.grid').addEventListener('keydown', (e) => {
@@ -119,8 +149,19 @@ class PlantTrackerCard extends HTMLElement {
           this._openDetails(e.target.dataset.id);
         }
       });
-      root.querySelector('dialog').addEventListener('click', (e) => this._onDialogClick(e));
-      root.querySelector('dialog').addEventListener('close', () => { this._openId = null; });
+      const dialog = root.querySelector('dialog');
+      dialog.addEventListener('click', (e) => this._onDialogClick(e));
+      dialog.addEventListener('input', (e) => this._onNotesInput(e));
+      dialog.addEventListener('keydown', (e) => {
+        if (e.target.matches('textarea[data-notes]') && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          this._saveNotes();
+        }
+      });
+      dialog.addEventListener('close', () => {
+        if (this._notesDirty) this._saveNotes(); // closing keeps what was typed
+        this._openId = null;
+      });
       this._tiles = new Map();
     }
     const header = this.shadowRoot.querySelector('.header');
@@ -158,7 +199,7 @@ class PlantTrackerCard extends HTMLElement {
     const now = Date.now();
     const out = [];
     for (const [id, st] of Object.entries(states)) {
-      if (!id.startsWith('sensor.') || !st.attributes.plant_tracker) continue;
+      if (!id.startsWith('sensor.') || !st.attributes.lil_wet_guys) continue;
       if (Array.isArray(only) && !only.includes(id)) continue;
       const a = st.attributes;
       const next = new Date(a.next_watering).getTime();
@@ -226,11 +267,38 @@ class PlantTrackerCard extends HTMLElement {
     tile.querySelector('.badges').innerHTML = this._badges(p.a);
   }
 
+  /** 'C' or 'F': this device's choice, else the card option, else Home Assistant's unit. */
+  _unit(haUnit) {
+    const configured = this._config.temperature_unit;
+    return savedUnit() || (configured === 'C' || configured === 'F' ? configured : null) || (haUnit === '°F' ? 'F' : 'C');
+  }
+
+  _setUnit(unit) {
+    this._unitOverride = unit; // applies to this page even if storage is blocked
+    try {
+      localStorage.setItem(UNIT_KEY, unit);
+    } catch {
+      // Storage blocked: the choice lasts until the page reloads.
+    }
+    const dialog = this.shadowRoot.querySelector('dialog');
+    // Update the popup in place so notes being typed aren't lost.
+    dialog.querySelectorAll('[data-temp]').forEach((el) => {
+      el.textContent = `${inUnit(Number(el.dataset.temp), unit)} °${unit}`;
+    });
+    dialog.querySelectorAll('[data-temp-range]').forEach((el) => {
+      el.textContent = `${inUnit(Number(el.dataset.min), unit)}–${inUnit(Number(el.dataset.max), unit)} °${unit}`;
+    });
+    dialog.querySelectorAll('.unit button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.unit === unit)));
+    this._render(); // tile badges
+  }
+
   _badges(a) {
     const out = [];
     if (a.temperature_problem) {
       const icon = a.temperature_problem === 'cold' ? 'mdi:snowflake-thermometer' : 'mdi:sun-thermometer';
-      out.push(`<span class="warn"><ha-icon icon="${icon}"></ha-icon> ${esc(a.temperature)}°</span>`);
+      const unit = this._unitOverride || this._unit(a.temperature_unit);
+      const reading = inUnit(toCelsius(a.temperature, a.temperature_unit), unit);
+      out.push(`<span class="warn"><ha-icon icon="${icon}"></ha-icon> ${esc(reading)}°${unit}</span>`);
     }
     if (a.moisture != null) out.push(`<span><ha-icon icon="mdi:water-percent"></ha-icon> ${esc(Math.round(a.moisture))}%</span>`);
     return out.join('');
@@ -292,7 +360,11 @@ class PlantTrackerCard extends HTMLElement {
     // Redraw only when the plant changes or a minute passes, so the photo doesn't flicker.
     const key = `${id}|${st.last_updated}|${Math.floor(Date.now() / 60000)}`;
     if (!force && key === this._dialogKey) return;
+    // Never redraw over notes that are being typed.
+    const typing = this.shadowRoot.activeElement?.matches?.('textarea[data-notes]');
+    if (!force && (this._notesDirty || typing)) return;
     this._dialogKey = key;
+    this._notesDirty = false;
     const a = st.attributes;
     const name = this._name(id, st);
     const overdue = (Date.now() - new Date(a.next_watering).getTime()) / DAY;
@@ -306,7 +378,12 @@ class PlantTrackerCard extends HTMLElement {
     const lastText = ago < 1 / 24 ? rel.format(-Math.max(1, Math.round(ago * 1440)), 'minute')
       : ago < 1 ? rel.format(-Math.round(ago * 24), 'hour') : rel.format(-Math.round(ago), 'day');
     const lastDate = last.toLocaleString(lang, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-    const unit = a.temperature_unit || '°C';
+    const haUnit = a.temperature_unit || '°C';
+    const unit = this._unitOverride || this._unit(haUnit);
+    const minC = toCelsius(a.temperature_min, haUnit);
+    const maxC = toCelsius(a.temperature_max, haUnit);
+    const unitToggle = `<span class="unit" role="group" aria-label="Temperature unit">${['C', 'F'].map((u) =>
+      `<button type="button" data-act="unit" data-unit="${u}" aria-pressed="${u === unit}">°${u}</button>`).join('')}</span>`;
     const drawing = drawPlant({
       species: a.shape, potColor: a.pot_color, dryness: clamp(overdue / GHOST_AT, 0, 1), ghost: overdue >= GHOST_AT,
       seed: id, limbs: this._config.limbs !== false, label: name,
@@ -316,13 +393,17 @@ class PlantTrackerCard extends HTMLElement {
       ['Watering', `Every ${esc(a.interval_days)} days in ${esc(LIGHT[a.light] || a.light)}`
         + (a.interval_days !== a.base_days ? ` (${esc(a.base_days)} in bright, indirect light)` : '')],
       ['Last watered', `${esc(lastText)} · ${esc(lastDate)}`],
-      ['Comfortable', `${esc(a.temperature_min)}–${esc(a.temperature_max)} ${esc(unit)}`],
+      ['Comfortable', `<span data-temp-range data-min="${minC}" data-max="${maxC}">${inUnit(minC, unit)}–${inUnit(maxC, unit)} °${unit}</span>${unitToggle}`],
     ];
     if (a.temperature_entity) {
       const verdict = a.temperature_problem ? ` · too ${esc(a.temperature_problem)}` : '';
-      rows.push(['Room', a.temperature == null ? 'No reading' : `${esc(a.temperature)} ${esc(unit)}${verdict}`]);
+      const roomC = a.temperature == null ? null : toCelsius(a.temperature, haUnit);
+      rows.push(['Room', roomC == null ? 'No reading' : `<span data-temp="${roomC}">${inUnit(roomC, unit)} °${unit}</span>${verdict}`]);
     }
     if (a.moisture != null) rows.push(['Soil moisture', `${esc(Math.round(a.moisture))}%`]);
+    this._notesEntity = a.notes_entity || null;
+    const rawNotes = this._notesEntity ? this._hass.states[this._notesEntity]?.state : null;
+    const notes = rawNotes && !['unknown', 'unavailable'].includes(rawNotes) ? rawNotes : '';
 
     dialog.innerHTML = `<div class="sheet">
       <div class="top"><div><h2>${esc(name)}</h2>${sub ? `<div class="sub">${sub}</div>` : ''}</div>
@@ -331,6 +412,10 @@ class PlantTrackerCard extends HTMLElement {
       <div class="state"><span class="chip ${status}">${STATUS_LABEL[status]}</span><span>${esc(countdown(overdue))}</span></div>
       <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
       ${a.care_note ? `<p class="note">${esc(a.care_note)}</p>` : ''}
+      ${this._notesEntity ? `<div class="notes"><label for="pt-notes">Notes</label>
+        <textarea id="pt-notes" data-notes maxlength="255" rows="3" placeholder="Repotted in spring, likes the east window…">${esc(notes)}</textarea>
+        <div class="notes-foot"><span class="count">${notes.length}/255</span>
+          <button type="button" data-act="save-notes" disabled>Save notes</button></div></div>` : ''}
       <div class="actions"><button type="button" data-act="settings">Settings</button>
         <button type="button" class="primary" data-act="water">Watered</button></div>
     </div>`;
@@ -345,6 +430,8 @@ class PlantTrackerCard extends HTMLElement {
     const act = e.target.closest('[data-act]')?.dataset.act;
     const id = this._openId;
     if (act === 'close') dialog.close();
+    if (act === 'save-notes') this._saveNotes();
+    if (act === 'unit') this._setUnit(e.target.closest('[data-unit]').dataset.unit);
     if (act === 'water' && id) {
       this._water(id);
       dialog.close();
@@ -354,15 +441,50 @@ class PlantTrackerCard extends HTMLElement {
       this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: id }, bubbles: true, composed: true }));
     }
   }
+
+  _onNotesInput(e) {
+    if (!e.target.matches('textarea[data-notes]')) return;
+    this._notesDirty = true;
+    const dialog = this.shadowRoot.querySelector('dialog');
+    dialog.querySelector('.notes .count').textContent = `${e.target.value.length}/255`;
+    const button = dialog.querySelector('[data-act="save-notes"]');
+    button.disabled = false;
+    button.textContent = 'Save notes';
+  }
+
+  async _saveNotes() {
+    const dialog = this.shadowRoot.querySelector('dialog');
+    const box = dialog.querySelector('textarea[data-notes]');
+    const entity = this._notesEntity;
+    if (!box || !entity) return;
+    const button = dialog.querySelector('[data-act="save-notes"]');
+    this._notesDirty = false;
+    try {
+      await this._hass.callService('text', 'set_value', { entity_id: entity, value: box.value });
+      if (button) {
+        button.textContent = 'Saved';
+        button.disabled = true;
+      }
+    } catch (err) {
+      this._notesDirty = true;
+      if (button) {
+        button.textContent = 'Try again';
+        button.disabled = false;
+      }
+      this.dispatchEvent(new CustomEvent('hass-notification', {
+        detail: { message: `Couldn't save the notes: ${err?.message || err}` }, bubbles: true, composed: true,
+      }));
+    }
+  }
 }
 
-if (!customElements.get('plant-tracker-card')) {
-  customElements.define('plant-tracker-card', PlantTrackerCard);
+if (!customElements.get('lil-wet-guys-card')) {
+  customElements.define('lil-wet-guys-card', LilWetGuysCard);
   window.customCards = window.customCards || [];
   window.customCards.push({
-    type: 'plant-tracker-card',
-    name: 'Plant Tracker',
-    description: 'Your plants as cartoons, most thirsty first, with one-tap watering.',
+    type: 'lil-wet-guys-card',
+    name: 'Lil Wet Guys',
+    description: 'Your plants as cartoons, most thirsty first, with one-tap watering and notes.',
     preview: false,
   });
 }

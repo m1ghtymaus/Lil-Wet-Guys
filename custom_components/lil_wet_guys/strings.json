@@ -2,12 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "title": "Plant Tracker",
-        "description": "Plant Tracker keeps a watering countdown for each of your plants. After setup, add each plant with the **Add plant** button on this integration's page."
+        "title": "Lil Wet Guys",
+        "description": "Lil Wet Guys keeps a watering countdown for each of your plants. After setup, add each plant with the **Add plant** button on this integration's page."
       }
     },
     "abort": {
-      "single_instance_allowed": "Plant Tracker is already set up. Add plants with the **Add plant** button on its integration page."
+      "single_instance_allowed": "Lil Wet Guys is already set up. Add plants with the **Add plant** button on its integration page."
     }
   },
   "config_subentries": {
@@ -68,33 +68,33 @@
           "title": "Edit {name}",
           "description": "Changing the plant type doesn't overwrite the care details below. To reset the countdown, use the plant's **Last watered** entity or its **Watered** button.",
           "data": {
-            "name": "[%key:component::plant_tracker::config_subentries::plant::step::user::data::name%]",
-            "species": "[%key:component::plant_tracker::config_subentries::plant::step::user::data::species%]",
-            "light": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::light%]",
-            "base_days": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::base_days%]",
-            "temp_min": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::temp_min%]",
-            "temp_max": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::temp_max%]",
-            "pot_color": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::pot_color%]",
-            "shape": "[%key:component::plant_tracker::config_subentries::plant::step::details::data::shape%]",
+            "name": "[%key:component::lil_wet_guys::config_subentries::plant::step::user::data::name%]",
+            "species": "[%key:component::lil_wet_guys::config_subentries::plant::step::user::data::species%]",
+            "light": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::data::light%]",
+            "base_days": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::data::base_days%]",
+            "temp_min": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::data::temp_min%]",
+            "temp_max": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::data::temp_max%]",
+            "pot_color": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::data::pot_color%]",
+            "shape": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::data::shape%]",
             "photo": "New photo",
             "remove_photo": "Remove the current photo"
           },
           "data_description": {
-            "light": "[%key:component::plant_tracker::config_subentries::plant::step::details::data_description::light%]",
+            "light": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::data_description::light%]",
             "shape": "Only used when the plant type is Other.",
             "photo": "Optional. Replaces the current photo."
           },
           "sections": {
             "sensors": {
-              "name": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::name%]",
-              "description": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::description%]",
+              "name": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::sections::sensors::name%]",
+              "description": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::sections::sensors::description%]",
               "data": {
-                "temperature_sensor": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::data::temperature_sensor%]",
-                "moisture_sensor": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::data::moisture_sensor%]",
-                "moisture_jump": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::data::moisture_jump%]"
+                "temperature_sensor": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::sections::sensors::data::temperature_sensor%]",
+                "moisture_sensor": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::sections::sensors::data::moisture_sensor%]",
+                "moisture_jump": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::sections::sensors::data::moisture_jump%]"
               },
               "data_description": {
-                "moisture_jump": "[%key:component::plant_tracker::config_subentries::plant::step::details::sections::sensors::data_description::moisture_jump%]"
+                "moisture_jump": "[%key:component::lil_wet_guys::config_subentries::plant::step::details::sections::sensors::data_description::moisture_jump%]"
               }
             }
           }
@@ -161,6 +161,11 @@
           "wilting": "Wilting",
           "ghost": "Ghost"
         }
+      }
+    },
+    "text": {
+      "notes": {
+        "name": "Notes"
       }
     }
   }

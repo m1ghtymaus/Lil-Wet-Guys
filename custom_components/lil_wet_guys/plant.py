@@ -58,7 +58,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class PlantStore:
-    """When each plant was last watered, keyed by subentry id."""
+    """When each plant was last watered, and its notes, keyed by subentry id."""
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Create the store; call async_load before use."""
@@ -66,7 +66,7 @@ class PlantStore:
         self._data: dict[str, dict[str, str]] = {}
 
     async def async_load(self) -> None:
-        """Read the saved times."""
+        """Read the saved data."""
         self._data = await self._store.async_load() or {}
 
     def last_watered(self, plant_id: str) -> datetime | None:
@@ -77,7 +77,17 @@ class PlantStore:
     @callback
     def set_last_watered(self, plant_id: str, when: datetime) -> None:
         """Save a new last-watered time."""
-        self._data[plant_id] = {"last_watered": dt_util.as_utc(when).isoformat()}
+        self._data.setdefault(plant_id, {})["last_watered"] = dt_util.as_utc(when).isoformat()
+        self._store.async_delay_save(lambda: self._data, 1)
+
+    def notes(self, plant_id: str) -> str:
+        """Return the plant's notes (empty if none)."""
+        return self._data.get(plant_id, {}).get("notes", "")
+
+    @callback
+    def set_notes(self, plant_id: str, notes: str) -> None:
+        """Save the plant's notes."""
+        self._data.setdefault(plant_id, {})["notes"] = notes
         self._store.async_delay_save(lambda: self._data, 1)
 
     @callback
@@ -280,6 +290,17 @@ class Plant:
         self.last_watered = dt_util.as_utc(when)
         self._store.set_last_watered(self.id, self.last_watered)
         self._schedule()
+        self._notify()
+
+    @property
+    def notes(self) -> str:
+        """Free-text notes about the plant."""
+        return self._store.notes(self.id)
+
+    @callback
+    def async_set_notes(self, notes: str) -> None:
+        """Replace the plant's notes."""
+        self._store.set_notes(self.id, notes)
         self._notify()
 
     @callback

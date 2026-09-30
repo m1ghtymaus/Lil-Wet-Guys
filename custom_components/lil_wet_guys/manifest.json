@@ -1,6 +1,6 @@
 {
-  "domain": "plant_tracker",
-  "name": "Plant Tracker",
+  "domain": "lil_wet_guys",
+  "name": "Lil Wet Guys",
   "after_dependencies": ["frontend"],
   "codeowners": [],
   "config_flow": true,
@@ -11,5 +11,5 @@
   "issue_tracker": "https://github.com/m1ghtymaus/Lil-Wet-Guys/issues",
   "requirements": ["Pillow"],
   "single_config_entry": true,
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

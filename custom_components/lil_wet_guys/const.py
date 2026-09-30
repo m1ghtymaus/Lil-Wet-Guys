@@ -1,11 +1,12 @@
-"""Constants for the Plant Tracker integration."""
+"""Constants for the Lil Wet Guys integration."""
 
 from __future__ import annotations
 
 from typing import Final
 
-DOMAIN: Final = "plant_tracker"
-MANUFACTURER: Final = "Plant Tracker"
+DOMAIN: Final = "lil_wet_guys"
+INTEGRATION_NAME: Final = "Lil Wet Guys"
+MANUFACTURER: Final = INTEGRATION_NAME
 SUBENTRY_PLANT: Final = "plant"
 
 # Subentry data keys.
@@ -34,7 +35,7 @@ DEFAULT_MOISTURE_JUMP: Final = 10
 
 STORAGE_KEY: Final = DOMAIN
 STORAGE_VERSION: Final = 1
-PHOTO_DIR: Final = "plant_tracker/photos"  # relative to the config directory
+PHOTO_DIR: Final = "lil_wet_guys/photos"  # relative to the config directory
 
-URL_BASE: Final = "/plant_tracker_static"
-CARD_FILE: Final = "plant-tracker-card.js"
+URL_BASE: Final = "/lil_wet_guys_static"
+CARD_FILE: Final = "lil-wet-guys-card.js"

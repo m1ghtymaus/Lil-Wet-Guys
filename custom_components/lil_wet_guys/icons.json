@@ -23,6 +23,11 @@
         "default": "mdi:image"
       }
     },
+    "text": {
+      "notes": {
+        "default": "mdi:note-text-outline"
+      }
+    },
     "sensor": {
       "next_watering": {
         "default": "mdi:water-outline"

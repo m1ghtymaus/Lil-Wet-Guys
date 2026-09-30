@@ -1,1 +1,1 @@
-"""Tests for the Plant Tracker integration."""
+"""Tests for the Lil Wet Guys integration."""

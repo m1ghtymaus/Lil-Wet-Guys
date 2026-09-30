@@ -9,14 +9,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from . import PlantTrackerConfigEntry
+from . import LilWetGuysConfigEntry
 from .entity import PlantEntity
 from .plant import Plant, photo_path
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: PlantTrackerConfigEntry,
+    entry: LilWetGuysConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Add a photo entity for every plant that has a photo."""

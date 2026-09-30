@@ -1,4 +1,4 @@
-"""Test fixtures for Plant Tracker."""
+"""Test fixtures for Lil Wet Guys."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.plant_tracker.const import DOMAIN, SUBENTRY_PLANT
+from custom_components.lil_wet_guys.const import DOMAIN, SUBENTRY_PLANT
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
@@ -37,11 +37,11 @@ def plant_data(**overrides: Any) -> dict[str, Any]:
 
 
 def make_entry(plants: dict[str, tuple[str, dict[str, Any]]] | None = None) -> MockConfigEntry:
-    """Build a Plant Tracker entry holding the given plants (id -> (name, data))."""
+    """Build a Lil Wet Guys entry holding the given plants (id -> (name, data))."""
     plants = plants if plants is not None else {PLANT_ID: ("Pothos", plant_data())}
     return MockConfigEntry(
         domain=DOMAIN,
-        title="Plant Tracker",
+        title="Lil Wet Guys",
         data={},
         subentries_data=[
             {

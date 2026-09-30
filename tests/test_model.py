@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from custom_components.plant_tracker import model
+from custom_components.lil_wet_guys import model
 
 T0 = datetime(2026, 9, 1, 12, 0, tzinfo=UTC)
 

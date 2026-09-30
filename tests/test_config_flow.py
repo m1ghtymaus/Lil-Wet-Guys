@@ -1,4 +1,4 @@
-"""Tests for setting up Plant Tracker and adding or editing plants."""
+"""Tests for setting up Lil Wet Guys and adding or editing plants."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 from PIL import Image
 
-from custom_components.plant_tracker.const import DOMAIN, PHOTO_DIR, SUBENTRY_PLANT
+from custom_components.lil_wet_guys.const import DOMAIN, PHOTO_DIR, SUBENTRY_PLANT
 from homeassistant.config_entries import SOURCE_USER
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -24,11 +24,11 @@ async def test_user_flow_creates_the_entry(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.FORM
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Plant Tracker"
+    assert result["title"] == "Lil Wet Guys"
 
 
 async def test_only_one_entry(hass: HomeAssistant) -> None:
-    """A second Plant Tracker is refused."""
+    """A second Lil Wet Guys entry is refused."""
     make_entry({}).add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     assert result["type"] is FlowResultType.ABORT
@@ -130,7 +130,7 @@ def _fake_upload(path: Path):
     def process(_hass, _file_id):
         yield path
 
-    with patch("custom_components.plant_tracker.config_flow.process_uploaded_file", process):
+    with patch("custom_components.lil_wet_guys.config_flow.process_uploaded_file", process):
         yield
 
 

@@ -8,7 +8,7 @@ from typing import Any
 from freezegun.api import FrozenDateTimeFactory
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
-from custom_components.plant_tracker.const import DOMAIN
+from custom_components.lil_wet_guys.const import DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_UNIT_OF_MEASUREMENT, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -21,13 +21,14 @@ STATUS = "sensor.pothos_status"
 NEXT = "sensor.pothos_next_watering"
 BUTTON = "button.pothos_watered"
 LAST = "datetime.pothos_last_watered"
+NOTES = "text.pothos_notes"
 
 
 async def test_entities_and_device(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
     """Each plant is a device with its entities; optional ones are absent."""
     watered_ago(hass_storage, 2)
     entry = await setup_entry(hass, make_entry())
-    for entity_id in (STATUS, NEXT, BUTTON, LAST):
+    for entity_id in (STATUS, NEXT, BUTTON, LAST, NOTES):
         assert hass.states.get(entity_id) is not None, entity_id
     assert hass.states.get("image.pothos_photo") is None
     assert hass.states.get("binary_sensor.pothos_temperature") is None
@@ -35,6 +36,7 @@ async def test_entities_and_device(hass: HomeAssistant, hass_storage: dict[str, 
     device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, PLANT_ID)})
     assert device.name == "Pothos"
     assert device.model == "Golden pothos"
+    assert device.manufacturer == "Lil Wet Guys"
     entity = er.async_get(hass).async_get(STATUS)
     assert entity.config_subentry_id == PLANT_ID
     assert entity.config_entry_id == entry.entry_id
@@ -151,6 +153,26 @@ async def test_first_reading_after_startup_is_the_baseline(
     hass.states.async_set("sensor.pothos_soil", "35")
     await hass.async_block_till_done()
     assert hass.states.get(STATUS).state == "happy"
+
+
+async def test_notes(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
+    """Notes start empty, can be set, survive a watering and a reload."""
+    watered_ago(hass_storage, 1)
+    entry = await setup_entry(hass, make_entry())
+    assert hass.states.get(NOTES).state == ""
+    assert hass.states.get(STATUS).attributes["notes_entity"] == NOTES
+
+    await hass.services.async_call(
+        "text", "set_value", {ATTR_ENTITY_ID: NOTES, "value": "Repotted in May"}, blocking=True
+    )
+    assert hass.states.get(NOTES).state == "Repotted in May"
+    await hass.services.async_call("button", "press", {ATTR_ENTITY_ID: BUTTON}, blocking=True)
+    assert hass.states.get(NOTES).state == "Repotted in May"
+
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(NOTES).state == "Repotted in May"
+    assert hass_storage[DOMAIN]["data"][PLANT_ID]["notes"] == "Repotted in May"
 
 
 async def test_removing_a_plant(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
