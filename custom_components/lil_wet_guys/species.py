@@ -161,6 +161,30 @@ SPECIES: dict[str, Species] = {
         "Black Raven ZZ plant", "Zamioculcas zamiifolia 'Raven'", "medium", 18, 60, 85,
         "Let the soil dry out completely between waterings.",
     ),
+    "jade_pothos": Species(
+        "Jade pothos", "Epipremnum aureum 'Jade'", "medium", 8, 60, 85,
+        "Water when the top 1–2 inches of soil are dry.",
+    ),
+    "alocasia_frydek": Species(
+        "Alocasia 'Frydek'", "Alocasia micholitziana 'Frydek'", "bright_indirect", 6, 65, 85,
+        "Water when the top inch is dry; keep it lightly moist, never soggy. Hates cold drafts.",
+    ),
+    "money_tree": Species(
+        "Money tree", "Pachira aquatica", "bright_indirect", 10, 60, 85,
+        "Water when the top 2 inches of soil are dry.",
+    ),
+    "mini_monstera": Species(
+        "Mini monstera", "Rhaphidophora tetrasperma", "bright_indirect", 7, 60, 85,
+        "Water when the top 1–2 inches of soil are dry.",
+    ),
+    "nerve_plant": Species(
+        "Nerve plant", "Fittonia albivenis", "medium", 4, 60, 80,
+        "Keep the soil evenly moist. It flops dramatically when thirsty and perks up after a drink.",
+    ),
+    "million_hearts_variegated": Species(
+        "Variegated million hearts", "Dischidia ruscifolia 'Variegata'", "bright_indirect", 10, 60, 85,
+        "Let the mix dry out between waterings; it stores water in its leaves.",
+    ),
 }
 
 # Drawing shapes offered for a plant without a preset.

@@ -3,6 +3,7 @@
 // or tap the plant for its photo, care details, light setting and notes.
 
 import { ART_CSS, LIMB_STYLES, SPECIES, drawPlant } from './art/index.js';
+import { FLOOR, drawBookshelf, rng } from './art/shelf.js';
 
 const DAY = 86400000;
 const GHOST_AT = 3;
@@ -56,6 +57,7 @@ function span(days) {
   if (d < 1) return `${Math.max(1, Math.round(d * 24))} h`;
   if (d < 2) {
     const h = Math.round((d - 1) * 24);
+    if (h === 24) return '2 days';
     return h ? `1 day ${h} h` : '1 day';
   }
   return `${Math.floor(d)} days`;
@@ -91,6 +93,28 @@ ha-card { padding: 12px; }
 .splash i { position: absolute; top: -4%; width: 7px; height: 10px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #6ec3ff; opacity: 0; animation: drop .9s ease-in forwards; }
 @keyframes drop { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(150px); opacity: 0; } }
 .empty { padding: 12px 4px 8px; color: var(--secondary-text-color); line-height: 1.5; }
+.case { position: relative; }
+.backdrop, .glows { display: none; }
+ha-card.shelf { padding: 0; overflow: hidden; background: #4e3326; }
+.shelf .case { padding: 16px 16px 14px; }
+.shelf .backdrop { display: block; position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.shelf .glows { display: block; position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.glow { position: absolute; width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); border-radius: 50%; background: radial-gradient(circle, #fffef2 0 9%, var(--c) 16%, color-mix(in srgb, var(--c) 35%, transparent) 34%, transparent 70%); opacity: .35; will-change: opacity, transform; animation: lwg-firefly 3.4s ease-in-out infinite; }
+@keyframes lwg-firefly { 0%, 100% { opacity: .3; transform: translate(0, 0); } 50% { opacity: 1; transform: translate(3px, -5px); } }
+@media (prefers-reduced-motion: reduce) { .glow { animation: none; opacity: .8; } }
+.shelf .header { position: relative; width: fit-content; max-width: calc(100% - 24px); box-sizing: border-box; margin: -6px auto 14px; padding: 3px 14px; background: #f7f0dc; color: #2f2a26; border: 2px solid #2f2a26; border-radius: 8px; font-size: 17px; font-weight: 600; text-align: center; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.shelf .grid { position: relative; gap: 6px; }
+.shelf .tile { background: none; border-radius: 0; padding: 0 2px 5px; }
+.shelf .info { position: relative; justify-self: center; justify-items: center; max-width: calc(100% - 6px); box-sizing: border-box; margin-top: 6px; padding: 3px 9px 4px; background: #f7f0dc; border: 1.6px solid #2f2a26; border-radius: 6px; box-shadow: 0 2px 0 rgba(0,0,0,.28); text-align: center; }
+.shelf .name { color: #2f2a26; font-size: 13px; }
+.shelf .when { color: #6b5848; font-size: 12px; }
+.shelf .when.thirsty { color: #b06a0c; }
+.shelf .when.wilting { color: #b23a2c; }
+.shelf .when.ghost { color: #646aa6; }
+.shelf .badges { color: #6b5848; justify-content: center; }
+.shelf .badges .warn { color: #b23a2c; }
+.shelf .water { background: #f7f0dc; color: #3f7d34; border: 1.6px solid #2f2a26; box-shadow: 0 2px 0 rgba(0,0,0,.28); }
+.shelf .empty { position: relative; padding: 10px 12px; background: #f7f0dc; color: #2f2a26; border: 2px solid #2f2a26; border-radius: 8px; }
 dialog { border: 0; padding: 0; border-radius: 18px; width: min(440px, calc(100vw - 32px)); max-height: calc(100vh - 32px); background: var(--card-background-color, #fff); color: var(--primary-text-color); box-shadow: 0 12px 40px rgba(0,0,0,.35); }
 dialog::backdrop { background: rgba(0,0,0,.45); }
 .sheet { display: grid; gap: 12px; padding: 18px; }
@@ -140,13 +164,19 @@ class LilWetGuysCard extends HTMLElement {
         { name: 'title', selector: { text: {} } },
         { name: 'limbs', selector: { boolean: {} } },
         {
+          name: 'background',
+          selector: { select: { mode: 'dropdown', options: [{ value: 'none', label: 'None' }, { value: 'bookshelf', label: 'Bookshelf' }] } },
+        },
+        {
           name: 'temperature_unit',
           selector: { select: { mode: 'dropdown', options: [{ value: 'C', label: 'Celsius (°C)' }, { value: 'F', label: 'Fahrenheit (°F)' }] } },
         },
       ],
-      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', temperature_unit: 'Temperature unit' })[s.name],
-      computeHelper: (s) => (s.name === 'temperature_unit'
-        ? "Leave empty to use Home Assistant's setting. The °C/°F switch in a plant's popup overrides it on that device." : undefined),
+      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', background: 'Background', temperature_unit: 'Temperature unit' })[s.name],
+      computeHelper: (s) => ({
+        background: 'Bookshelf stands your plants on cartoon wooden shelves, with a few surprises hidden around them.',
+        temperature_unit: "Leave empty to use Home Assistant's setting. The °C/°F switch in a plant's popup overrides it on that device.",
+      })[s.name],
     };
   }
 
@@ -154,8 +184,9 @@ class LilWetGuysCard extends HTMLElement {
     this._config = { limbs: true, ...config };
     if (!this.shadowRoot) {
       const root = this.attachShadow({ mode: 'open' });
-      root.innerHTML = `<style>${ART_CSS}${CSS}</style><ha-card><div class="header" hidden></div><div class="grid"></div>`
-        + '<div class="empty" hidden>No plants yet. Add one from <b>Settings → Devices &amp; services → Lil Wet Guys → Add plant</b>.</div></ha-card>'
+      root.innerHTML = `<style>${ART_CSS}${CSS}</style><ha-card><div class="case"><svg class="backdrop" aria-hidden="true"></svg><div class="glows"></div>`
+        + '<div class="header" hidden></div><div class="grid"></div>'
+        + '<div class="empty" hidden>No plants yet. Add one from <b>Settings → Devices &amp; services → Lil Wet Guys → Add plant</b>.</div></div></ha-card>'
         + '<dialog></dialog>';
       root.querySelector('.grid').addEventListener('click', (e) => this._onClick(e));
       root.querySelector('.grid').addEventListener('keydown', (e) => {
@@ -181,7 +212,14 @@ class LilWetGuysCard extends HTMLElement {
         this._openId = null;
       });
       this._tiles = new Map();
+      // The bookshelf is drawn to fit the tiles, so redraw it when the layout changes.
+      this._shelfSeed = (Math.random() * 2 ** 32) >>> 0; // a different arrangement on every page load
+      this._resize = new ResizeObserver(() => this._queueShelf());
+      this._resize.observe(root.querySelector('.case'));
     }
+    this.shadowRoot.querySelector('ha-card').classList.toggle('shelf', this._config.background === 'bookshelf');
+    this._shelfKey = null;
+    this._queueShelf();
     const header = this.shadowRoot.querySelector('.header');
     header.hidden = !this._config.title;
     header.textContent = this._config.title || '';
@@ -244,10 +282,12 @@ class LilWetGuysCard extends HTMLElement {
     const grid = this.shadowRoot.querySelector('.grid');
     this.shadowRoot.querySelector('.empty').hidden = plants.length > 0;
     const seen = new Set();
+    let reshelve = false;
     plants.forEach((p, index) => {
       seen.add(p.id);
       let tile = this._tiles.get(p.id);
       if (!tile) {
+        reshelve = true;
         tile = document.createElement('div');
         tile.className = 'tile';
         tile.dataset.id = p.id;
@@ -259,15 +299,77 @@ class LilWetGuysCard extends HTMLElement {
       }
       this._updateTile(tile, p);
       // Move a tile only when it's out of place: moving an element restarts its animations.
-      if (grid.children[index] !== tile) grid.insertBefore(tile, grid.children[index] ?? null);
+      if (grid.children[index] !== tile) {
+        grid.insertBefore(tile, grid.children[index] ?? null);
+        reshelve = true; // trailing plants may have changed places
+      }
     });
     for (const [id, tile] of this._tiles) {
       if (!seen.has(id)) {
         tile.remove();
         this._tiles.delete(id);
+        reshelve = true;
       }
     }
+    if (reshelve) this._queueShelf();
     if (this._openId) this._fillDetails(this._openId);
+  }
+
+  _queueShelf() {
+    if (this._shelfQueued) return;
+    this._shelfQueued = true;
+    requestAnimationFrame(() => this._layoutShelf());
+  }
+
+  /** Measure where each row of plants stands and draw the bookshelf around them. */
+  _layoutShelf() {
+    this._shelfQueued = false;
+    const root = this.shadowRoot;
+    const svg = root.querySelector('.backdrop');
+    const lights = root.querySelector('.glows');
+    if (!root.querySelector('ha-card').classList.contains('shelf')) {
+      svg.innerHTML = '';
+      lights.innerHTML = '';
+      return;
+    }
+    const box = root.querySelector('.case');
+    const grid = root.querySelector('.grid');
+    const w = box.clientWidth, h = box.clientHeight;
+    if (!w || !h) return; // not on screen yet
+    // Offsets rather than bounding boxes, so a tile lifted by :hover doesn't count.
+    const rows = [];
+    let scale = 0.62;
+    for (const tile of grid.children) {
+      const art = tile.querySelector('.art');
+      const top = grid.offsetTop + tile.offsetTop;
+      scale = art.offsetWidth / 200;
+      let row = rows.find((r) => Math.abs(r.top - top) < 4);
+      if (!row) {
+        row = { top, floor: top + art.offsetTop + art.offsetHeight * FLOOR, bottom: 0, pots: [] };
+        rows.push(row);
+      }
+      row.bottom = Math.max(row.bottom, top + tile.offsetHeight);
+      const shape = this._hass?.states[tile.dataset.id]?.attributes.shape;
+      row.pots.push({
+        x: grid.offsetLeft + tile.offsetLeft + art.offsetLeft + art.offsetWidth / 2,
+        trailing: SPECIES[shape]?.rig === 'trailing',
+      });
+    }
+    const pad = getComputedStyle(box);
+    const g = {
+      w, h, scale, rows,
+      left: parseFloat(pad.paddingLeft), right: parseFloat(pad.paddingRight),
+      top: grid.offsetTop - 2, bottom: parseFloat(pad.paddingBottom),
+    };
+    const key = JSON.stringify(g);
+    if (key === this._shelfKey) return;
+    this._shelfKey = key;
+    const shelf = drawBookshelf(g, rng(this._shelfSeed));
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.innerHTML = shelf.svg;
+    // Fireflies twinkle as their own little layers, so the shelf itself never repaints.
+    lights.innerHTML = shelf.glows.map((f) => `<i class="glow" style="left:${f.x.toFixed(1)}px;top:${f.y.toFixed(1)}px;`
+      + `--d:${f.size.toFixed(1)}px;--c:${f.color};animation-delay:-${f.delay.toFixed(2)}s"></i>`).join('');
   }
 
   _updateTile(tile, p) {

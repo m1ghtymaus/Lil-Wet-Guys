@@ -101,6 +101,11 @@
   .care { margin-top: 6px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .care strong { color: var(--ink); font-weight: 600; }
 
+  .shelf-controls { gap: 10px; }
+  .seg { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  #shelf { width: min(100%, var(--sw, 720px)); transition: width .25s ease; }
+
   @media (max-width: 520px) {
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .ticks span:nth-child(2n) { visibility: hidden; }
@@ -111,7 +116,7 @@
 <div class="wrap">
   <header>
     <h1>Lil Wet Guys Drawings</h1>
-    <p class="lede">All 36 of your houseplants, one card each, drawn the way the dashboard will show them. Drag the day marker past the watering date to watch them dry out. Three days late, they turn into ghosts.</p>
+    <p class="lede">All 42 of your houseplants, one card each, drawn the way the dashboard will show them. Drag the day marker past the watering date to watch them dry out. Three days late, they turn into ghosts.</p>
   </header>
 
   <section class="controls" aria-label="Preview controls">
@@ -148,7 +153,72 @@
   <h2>Shapes for other plants</h2>
   <p class="note">When you add a plant that has no preset, you pick one of these shapes and fill in its care details yourself.</p>
   <div class="grid" id="generics"></div>
+
+  <h2>Bookshelf background</h2>
+  <p class="note">The dashboard card with <code>background: bookshelf</code>. Each page load brings a different handful of surprises, so shuffle to see more of them.</p>
+  <div class="row shelf-controls">
+    <button id="shuffle" type="button">Shuffle the surprises</button>
+    <div class="seg" role="group" aria-label="Card width">
+      <button type="button" class="quiet" data-w="360" aria-pressed="false">Phone</button>
+      <button type="button" class="quiet" data-w="720" aria-pressed="true">Tablet</button>
+      <button type="button" class="quiet" data-w="1140" aria-pressed="false">Wide</button>
+    </div>
+  </div>
+  <div id="shelf"></div>
 </div>
+
+<script type="module">
+  // Stand-ins for the two Home Assistant elements the card uses.
+  if (!customElements.get('ha-card')) {
+    customElements.define('ha-card', class extends HTMLElement {
+      connectedCallback() { Object.assign(this.style, { display: 'block', borderRadius: '14px' }); }
+    });
+  }
+  if (!customElements.get('ha-icon')) {
+    customElements.define('ha-icon', class extends HTMLElement {
+      connectedCallback() {
+        if (this.getAttribute('icon') === 'mdi:watering-can') {
+          this.innerHTML = '<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M4 9h9v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM13 11l6-4 1.5 1.5-7.5 6zM5.5 9a3.5 3.5 0 0 1 7 0h-2a1.5 1.5 0 0 0-3 0z"/></svg>';
+        }
+      }
+    });
+  }
+  await import('./lil-wet-guys-card.js');
+
+  const DAY = 86400000;
+  const now = Date.now();
+  const iso = (ms) => new Date(ms).toISOString();
+  const plants = [
+    ['Pothos', 'golden_pothos', '#c8643c', -2, 8], ['Frydek', 'alocasia_frydek', '#2f4a6d', 0.5, 6],
+    ['Hearts', 'million_hearts_variegated', '#d9a52b', -3, 10], ['Penny', 'money_tree', '#9fb59a', -5, 10],
+    ['Nervy', 'nerve_plant', '#e8a9a4', 2, 4], ['Constance', 'monstera_thai_constellation', '#3b3b3d', -1, 8],
+    ['Spidey', 'spider_plant', '#2d5fb8', -4, 7], ['Raven', 'zz_plant_raven', '#eeeae2', -9, 18],
+  ];
+  const states = {};
+  plants.forEach(([name, shape, pot, overdue, interval], i) => {
+    const id = `sensor.plant${i}_status`;
+    const next = now - overdue * DAY;
+    states[id] = { entity_id: id, state: 'happy', last_updated: iso(now), attributes: {
+      lil_wet_guys: true, species: shape, shape, pot_color: pot, light: 'bright_indirect', base_days: interval,
+      interval_days: interval, last_watered: iso(next - interval * DAY), next_watering: iso(next),
+      temperature_min: 15, temperature_max: 29, temperature_unit: '°C', friendly_name: `${name} Status` } };
+  });
+  const card = document.createElement('lil-wet-guys-card');
+  card.setConfig({ title: 'Lil Wet Guys', background: 'bookshelf' });
+  card.hass = { states, entities: {}, devices: {}, locale: { language: 'en' }, callService: async () => {} };
+  const holder = document.getElementById('shelf');
+  holder.append(card);
+
+  document.getElementById('shuffle').addEventListener('click', () => {
+    card._shelfSeed = (Math.random() * 2 ** 32) >>> 0;
+    card._shelfKey = null;
+    card._layoutShelf();
+  });
+  document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.seg button').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+    holder.style.setProperty('--sw', `${b.dataset.w}px`);
+  }));
+</script>
 
 <script type="module">
   import { drawPlant, SPECIES, ART_CSS } from './art/index.js';
@@ -193,6 +263,12 @@
     monstera_deliciosa: [8, 'Bright indirect', '65–85'],
     monstera_thai_constellation: [8, 'Bright indirect', '65–85'],
     zz_plant_raven: [18, 'Low to bright', '60–85'],
+    jade_pothos: [8, 'Low to bright', '60–85'],
+    alocasia_frydek: [6, 'Bright indirect', '65–85'],
+    money_tree: [10, 'Bright indirect', '60–85'],
+    mini_monstera: [7, 'Bright indirect', '60–85'],
+    nerve_plant: [4, 'Medium to bright', '60–80'],
+    million_hearts_variegated: [10, 'Bright indirect', '60–85'],
   };
   // Your plants, one entry each. Duplicates get their own card and a slightly different shape.
   const MINE = [
@@ -203,7 +279,8 @@
     'spider_plant', 'spider_plant', 'split_leaf_philodendron', 'tiger_aloe', 'tiger_tooth_aloe',
     'umbrella_plant', 'umbrella_plant', 'variegated_peperomia', 'weeping_fig', 'zz_plant',
     'epipremnum_pinnatum', 'inch_plant', 'white_bird_of_paradise', 'monstera_deliciosa',
-    'monstera_thai_constellation', 'zz_plant_raven',
+    'monstera_thai_constellation', 'zz_plant_raven', 'jade_pothos', 'alocasia_frydek', 'money_tree',
+    'mini_monstera', 'nerve_plant', 'million_hearts_variegated',
   ];
 
   const POTS = [

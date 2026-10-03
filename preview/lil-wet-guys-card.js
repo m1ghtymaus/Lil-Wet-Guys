@@ -1,0 +1,1 @@
+../custom_components/lil_wet_guys/frontend/lil-wet-guys-card.js

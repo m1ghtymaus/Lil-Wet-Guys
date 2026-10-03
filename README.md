@@ -127,8 +127,9 @@ philodendron, Lipstick plant, Lucky bamboo, Monkey mask, Peperomia, Peperomia
 plant 'Laurentii', Snake plant 'Zeylanica', Snake plant 'Moonshine', Spider
 plant, Split-leaf philodendron, Tiger aloe, Tiger tooth aloe, Umbrella plant,
 Variegated peperomia, Weeping fig, ZZ plant, Black Raven ZZ plant, Epipremnum
-pinnatum, Inch plant, White bird of paradise, Monstera deliciosa and Thai
-Constellation monstera.
+pinnatum, Inch plant, White bird of paradise, Monstera deliciosa, Thai
+Constellation monstera, Jade pothos, Alocasia 'Frydek', Money tree, Mini
+monstera, Nerve plant and Variegated million hearts.
 
 Each has its own drawing and care preset (see
 [`species.py`](custom_components/lil_wet_guys/species.py)). For anything else
@@ -148,6 +149,7 @@ title: My plants   # optional
 | --- | --- | --- |
 | `title` | none | Heading above the plants. |
 | `limbs` | `true` | Little arms and feet on each pot. |
+| `background` | `none` | `bookshelf` stands the plants on a cartoon wooden bookshelf, with a few small surprises hidden around them. |
 | `temperature_unit` | Home Assistant's unit | `C` or `F` for the temperatures the card shows. |
 | `entities` | all plants | A list of `sensor.<plant>_status` ids, to show only some plants. |
 
@@ -160,6 +162,12 @@ title: My plants   # optional
   press **Save notes** (or Cmd/Ctrl+Enter) or close the popup.
 - The **°C / °F** switch next to a plant's temperature range changes every
   temperature on the card. Each device remembers its own choice.
+- With `background: bookshelf` each row of plants gets its own shelf, with
+  names on little labels. Every time the page loads, a different handful of
+  surprises turns up: books, a snail, a fairy peeking out from behind a pot, a
+  vine up the side, a mouse hole and more, plus something magical every time
+  (potions, crystals, a sleeping baby dragon…), and fireflies twinkle on every
+  shelf.
 
 ![Plant details](docs/details.jpg)
 

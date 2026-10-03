@@ -60,8 +60,64 @@ function uprightLeaf(ctx) {
 
 /* ------------------------------------------------------------- trailing */
 
+/** Opposite pairs of leaves, evenly spaced along a stem and smaller toward its tip. */
+function pairedLeaves(ctx, pts, len, idBase) {
+  const { p, d } = ctx;
+  const lf = p.leaf;
+  const n = Math.max(2, Math.round(len / (p.spacing ?? 6.5)));
+  let s = '';
+  for (let k = 0; k < n; k++) {
+    const t = (k + 0.6) / n;
+    const q = at(pts, t);
+    const sc = 1 - 0.3 * t;
+    for (const ls of [-1, 1]) {
+      const id = idBase + k * 2 + (ls > 0 ? 1 : 0);
+      if (ctx.drops(id)) { if (k % 3 === 0 && ls > 0) ctx.fell(lf); continue; }
+      s += leaf(ctx, q.x, q.y, droopTo(q.a + ls * 0.9, 0.08 + d * 0.5), { ...lf, L: lf.L * sc, W: lf.W * sc, k: id });
+    }
+  }
+  return s;
+}
+
+function strings(ctx) {
+  // Dischidia: one tangle of thin stems, all dressed the same way. The middle ones
+  // arch up and over, the outer arches lean further and spill down, and the
+  // hanging stems start among them, some behind the rim and some in front.
+  const { p, d } = ctx;
+  let back = '', front = '';
+  const nA = p.arches ?? 8;
+  const arches = [];
+  for (let i = 0; i < nA; i++) {
+    const c = fan(i, nA) + ctx.jit(i, 'ac', 0.08);
+    arches.push({ i, c });
+  }
+  arches.sort((u, v) => Math.abs(v.c) - Math.abs(u.c)); // outer arches behind the middle ones
+  for (const { i, c } of arches) {
+    const s = c < 0 ? -1 : 1;
+    const len = lerp(64, 50, Math.abs(c)) * (0.85 + 0.3 * ctx.r(i, 'al'));
+    const a1 = c * 0.6 + s * (1.4 + 0.7 * ctx.r(i, 'ab') + 0.9 * Math.abs(c)) + s * d * 1.1;
+    const pts = curve(BX + c * 26, BY + 1, c * 0.5, a1, len, 14, 1.9);
+    back += stem(ctx, pts, p.stem, 1.3) + pairedLeaves(ctx, pts, len, 1000 + i * 40);
+  }
+  const nH = p.hangs ?? 6;
+  const ranks = Math.max(1, Math.ceil(nH / 2) - 1);
+  for (let v = 0; v < nH; v++) {
+    const s = v % 2 === 0 ? -1 : 1;
+    const rank = Math.floor(v / 2);
+    const len = lerp(90, 64, rank / ranks) * (0.85 + 0.3 * ctx.r(v, 'hl'));
+    // Start inside the rim and rise a little before falling, so they grow out of the clump.
+    const x0 = BX + s * (34 - rank * 7 + 6 * ctx.r(v, 'hx'));
+    const pts = curve(x0, BY, s * (0.45 + 0.35 * ctx.r(v, 'ha')), s * (3.02 + 0.1 * ctx.r(v, 'hb')), len, 18, 0.6);
+    const g = stem(ctx, pts, p.stem, 1.3) + pairedLeaves(ctx, pts, len, 3000 + v * 40);
+    if (rank % 2 === 1) back += g; // every other pair hangs behind the pot
+    else front += g;
+  }
+  return { back, front };
+}
+
 function trailing(ctx) {
   const { p, d } = ctx;
+  if (p.form === 'strings') return strings(ctx);
   const lf = p.leaf;
   let back = '', front = '';
 
@@ -480,12 +536,26 @@ function fig(ctx) {
 function umbrella(ctx) {
   // Schefflera: stems carry long leaf stalks, each ending in a wheel of
   // rounded leaflets that folds down like a closing umbrella as it dries.
+  // With p.braid (money tree) the stems rise from a plaited trunk that tall.
   const { p, d } = ctx;
   let back = '';
   const stems = [...p.stems].sort((u, v) => v.h - u.h);
+  const bases = stems.map((st) => ({ x: BX + st.x, y: BY + 1 }));
+  if (p.braid) {
+    for (let s = 0; s < 3; s++) {
+      const ph = (s / 3) * Math.PI * 2;
+      const pts = [];
+      for (let i = 0; i <= 16; i++) {
+        const t = i / 16;
+        pts.push({ x: BX + 3.8 * Math.sin(t * Math.PI * 3 + ph), y: BY + 1 - p.braid * t, a: 0 });
+      }
+      back += stem(ctx, pts, p.trunk, 3.6);
+      stems.forEach((_, si) => { if (si % 3 === s) bases[si] = pts[pts.length - 1]; });
+    }
+  }
   const heads = [];
   for (const [si, st] of stems.entries()) {
-    const pts = curve(BX + st.x, BY + 1, st.a, st.a + ctx.jit(si, 'b', 0.12) + sgn(st.a) * d * 0.25, st.h, 10, 1);
+    const pts = curve(bases[si].x, bases[si].y, st.a, st.a + ctx.jit(si, 'b', 0.12) + sgn(st.a) * d * 0.25, st.h, 10, 1);
     back += stem(ctx, pts, p.stem, 3.2);
     const e = pts[pts.length - 1];
     heads.push({ x: e.x, y: e.y, a: e.a, sc: 1, id: si * 60 });
@@ -505,7 +575,7 @@ function umbrella(ctx) {
   const n = p.leaflets ?? 8;
   for (const h of heads) {
     const axis = h.a * 0.35;
-    const spread = 2.45 * (1 - 0.2 * d);
+    const spread = (p.wheel ?? 2.45) * (1 - 0.2 * d);
     const order = [...Array(n).keys()].sort((i, j) => Math.abs(fan(j, n)) - Math.abs(fan(i, n)));
     for (const j of order) {
       const id = h.id + j;
@@ -580,7 +650,8 @@ function peperomia(ctx) {
   const items = [];
   for (let i = 0; i < n; i++) {
     const c = fan(i, n);
-    items.push({ i, c, a0: c * 1.15 + ctx.jit(i, 'a', 0.1), len: lerp(36, 14, Math.abs(c)) * (0.85 + 0.3 * ctx.r(i, 'l')) });
+    const [lo, hi] = p.len ?? [14, 36];
+    items.push({ i, c, a0: c * (p.spread ?? 1.15) + ctx.jit(i, 'a', 0.1), len: lerp(hi, lo, Math.abs(c)) * (0.85 + 0.3 * ctx.r(i, 'l')) });
   }
   items.sort((u, v) => v.len - u.len);
   let back = '';
@@ -589,6 +660,16 @@ function peperomia(ctx) {
     const s = sgn(a0);
     const pts = curve(BX + c * 10, BY + 1, a0 * 0.7, a0 + s * d * 1.2, len, 6, 1.4);
     back += stem(ctx, pts, p.stem, 2);
+    // Leaf pairs part-way up the stem (p.nodes), smaller than the tip leaf.
+    const nodes = p.nodes ?? 0;
+    for (let k = 1; k <= nodes; k++) {
+      const q = at(pts, k / (nodes + 1));
+      for (const ls of [-1, 1]) {
+        const id = 500 + i * 10 + k * 2 + (ls > 0 ? 1 : 0);
+        if (ctx.drops(id)) continue;
+        back += leaf(ctx, q.x, q.y, droopTo(q.a + ls * 1.0, 0.1 + d * 0.5), { ...p.leaf, L: p.leaf.L * 0.8, W: p.leaf.W * 0.8, k: id });
+      }
+    }
     const e = pts[pts.length - 1];
     back += leaf(ctx, e.x, e.y, droopTo(e.a + s * 0.4, d * 0.5), { ...p.leaf, k: i });
   }

@@ -189,6 +189,37 @@ export const SPECIES = {
     count: 6, len: [56, 102], leaflets: 8, stem: '#2c3627',
     leaf: { shape: 'oval', L: 17.5, W: 9.5, color: '#36452f', gloss: true, rib: false },
   },
+  jade_pothos: {
+    name: 'Jade pothos', latin: "Epipremnum aureum 'Jade'", rig: 'trailing',
+    top: 8, topLen: 26, vines: 4, vineLen: 74, perVine: 7, stem: '#5a8a3a',
+    leaf: { shape: 'heart', L: 22, W: 18, color: '#2c7a3c', gloss: true },
+  },
+  alocasia_frydek: {
+    name: "Alocasia 'Frydek'", latin: "Alocasia micholitziana 'Frydek'", rig: 'upright_leaf',
+    count: 5, len: [44, 80], spread: 0.8, tilt: 0.85, stem: '#6a8a52', stemW: 2.6,
+    leaf: { shape: 'arrow', L: 46, W: 30, color: '#1f4029', vari: '#b9cc8a', variType: 'ribs', veins: 4, veinW: 0.6, rib: false },
+  },
+  money_tree: {
+    name: 'Money tree', latin: 'Pachira aquatica', rig: 'tree', form: 'umbrella', braid: 46,
+    trunk: '#a08d6a', stem: '#7f8a50', petiole: '#7fa452', leaflets: 5, wheel: 2.1,
+    stems: [{ x: -6, h: 42, a: -0.55 }, { x: 6, h: 36, a: 0.6 }, { x: 0, h: 54, a: 0.04 }],
+    leaf: { shape: 'elliptic', L: 32, W: 11, color: '#4c9a3e', gloss: true },
+  },
+  mini_monstera: {
+    name: 'Mini monstera', latin: 'Rhaphidophora tetrasperma', rig: 'tree', form: 'climber',
+    h: 100, count: 7, stem: '#5f8f3a', root: '#8a6a50', young: '#9bd06a',
+    leaf: { shape: 'monstera', L: 40, W: 27, slits: 3, depth: 0.1, gap: 0.06, windows: false, color: '#3a8540' },
+  },
+  nerve_plant: {
+    name: 'Nerve plant', latin: 'Fittonia albivenis', rig: 'bushy', form: 'peperomia',
+    count: 13, len: [12, 30], spread: 1.4, nodes: 1, stem: '#5f7f4a',
+    leaf: { shape: 'oval', L: 21, W: 16.5, color: '#2a5a30', vari: '#eef3ea', variType: 'ribs', veins: 3, veinW: 0.6, net: true, rib: false },
+  },
+  million_hearts_variegated: {
+    name: 'Variegated million hearts', latin: "Dischidia ruscifolia 'Variegata'", rig: 'trailing', form: 'strings',
+    arches: 10, hangs: 8, spacing: 8.5, stem: '#7f8a5a',
+    leaf: { shape: 'heart', L: 8.5, W: 8, color: '#4a8a40', vari: '#efe9cc', variType: 'edge', edgeScale: 0.62, rib: false },
+  },
 
   // Shapes offered for plants without a preset.
   generic_leafy: {

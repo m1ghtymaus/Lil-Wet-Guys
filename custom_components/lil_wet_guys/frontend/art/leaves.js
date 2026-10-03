@@ -27,14 +27,14 @@ const monsteraEdge = (W, t) => (W / 2) * Math.pow(Math.sin(Math.PI * (0.12 + 0.8
 const monsteraY = (L, t) => -L * t + L * 0.14 * Math.pow(1 - t, 2.5);
 const monsteraSlits = (slits) => Array.from({ length: slits }, (_, j) => 0.17 + j * (0.64 / (slits - 1)));
 
-function monstera(L, W, slits = 4) {
+function monstera(L, W, slits = 4, depth = 0.4, gap = 0.035) {
   const env = (t) => monsteraEdge(W, t);
   const y = (t) => monsteraY(L, t);
   const right = [[env(0.04), y(0.04)]];
   for (const t of monsteraSlits(slits)) {
-    right.push([env(t - 0.035), y(t - 0.035)]);
-    right.push([env(t) * 0.4, y(t) - L * 0.035]); // bottom of the slit, angled toward the tip
-    right.push([env(t + 0.035), y(t + 0.035)]);
+    right.push([env(t - gap), y(t - gap)]);
+    right.push([env(t) * depth, y(t) - L * 0.035]); // bottom of the slit, angled toward the tip
+    right.push([env(t + gap), y(t + gap)]);
   }
   right.push([env(0.93), y(0.93)]);
   const left = right.map(([x, yy]) => [-x, yy]).reverse();
@@ -104,6 +104,10 @@ export const SHAPES = {
   obovate: (L, W) => `M0 0C${f1(W * 0.16)} ${f1(-L * 0.1)} ${f1(W * 0.56)} ${f1(-L * 0.42)} ${f1(W * 0.5)} ${f1(-L * 0.76)}`
     + `C${f1(W * 0.44)} ${f1(-L * 1.02)} ${f1(-W * 0.44)} ${f1(-L * 1.02)} ${f1(-W * 0.5)} ${f1(-L * 0.76)}`
     + `C${f1(-W * 0.56)} ${f1(-L * 0.42)} ${f1(-W * 0.16)} ${f1(-L * 0.1)} 0 0Z`,
+  elliptic: (L, W) => `M0 0C${f1(W * 0.3)} ${f1(-L * 0.1)} ${f1(W * 0.56)} ${f1(-L * 0.36)} ${f1(W * 0.46)} ${f1(-L * 0.62)}`
+    + `C${f1(W * 0.38)} ${f1(-L * 0.82)} ${f1(W * 0.1)} ${f1(-L * 0.93)} 0 ${f1(-L)}`
+    + `C${f1(-W * 0.1)} ${f1(-L * 0.93)} ${f1(-W * 0.38)} ${f1(-L * 0.82)} ${f1(-W * 0.46)} ${f1(-L * 0.62)}`
+    + `C${f1(-W * 0.56)} ${f1(-L * 0.36)} ${f1(-W * 0.3)} ${f1(-L * 0.1)} 0 0Z`,
   round: (L, W) => `M0 0C${f1(W * 0.64)} ${f1(-L * 0.02)} ${f1(W * 0.64)} ${f1(-L * 0.92)} 0 ${f1(-L)}`
     + `C${f1(-W * 0.64)} ${f1(-L * 0.92)} ${f1(-W * 0.64)} ${f1(-L * 0.02)} 0 0Z`,
   heart: (L, W) => `M0 0C${f1(W * 0.18)} ${f1(L * 0.08)} ${f1(W * 0.56)} ${f1(L * 0.07)} ${f1(W * 0.53)} ${f1(-L * 0.3)}`
@@ -121,7 +125,7 @@ export const SHAPES = {
     + `C${f1(W * 0.56)} ${f1(-L * 0.36)} ${f1(W * 0.56)} ${f1(-L * 0.1)} ${f1(W * 0.3)} 0Z`,
   lobed: (L, W, o) => lobed(L, W, o.lobes, o.depth),
   holes: (L, W) => SHAPES.oval(L, W),
-  monstera: (L, W, o) => monstera(L, W, o.slits),
+  monstera: (L, W, o) => monstera(L, W, o.slits, o.depth, o.gap),
 };
 
 function variegate(ctx, o, L, W, shape, sw) {
@@ -183,6 +187,29 @@ function variegate(ctx, o, L, W, shape, sw) {
     }
     case 'constellation':
       return constellation(ctx, o, L, W, vc);
+    case 'ribs': {
+      // Pale veins: a midrib and curving side veins (alocasia), joined by a loop
+      // inside the margin when o.net is set (nerve plant).
+      const arrow = o.shape === 'arrow';
+      const half = arrow ? (t) => 0.5 * Math.pow(1 - t, 0.85) : (t) => 0.41 * Math.pow(Math.sin(Math.PI * t), 0.8);
+      const pairs = o.veins ?? 4;
+      let p = `M0 ${f1(-L * 0.02)}L0 ${f1(-L * 0.92)}`;
+      const ends = [[], []];
+      for (let i = 0; i < pairs; i++) {
+        const t = 0.12 + (i / pairs) * 0.64, te = t + 0.12;
+        for (const [j, sd] of [[0, -1], [1, 1]]) {
+          const x = sd * W * 0.82 * half(te), y = -L * te;
+          p += `M0 ${f1(-L * t)}Q${f1(x * 0.45)} ${f1(-L * (t + 0.02))} ${f1(x)} ${f1(y)}`;
+          ends[j].push([x, y]);
+        }
+      }
+      if (arrow) {
+        // Veins running back into the two lobes at the base.
+        for (const sd of [-1, 1]) p += `M0 ${f1(-L * 0.03)}Q${f1(sd * W * 0.2)} ${f1(L * 0.02)} ${f1(sd * W * 0.34)} ${f1(L * 0.13)}`;
+      }
+      if (o.net) for (const e of ends) p += smooth([[0, -L * 0.06], ...e, [0, -L * 0.93]]);
+      return `<path d="${p}" fill="none" stroke="${vc}" stroke-width="${f1(sw * (o.veinW ?? 0.8))}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
     case 'ripple': {
       // Peperomia caperata style: deep curved grooves between the veins.
       const rc = shade(ctx.fill(o.color), -0.14);
@@ -214,7 +241,7 @@ export function leaf(ctx, x, y, a, o) {
   let s = `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${deg(a)})">`;
   s += `<path d="${shape(L, W, o)}" fill="${paint(base)}" stroke="${ctx.line}" stroke-width="${sw}" stroke-linejoin="round"/>`;
   if (o.variType && o.dry == null) s += variegate(ctx, o, L, W, shape, sw);
-  if (o.shape === 'holes' || o.shape === 'monstera') {
+  if (o.shape === 'holes' || (o.shape === 'monstera' && o.windows !== false)) {
     // Monstera windows: shaded ovals between the midrib and the margin.
     const hc = shade(paint(o.color), -0.3);
     const windows = o.shape === 'holes'

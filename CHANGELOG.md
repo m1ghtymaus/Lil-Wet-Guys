@@ -3,6 +3,24 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.4.0 — 2026-10-03
+
+### Added
+- A **bookshelf** background for the card (`background: bookshelf`, or
+  Background in the card editor): each row of plants stands on a cartoon wooden
+  walnut shelf with its name on a little label, and a different handful of
+  surprises turns up on every page load: books, a snail, a peeking fairy, a
+  climbing vine, a mouse hole and more, always with something magical (potions,
+  crystals, a sleeping baby dragon or a moon mobile). Fireflies twinkle on
+  every shelf.
+- Six more plants, each with a care preset and its own drawing: Jade pothos,
+  Alocasia 'Frydek', Money tree, Mini monstera (Rhaphidophora tetrasperma),
+  Nerve plant (Fittonia albivenis) and Variegated million hearts (Dischidia
+  ruscifolia 'Variegata').
+
+### Fixed
+- A countdown just under two days read "1 day 24 h" instead of "2 days".
+
 ## 0.3.0 — 2026-10-02
 
 ### Added
