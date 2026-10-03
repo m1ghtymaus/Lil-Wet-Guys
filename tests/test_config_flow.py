@@ -99,6 +99,36 @@ async def test_fahrenheit_is_stored_as_celsius(hass: HomeAssistant) -> None:
     assert subentry.data["temp_max"] == pytest.approx(30)
 
 
+async def test_temperature_unit_setting(hass: HomeAssistant) -> None:
+    """Configure → Settings picks the unit for every plant, whatever Home Assistant uses."""
+    entry = await setup_entry(hass, make_entry())
+    status = hass.states.get("sensor.pothos_status").attributes
+    assert status["temperature_unit"] == "°C"
+    assert status["temperature_min"] == 15.6
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "settings"})
+    assert result["step_id"] == "settings"
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"temperature_unit": "fahrenheit"})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.options["temperature_unit"] == "fahrenheit"
+
+    # The plants reload and their entities switch over.
+    status = hass.states.get("sensor.pothos_status").attributes
+    assert status["temperature_unit"] == "°F"
+    assert status["temperature_min"] == 60
+    assert status["temperature_max"] == 85
+
+    # New plants are entered in °F too, and still stored in °C.
+    result = await _start_add(hass, entry, "Aloe", "tiger_aloe")
+    suggested = {str(k): k.description.get("suggested_value") for k in result["data_schema"].schema if k.description}
+    assert suggested["temp_min"] == 55
+    await hass.config_entries.subentries.async_configure(result["flow_id"], DETAILS | {"temp_min": 50, "temp_max": 86})
+    aloe = next(s for s in entry.subentries.values() if s.title == "Aloe")
+    assert aloe.data["temp_min"] == pytest.approx(10)
+
+
 async def test_other_plant_picks_a_drawing(hass: HomeAssistant) -> None:
     """A plant without a preset asks which shape to draw."""
     entry = await setup_entry(hass, make_entry({}))

@@ -3,6 +3,17 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.6.0 — 2026-10-03
+
+### Added
+- A global **Temperature unit** setting (Configure → Settings): the same as Home
+  Assistant, Celsius or Fahrenheit, for every plant's forms, entities and the
+  card's default.
+- Bookshelf **dividers**: wooden uprights splitting each row into equal
+  compartments of three plants (or two, when a row's plants don't divide by
+  three), so long rows on wide screens are broken up (`dividers: false` turns
+  them off).
+
 ## 0.5.0 — 2026-10-03
 
 ### Added

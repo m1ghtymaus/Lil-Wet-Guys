@@ -46,6 +46,7 @@ from .const import (
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_TEMP_SENSOR,
+    CONF_TEMPERATURE_UNIT,
     DEFAULT_MOISTURE_JUMP,
     DEFAULT_POT_COLOR,
     LIGHT_LEVELS,
@@ -113,6 +114,20 @@ class PlantStore:
     async def async_flush(self) -> None:
         """Write pending changes now."""
         await self._store.async_save(self._data)
+
+
+def temperature_unit(hass: HomeAssistant, entry: ConfigEntry) -> str:
+    """Return the unit plant temperatures are entered and shown in.
+
+    That's the integration's Temperature unit setting, or Home Assistant's own unit
+    when the setting is left on auto.
+    """
+    choice = entry.options.get(CONF_TEMPERATURE_UNIT)
+    if choice == "celsius":
+        return UnitOfTemperature.CELSIUS
+    if choice == "fahrenheit":
+        return UnitOfTemperature.FAHRENHEIT
+    return hass.config.units.temperature_unit
 
 
 def photo_path(hass: HomeAssistant, file_name: str) -> Path:
@@ -209,6 +224,11 @@ class Plant:
     def temp_max_c(self) -> float:
         """Highest comfortable temperature, °C."""
         return float(self.config[CONF_TEMP_MAX])
+
+    @property
+    def temperature_unit(self) -> str:
+        """The unit to show this plant's temperatures in."""
+        return temperature_unit(self.hass, self._entry)
 
     @property
     def photo_file(self) -> str | None:

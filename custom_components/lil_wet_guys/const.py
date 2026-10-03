@@ -28,6 +28,11 @@ CONF_PHOTO: Final = "photo"  # uploaded file id
 CONF_REMOVE_PHOTO: Final = "remove_photo"
 SECTION_SENSORS: Final = "sensors"
 
+# Entry options.
+CONF_TEMPERATURE_UNIT: Final = "temperature_unit"
+UNIT_AUTO: Final = "auto"  # follow Home Assistant's unit system
+TEMPERATURE_UNITS: Final = [UNIT_AUTO, "celsius", "fahrenheit"]
+
 SPECIES_OTHER: Final = "other"
 LIGHT_LEVELS: Final = ["direct", "bright_indirect", "medium", "low"]
 DEFAULT_POT_COLOR: Final = [200, 100, 60]

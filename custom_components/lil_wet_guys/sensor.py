@@ -62,7 +62,7 @@ class StatusSensor(PlantEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Care details and the ids of the plant's other entities."""
         plant = self.plant
-        unit = self.hass.config.units.temperature_unit
+        unit = plant.temperature_unit
 
         def temp(value_c: float | None) -> float | None:
             if value_c is None:

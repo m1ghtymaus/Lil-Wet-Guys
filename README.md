@@ -92,6 +92,13 @@ integration doesn't touch them.
 Installed by hand? Copy the new release's `lil_wet_guys` folder over the old one
 and restart. What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
+## Settings
+
+**Settings → Devices & services → Lil Wet Guys → Configure → Settings** has
+**Temperature unit**: the same as Home Assistant, Celsius or Fahrenheit. It's
+used for every plant's comfortable temperatures, in the add and edit forms, on
+its entities and as the dashboard card's default.
+
 ## Moving plants to another Home Assistant
 
 Settings → Devices & services → Lil Wet Guys → **Configure**:
@@ -151,7 +158,8 @@ title: My plants   # optional
 | `limbs` | `true` | Little arms and feet on each pot. |
 | `background` | `none` | `bookshelf` stands the plants on a cartoon wooden bookshelf, with a few small surprises hidden around them. |
 | `whimsy` | `1` | Bookshelf only: surprises per plant, from `0` (just the shelves) to `4` (as many as fit). The card editor shows it as a slider. |
-| `temperature_unit` | Home Assistant's unit | `C` or `F` for the temperatures the card shows. |
+| `dividers` | `true` | Bookshelf only: wooden uprights splitting each row into equal compartments, every third plant when a row's plants divide by three, else every second when they divide by two. |
+| `temperature_unit` | the integration's setting | `C` or `F` for the temperatures this card shows. Without it the card follows **Configure → Settings → Temperature unit**. |
 | `entities` | all plants | A list of `sensor.<plant>_status` ids, to show only some plants. |
 
 - New plants appear on their own, sorted by how soon they need water.

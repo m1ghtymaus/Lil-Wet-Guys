@@ -177,16 +177,18 @@ class LilWetGuysCard extends HTMLElement {
           selector: { select: { mode: 'dropdown', options: [{ value: 'none', label: 'None' }, { value: 'bookshelf', label: 'Bookshelf' }] } },
         },
         { name: 'whimsy', selector: { number: { min: 0, max: 4, step: 0.5, mode: 'slider' } } },
+        { name: 'dividers', selector: { boolean: {} } },
         {
           name: 'temperature_unit',
           selector: { select: { mode: 'dropdown', options: [{ value: 'C', label: 'Celsius (°C)' }, { value: 'F', label: 'Fahrenheit (°F)' }] } },
         },
       ],
-      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', background: 'Background', whimsy: 'Whimsy', temperature_unit: 'Temperature unit' })[s.name],
+      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', background: 'Background', whimsy: 'Whimsy', dividers: 'Shelf dividers', temperature_unit: 'Temperature unit' })[s.name],
       computeHelper: (s) => ({
         background: 'Bookshelf stands your plants on cartoon wooden shelves, with a few surprises hidden around them.',
         whimsy: 'Bookshelf only. From less whimsy (0: just the shelves) to more whimsy (4 surprises per plant, as many as fit).',
-        temperature_unit: "Leave empty to use Home Assistant's setting. The °C/°F switch in a plant's popup overrides it on that device.",
+        dividers: 'Bookshelf only: wooden uprights splitting each row into equal compartments of two or three plants. On unless you turn it off.',
+        temperature_unit: "Leave empty to use the Temperature unit under Lil Wet Guys → Configure → Settings. The °C/°F switch in a plant's popup overrides it on that device.",
       })[s.name],
     };
   }
@@ -349,6 +351,7 @@ class LilWetGuysCard extends HTMLElement {
     if (!w || !h) return; // not on screen yet
     // Offsets rather than bounding boxes, so a tile lifted by :hover doesn't count.
     const rows = [];
+    const firstRow = []; // the first row's tiles, [left, right], to find the column gaps
     let scale = 0.62;
     for (const tile of grid.children) {
       const art = tile.querySelector('.art');
@@ -359,6 +362,7 @@ class LilWetGuysCard extends HTMLElement {
         row = { top, floor: top + art.offsetTop + art.offsetHeight * FLOOR, bottom: 0, pots: [] };
         rows.push(row);
       }
+      if (row === rows[0]) firstRow.push([grid.offsetLeft + tile.offsetLeft, grid.offsetLeft + tile.offsetLeft + tile.offsetWidth]);
       row.bottom = Math.max(row.bottom, top + tile.offsetHeight);
       const shape = this._hass?.states[tile.dataset.id]?.attributes.shape;
       row.pots.push({
@@ -366,9 +370,17 @@ class LilWetGuysCard extends HTMLElement {
         trailing: SPECIES[shape]?.rig === 'trailing',
       });
     }
+    // Wooden uprights splitting each row into equal compartments: every third plant if a
+    // row's plants divide by three, else every second if they divide by two, else none.
+    const dividers = [];
+    const perRow = firstRow.length;
+    const step = perRow % 3 === 0 ? 3 : perRow % 2 === 0 ? 2 : 0;
+    if (this._config.dividers !== false && step) {
+      for (let i = step; i < perRow; i += step) dividers.push((firstRow[i - 1][1] + firstRow[i][0]) / 2);
+    }
     const pad = getComputedStyle(box);
     const g = {
-      w, h, scale, rows, whimsy: Number(this._config.whimsy ?? 1),
+      w, h, scale, rows, dividers, whimsy: Number(this._config.whimsy ?? 1),
       left: parseFloat(pad.paddingLeft), right: parseFloat(pad.paddingRight),
       top: grid.offsetTop - 2, bottom: parseFloat(pad.paddingBottom),
     };

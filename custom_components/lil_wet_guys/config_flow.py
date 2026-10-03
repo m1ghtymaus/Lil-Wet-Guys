@@ -51,6 +51,7 @@ from .const import (
     CONF_TEMP_MAX,
     CONF_TEMP_MIN,
     CONF_TEMP_SENSOR,
+    CONF_TEMPERATURE_UNIT,
     DEFAULT_MOISTURE_JUMP,
     DEFAULT_POT_COLOR,
     DOMAIN,
@@ -60,7 +61,10 @@ from .const import (
     SECTION_SENSORS,
     SPECIES_OTHER,
     SUBENTRY_PLANT,
+    TEMPERATURE_UNITS,
+    UNIT_AUTO,
 )
+from .plant import temperature_unit
 from .species import GENERIC_SHAPES, OTHER, SPECIES
 
 CONF_FILE = "file"  # import form: the uploaded export
@@ -115,16 +119,35 @@ class LilWetGuysConfigFlow(ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        """Configure offers export and import."""
+        """Configure offers settings, export and import."""
         return BackupFlow()
 
 
 class BackupFlow(OptionsFlow):
-    """Export every plant to a file, or import plants from one."""
+    """Settings for every plant, and exporting or importing plants."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Choose export or import."""
-        return self.async_show_menu(step_id="init", menu_options=["export", "import_plants"])
+        """Choose settings, export or import."""
+        return self.async_show_menu(step_id="init", menu_options=["settings", "export", "import_plants"])
+
+    async def async_step_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Change the settings that apply to every plant."""
+        if user_input is not None:
+            return self.async_create_entry(data={**self.config_entry.options, **user_input})
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_TEMPERATURE_UNIT, default=self.config_entry.options.get(CONF_TEMPERATURE_UNIT, UNIT_AUTO)
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=TEMPERATURE_UNITS,
+                        translation_key=CONF_TEMPERATURE_UNIT,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+        return self.async_show_form(step_id="settings", data_schema=schema)
 
     async def async_step_export(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Write an export and hand back a download link that works for an hour."""
@@ -250,7 +273,7 @@ class PlantFlow(ConfigSubentryFlow):
 
     @property
     def _unit(self) -> str:
-        return self.hass.config.units.temperature_unit
+        return temperature_unit(self.hass, self._get_entry())
 
     def _details_schema(self, species: str, *, new: bool, has_photo: bool) -> vol.Schema:
         unit = self._unit

@@ -9,8 +9,9 @@ photo and a temperature warning. The integration also serves the dashboard card.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
@@ -45,12 +46,13 @@ class LilWetGuysData:
 
     store: PlantStore
     plants: dict[str, Plant]
+    options: dict[str, Any] = field(default_factory=dict)  # the entry's options when set up
     importing: bool = False  # an import adds many plants, then reloads once
 
     def matches(self, entry: ConfigEntry) -> bool:
-        """Whether the running plants are exactly the entry's plant subentries."""
+        """Whether the running plants are exactly the entry's plant subentries and options."""
         subentries = {sid: sub for sid, sub in entry.subentries.items() if sub.subentry_type == SUBENTRY_PLANT}
-        return subentries.keys() == self.plants.keys() and all(
+        return dict(entry.options) == self.options and subentries.keys() == self.plants.keys() and all(
             sub.title == self.plants[sid].name and sub.data == self.plants[sid].config
             for sid, sub in subentries.items()
         )
@@ -89,7 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LilWetGuysConfigEntry) -
     )
     for plant in plants.values():
         await plant.async_start()
-    entry.runtime_data = LilWetGuysData(store, plants)
+    entry.runtime_data = LilWetGuysData(store, plants, dict(entry.options))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     # The status sensor lists its sibling entities; they all exist now.

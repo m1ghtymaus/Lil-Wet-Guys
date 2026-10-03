@@ -168,6 +168,7 @@
   <div class="row shelf-controls">
     <button id="shuffle" type="button">Shuffle the surprises</button>
     <label class="whimsy"><span>Less whimsy</span><input id="whimsy" type="range" min="0" max="4" step="0.5" value="1" aria-label="Whimsy: surprises per plant"><span>More whimsy</span></label>
+    <label class="whimsy"><input id="dividers" type="checkbox" checked> Dividers</label>
     <div class="seg" role="group" aria-label="Card width">
       <button type="button" class="quiet" data-w="360" aria-pressed="false">Phone</button>
       <button type="button" class="quiet" data-w="720" aria-pressed="true">Tablet</button>
@@ -231,8 +232,12 @@
   const holder = document.getElementById('shelf');
   holder.append(card);
 
+  const config = { title: 'Lil Wet Guys', background: 'bookshelf', whimsy: 1, dividers: true };
   document.getElementById('whimsy').addEventListener('input', (e) => {
-    card.setConfig({ title: 'Lil Wet Guys', background: 'bookshelf', whimsy: Number(e.target.value) });
+    card.setConfig({ ...config, whimsy: (config.whimsy = Number(e.target.value)) });
+  });
+  document.getElementById('dividers').addEventListener('change', (e) => {
+    card.setConfig({ ...config, dividers: (config.dividers = e.target.checked) });
   });
   document.getElementById('shuffle').addEventListener('click', () => {
     card._shelfSeed = (Math.random() * 2 ** 32) >>> 0;

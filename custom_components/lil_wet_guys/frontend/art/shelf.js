@@ -523,11 +523,12 @@ const MAGIC = ['potions', 'crystals', 'moonMobile', 'fairyFrog', 'charms', 'mush
  * everything), the props standing about (which go above the plant labels but behind
  * the plants), and twinkling lights ({ x, y, size, delay, color } in pixels) for
  * the card to animate.
- * g: { w, h, left, right, top, bottom, scale, whimsy, rows: [{ floor, bottom, pots: [{ x, trailing }] }] }
+ * g: { w, h, left, right, top, bottom, scale, whimsy, dividers, rows: [{ floor, bottom, pots: [{ x, trailing }] }] }
  *    sizes in pixels: the frame's post, crown and base thickness, pixels per plant unit,
  *    and for each row the y its plants stand on, the y its plank ends and each pot's centre
  *    (trailing plants hang vines past their pot, so props keep further away). whimsy is
- *    how many surprises to place per plant, 0 to 4 (default 1).
+ *    how many surprises to place per plant, 0 to 4 (default 1); dividers are the x of
+ *    any wooden uprights splitting the case into compartments.
  */
 export function drawBookshelf(g, rand) {
   const { w, h, left, right, top, bottom, rows } = g;
@@ -573,6 +574,15 @@ export function drawBookshelf(g, rand) {
       }
     }
   });
+  // Uprights splitting the case into compartments: props keep off them.
+  const DIVIDER = 10;
+  for (const x of g.dividers ?? []) {
+    const gap = DIVIDER / 2 + 4;
+    for (const sp of [...spans]) {
+      if (sp.a >= x + gap || sp.b <= x - gap) continue;
+      spans.splice(spans.indexOf(sp), 1, { ...sp, b: x - gap, potRight: false }, { ...sp, a: x + gap, potLeft: false });
+    }
+  }
   const claim = (width) => {
     const fits = spans.filter((sp) => sp.b - sp.a >= width + 6 * u);
     if (!fits.length) return null;
@@ -830,6 +840,13 @@ export function drawBookshelf(g, rand) {
       const gx = between(x0 + 10, x1 - 70), gy = between(f + 8, Math.max(f + 9, row.bottom - 8));
       planks += `<path d="M${f1(gx)} ${f1(gy)}q20 -3 ${f1(between(40, 60))} 0" fill="none" stroke="${WOOD.frontDark}" stroke-width="1.3" stroke-opacity=".6" stroke-linecap="round"/>`;
     }
+  }
+
+  for (const x of g.dividers ?? []) {
+    const l = x - DIVIDER / 2;
+    planks += `<rect x="${f1(l)}" y="${f1(top)}" width="${DIVIDER}" height="${f1(h - top - bottom)}" fill="${WOOD.frame}" stroke="${LINE}" stroke-width="2"/>`
+      + `<rect x="${f1(l + 1.6)}" y="${f1(top + 1)}" width="2" height="${f1(h - top - bottom - 2)}" fill="${WOOD.light}" fill-opacity=".7"/>`
+      + `<rect x="${f1(l + DIVIDER - 3.6)}" y="${f1(top + 1)}" width="2.6" height="${f1(h - top - bottom - 2)}" fill="${WOOD.dark}"/>`;
   }
 
   // The frame: two posts, a crown along the top and a base.

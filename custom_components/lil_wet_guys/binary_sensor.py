@@ -40,7 +40,7 @@ class TemperatureProblem(PlantEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """The reading, the range and which way it is off."""
-        unit = self.hass.config.units.temperature_unit
+        unit = self.plant.temperature_unit
 
         def temp(value_c: float | None) -> float | None:
             if value_c is None:

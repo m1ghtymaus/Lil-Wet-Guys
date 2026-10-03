@@ -132,6 +132,13 @@
         "skip": "Skip them",
         "add": "Add them anyway"
       }
+    },
+    "temperature_unit": {
+      "options": {
+        "auto": "Same as Home Assistant",
+        "celsius": "Celsius (°C)",
+        "fahrenheit": "Fahrenheit (°F)"
+      }
     }
   },
   "entity": {
@@ -190,10 +197,20 @@
     "step": {
       "init": {
         "title": "Lil Wet Guys",
-        "description": "Back up your plants, or bring in plants exported from another Home Assistant.",
+        "description": "Settings for every plant, or back up your plants and bring in plants exported from another Home Assistant.",
         "menu_options": {
+          "settings": "Settings",
           "export": "Export all plants",
           "import_plants": "Import plants from a file"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "temperature_unit": "Temperature unit"
+        },
+        "data_description": {
+          "temperature_unit": "Used for every plant's comfortable temperatures: in the add and edit forms, on its entities and as the dashboard card's default. A card's own setting, or the °C/°F switch in a plant's popup, can still override it on the dashboard."
         }
       },
       "import_plants": {
