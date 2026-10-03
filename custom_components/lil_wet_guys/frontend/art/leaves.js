@@ -22,6 +22,80 @@ function lobed(L, W, lobes = 5, depth = 0.45) {
   return smooth([[0, L * 0.02], [env(0) * (1 - depth) * 0.6, L * 0.06], ...right, [0, -L * 1.02], ...left, [-env(0) * (1 - depth) * 0.6, L * 0.06]], true);
 }
 
+/** Monstera leaf: a broad heart with slits cut in from the edge toward the midrib. */
+const monsteraEdge = (W, t) => (W / 2) * Math.pow(Math.sin(Math.PI * (0.12 + 0.88 * t)), 0.62);
+const monsteraY = (L, t) => -L * t + L * 0.14 * Math.pow(1 - t, 2.5);
+const monsteraSlits = (slits) => Array.from({ length: slits }, (_, j) => 0.17 + j * (0.64 / (slits - 1)));
+
+function monstera(L, W, slits = 4) {
+  const env = (t) => monsteraEdge(W, t);
+  const y = (t) => monsteraY(L, t);
+  const right = [[env(0.04), y(0.04)]];
+  for (const t of monsteraSlits(slits)) {
+    right.push([env(t - 0.035), y(t - 0.035)]);
+    right.push([env(t) * 0.4, y(t) - L * 0.035]); // bottom of the slit, angled toward the tip
+    right.push([env(t + 0.035), y(t + 0.035)]);
+  }
+  right.push([env(0.93), y(0.93)]);
+  const left = right.map(([x, yy]) => [-x, yy]).reverse();
+  return smooth([[0, L * 0.03], ...right, [0, -L], ...left], true);
+}
+
+/**
+ * Thai Constellation variegation on a monstera leaf: short cream dashes sprayed along
+ * the veins of every finger, and now and then a finger that is a solid cream sector.
+ */
+function constellation(ctx, o, L, W, vc) {
+  const env = (t) => monsteraEdge(W, t);
+  const y = (t) => monsteraY(L, t);
+  const slits = monsteraSlits(o.slits ?? 4);
+  const k = o.k ?? 0;
+  const widths = [0.03, 0.045, 0.06].map((f) => W * f);
+  const dashes = widths.map(() => '');
+  let sectors = '';
+  const dash = (x, yy, len, ang, n) => {
+    const dx = Math.cos(ang) * len / 2, dy = Math.sin(ang) * len / 2;
+    const c = Math.floor(ctx.r(n, 'cw') * widths.length);
+    dashes[c] += `M${f1(x - dx)} ${f1(yy - dy)}L${f1(x + dx)} ${f1(yy + dy)}`;
+  };
+  let n = k * 211;
+  const sectorAt = Math.floor(ctx.r(k, 'csec') * (slits.length - 1) * 2 * 1.6); // some leaves get none
+  let side = 0;
+  for (let j = 0; j < slits.length - 1; j++) {
+    const a = slits[j], b = slits[j + 1], tc = (a + b) / 2;
+    const half = L * ((b - a) / 2 - 0.035); // half the finger's width at the margin
+    for (const sd of [-1, 1]) {
+      if (side++ === sectorAt) {
+        const pts = [[env(a) * 0.4, y(a) - L * 0.035], [env(a + 0.035), y(a + 0.035)], [env(tc), y(tc)],
+          [env(b - 0.035), y(b - 0.035)], [env(b) * 0.4, y(b) - L * 0.035]];
+        const cx = pts.reduce((m, p) => m + p[0], 0) / pts.length;
+        const cy = pts.reduce((m, p) => m + p[1], 0) / pts.length;
+        const inset = pts.map(([px, py]) => [sd * (cx + (px - cx) * 0.74), cy + (py - cy) * 0.74]);
+        sectors += `<path d="${smooth(inset, true)}" fill="${vc}"/>`;
+        continue;
+      }
+      // The finger runs from beside the midrib out to the margin, sloping like its slits.
+      const x0 = env(tc) * 0.2, x1 = env(tc) * 0.86, y0 = y(tc) - L * 0.035, y1 = y(tc);
+      const ang = Math.atan2(y1 - y0, sd * (x1 - x0));
+      const count = 2 + Math.floor(ctx.r(n++, 'cn') * 4);
+      for (let q = 0; q < count; q++) {
+        const f = 0.1 + 0.8 * ctx.r(n, 'cf');
+        const u = (ctx.r(n, 'cu') * 2 - 1) * 0.5 * half;
+        const len = W * (0.05 + 0.08 * ctx.r(n, 'cl'));
+        dash(sd * (x0 + (x1 - x0) * f), y0 + (y1 - y0) * f + u, len, ang, n++);
+      }
+    }
+  }
+  // A few more on the solid tip.
+  for (let q = 0; q < 3; q++) {
+    const t = 0.85 + 0.04 * ctx.r(n, 'tt');
+    const x = (ctx.r(n, 'tx') * 2 - 1) * env(t) * 0.4;
+    dash(x, y(t), W * (0.04 + 0.04 * ctx.r(n, 'tl')), Math.atan2(-0.6, Math.sign(x || 1)), n++);
+  }
+  return sectors + dashes.map((d, i) => (d
+    ? `<path d="${d}" fill="none" stroke="${vc}" stroke-width="${f1(widths[i])}" stroke-linecap="round"/>` : '')).join('');
+}
+
 export const SHAPES = {
   oval: (L, W) => `M0 0C${f1(W * 0.55)} ${f1(-L * 0.12)} ${f1(W * 0.55)} ${f1(-L * 0.72)} 0 ${f1(-L)}`
     + `C${f1(-W * 0.55)} ${f1(-L * 0.72)} ${f1(-W * 0.55)} ${f1(-L * 0.12)} 0 0Z`,
@@ -47,6 +121,7 @@ export const SHAPES = {
     + `C${f1(W * 0.56)} ${f1(-L * 0.36)} ${f1(W * 0.56)} ${f1(-L * 0.1)} ${f1(W * 0.3)} 0Z`,
   lobed: (L, W, o) => lobed(L, W, o.lobes, o.depth),
   holes: (L, W) => SHAPES.oval(L, W),
+  monstera: (L, W, o) => monstera(L, W, o.slits),
 };
 
 function variegate(ctx, o, L, W, shape, sw) {
@@ -97,6 +172,17 @@ function variegate(ctx, o, L, W, shape, sw) {
         + `M0 ${f1(-L * 0.52)}Q${f1(-W * 0.14)} ${f1(-L * 0.56)} ${f1(-W * 0.24)} ${f1(-L * 0.52)}" `
         + `fill="none" stroke="${vc}" stroke-width="${f1(sw * 0.8)}" stroke-linecap="round"/>`;
     }
+    case 'zebra': {
+      // Tradescantia zebrina: a broad silver stripe either side of the midrib.
+      let p = '';
+      for (const sd of [-1, 1]) {
+        const x = sd * W * 0.2;
+        p += `M${f1(x * 0.7)} ${f1(-L * 0.16)}Q${f1(x * 1.2)} ${f1(-L * 0.45)} ${f1(x * 0.45)} ${f1(-L * 0.78)}`;
+      }
+      return `<path d="${p}" fill="none" stroke="${vc}" stroke-width="${f1(W * 0.12)}" stroke-linecap="round" stroke-opacity=".9"/>`;
+    }
+    case 'constellation':
+      return constellation(ctx, o, L, W, vc);
     case 'ripple': {
       // Peperomia caperata style: deep curved grooves between the veins.
       const rc = shade(ctx.fill(o.color), -0.14);
@@ -127,16 +213,19 @@ export function leaf(ctx, x, y, a, o) {
   const base = o.variType === 'edge' ? o.vari : o.color;
   let s = `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${deg(a)})">`;
   s += `<path d="${shape(L, W, o)}" fill="${paint(base)}" stroke="${ctx.line}" stroke-width="${sw}" stroke-linejoin="round"/>`;
-  if (o.shape === 'holes') {
+  if (o.variType && o.dry == null) s += variegate(ctx, o, L, W, shape, sw);
+  if (o.shape === 'holes' || o.shape === 'monstera') {
     // Monstera windows: shaded ovals between the midrib and the margin.
     const hc = shade(paint(o.color), -0.3);
-    for (const [ht, hs] of [[0.3, 1], [0.5, 1], [0.69, 0.75]]) {
+    const windows = o.shape === 'holes'
+      ? [[0.3, 1, 0.2], [0.5, 1, 0.2], [0.69, 0.75, 0.2]]
+      : [[0.36, 0.55, 0.12], [0.6, 0.5, 0.11]];
+    for (const [ht, hs, hx0] of windows) {
       for (const hx of [-1, 1]) {
-        s += `<ellipse cx="${f1(hx * W * 0.2)}" cy="${f1(-L * ht)}" rx="${f1(W * 0.1 * hs)}" ry="${f1(L * 0.065 * hs)}" fill="${hc}" stroke="${ctx.line}" stroke-width=".8"/>`;
+        s += `<ellipse cx="${f1(hx * W * hx0)}" cy="${f1(-L * ht)}" rx="${f1(W * 0.1 * hs)}" ry="${f1(L * 0.065 * hs)}" fill="${hc}" stroke="${ctx.line}" stroke-width=".8"/>`;
       }
     }
   }
-  if (o.variType && o.dry == null) s += variegate(ctx, o, L, W, shape, sw);
   if (o.rib !== false) {
     const rc = o.ribColor ? paint(o.ribColor) : shade(paint(o.color), 0.12);
     s += `<path d="M0 ${f1(-L * 0.02)}Q${f1(W * 0.05)} ${f1(-L * 0.5)} 0 ${f1(-L * 0.86)}" fill="none" stroke="${rc}" stroke-width="${f1(sw * 0.65)}" stroke-linecap="round"/>`;

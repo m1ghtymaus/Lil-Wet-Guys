@@ -137,6 +137,30 @@ SPECIES: dict[str, Species] = {
         "ZZ plant", "Zamioculcas zamiifolia", "medium", 18, 60, 85,
         "Let the soil dry out completely between waterings.",
     ),
+    "epipremnum_pinnatum": Species(
+        "Epipremnum pinnatum", "Epipremnum pinnatum", "bright_indirect", 8, 60, 85,
+        "Water when the top 1–2 inches of soil are dry.",
+    ),
+    "inch_plant": Species(
+        "Inch plant", "Tradescantia zebrina", "bright_indirect", 6, 60, 80,
+        "Keep the soil lightly moist; water when the top inch is dry.",
+    ),
+    "white_bird_of_paradise": Species(
+        "White bird of paradise", "Strelitzia nicolai", "bright_indirect", 8, 65, 85,
+        "Water when the top 2 inches are dry. Give it as much light as you can.",
+    ),
+    "monstera_deliciosa": Species(
+        "Monstera deliciosa", "Monstera deliciosa", "bright_indirect", 8, 65, 85,
+        "Water when the top 2 inches of soil are dry.",
+    ),
+    "monstera_thai_constellation": Species(
+        "Thai Constellation monstera", "Monstera deliciosa 'Thai Constellation'", "bright_indirect", 8, 65, 85,
+        "Water when the top 2 inches are dry. Bright light keeps the speckles strong.",
+    ),
+    "zz_plant_raven": Species(
+        "Black Raven ZZ plant", "Zamioculcas zamiifolia 'Raven'", "medium", 18, 60, 85,
+        "Let the soil dry out completely between waterings.",
+    ),
 }
 
 # Drawing shapes offered for a plant without a preset.

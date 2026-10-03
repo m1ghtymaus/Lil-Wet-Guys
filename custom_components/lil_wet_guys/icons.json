@@ -40,6 +40,17 @@
           "ghost": "mdi:ghost"
         }
       }
+    },
+    "select": {
+      "light": {
+        "default": "mdi:white-balance-sunny",
+        "state": {
+          "direct": "mdi:weather-sunny",
+          "bright_indirect": "mdi:white-balance-sunny",
+          "medium": "mdi:weather-partly-cloudy",
+          "low": "mdi:weather-cloudy"
+        }
+      }
     }
   }
 }

@@ -21,6 +21,12 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     return enable_custom_integrations
 
 
+@pytest.fixture
+def isolated_config(hass: HomeAssistant, tmp_path) -> None:
+    """Give a test its own config directory, so photos and exports don't leak between tests."""
+    hass.config.config_dir = str(tmp_path)
+
+
 def plant_data(**overrides: Any) -> dict[str, Any]:
     """Subentry data for a golden pothos watered every 8 days in bright light."""
     data = {

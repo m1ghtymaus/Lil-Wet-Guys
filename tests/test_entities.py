@@ -9,7 +9,12 @@ from freezegun.api import FrozenDateTimeFactory
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.lil_wet_guys.const import DOMAIN
-from homeassistant.const import ATTR_ENTITY_ID, ATTR_UNIT_OF_MEASUREMENT, UnitOfTemperature
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    ATTR_UNIT_OF_MEASUREMENT,
+    EntityCategory,
+    UnitOfTemperature,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -22,13 +27,14 @@ NEXT = "sensor.pothos_next_watering"
 BUTTON = "button.pothos_watered"
 LAST = "datetime.pothos_last_watered"
 NOTES = "text.pothos_notes"
+LIGHT = "select.pothos_light"
 
 
 async def test_entities_and_device(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
     """Each plant is a device with its entities; optional ones are absent."""
     watered_ago(hass_storage, 2)
     entry = await setup_entry(hass, make_entry())
-    for entity_id in (STATUS, NEXT, BUTTON, LAST, NOTES):
+    for entity_id in (STATUS, NEXT, BUTTON, LAST, NOTES, LIGHT):
         assert hass.states.get(entity_id) is not None, entity_id
     assert hass.states.get("image.pothos_photo") is None
     assert hass.states.get("binary_sensor.pothos_temperature") is None
@@ -173,6 +179,32 @@ async def test_notes(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
     await hass.async_block_till_done()
     assert hass.states.get(NOTES).state == "Repotted in May"
     assert hass_storage[DOMAIN]["data"][PLANT_ID]["notes"] == "Repotted in May"
+
+
+async def test_light_can_be_changed(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
+    """Changing the light moves the next watering and is saved, without a reload."""
+    watered = watered_ago(hass_storage, 2)
+    entry = await setup_entry(hass, make_entry())
+    assert hass.states.get(LIGHT).state == "bright_indirect"
+    assert hass.states.get(STATUS).attributes["light_entity"] == LIGHT
+    assert er.async_get(hass).async_get(LIGHT).entity_category is EntityCategory.CONFIG
+    plant = entry.runtime_data.plants[PLANT_ID]
+
+    await hass.services.async_call(
+        "select", "select_option", {ATTR_ENTITY_ID: LIGHT, "option": "low"}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert entry.runtime_data.plants[PLANT_ID] is plant  # changed in place, not reloaded
+    assert entry.subentries[PLANT_ID].data["light"] == "low"
+    assert hass.states.get(LIGHT).state == "low"
+    assert hass.states.get(STATUS).attributes["interval_days"] == 12
+    expected_next = watered + timedelta(days=12)
+    assert dt_util.parse_datetime(hass.states.get(NEXT).state) == expected_next.replace(microsecond=0)
+
+    # The choice is part of the plant's settings, so it survives a restart.
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(LIGHT).state == "low"
 
 
 async def test_removing_a_plant(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:

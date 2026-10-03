@@ -17,6 +17,8 @@ from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 
 from .conftest import PLANT_ID, make_entry, plant_data, setup_entry
 
+pytestmark = pytest.mark.usefixtures("isolated_config")
+
 
 async def test_user_flow_creates_the_entry(hass: HomeAssistant) -> None:
     """Setup is a single confirmation."""

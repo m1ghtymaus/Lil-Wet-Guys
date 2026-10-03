@@ -159,6 +159,37 @@ export const SPECIES = {
     leaf: { shape: 'oval', L: 17.5, W: 9.5, color: '#2f5f2a', gloss: true, rib: false },
   },
 
+  epipremnum_pinnatum: {
+    name: 'Epipremnum pinnatum', latin: 'Epipremnum pinnatum', rig: 'trailing',
+    top: 7, topLen: 26, vines: 4, vineLen: 74, perVine: 6, stem: '#5f8a4a',
+    leaf: { shape: 'heart', L: 25, W: 14, color: '#4f8c6a', gloss: true },
+  },
+  inch_plant: {
+    name: 'Inch plant', latin: 'Tradescantia zebrina', rig: 'trailing',
+    top: 8, topLen: 22, vines: 4, vineLen: 72, perVine: 7, stem: '#7a4a7f',
+    leaf: { shape: 'lance', L: 21, W: 12.5, color: '#6b3d78', vari: '#c9d6d6', variType: 'zebra', rib: false, gloss: true },
+  },
+  white_bird_of_paradise: {
+    name: 'White bird of paradise', latin: 'Strelitzia nicolai', rig: 'canes', form: 'bird',
+    count: 5, spread: 0.6, stalk: [44, 80], len: [44, 60], W: 24, stalkColor: '#6f9455',
+    strap: { color: '#4f8758', rib: '#c9dcb0', veins: 9, tears: true, scorch: true },
+  },
+  monstera_deliciosa: {
+    name: 'Monstera deliciosa', latin: 'Monstera deliciosa', rig: 'upright_leaf', scale: 0.95,
+    count: 5, len: [36, 70], spread: 1.0, tilt: 0.7, stem: '#5f8f3a', stemW: 3.2,
+    leaf: { shape: 'monstera', L: 50, W: 50, slits: 4, color: '#2f6f34' },
+  },
+  monstera_thai_constellation: {
+    name: 'Thai Constellation monstera', latin: "Monstera deliciosa 'Thai Constellation'", rig: 'upright_leaf', scale: 0.95,
+    count: 5, len: [36, 70], spread: 1.0, tilt: 0.7, stem: '#7c9a5a', stemW: 3.2,
+    leaf: { shape: 'monstera', L: 50, W: 50, slits: 4, color: '#2b6631', vari: '#f3eed6', variType: 'constellation', gloss: true },
+  },
+  zz_plant_raven: {
+    name: 'Black Raven ZZ plant', latin: "Zamioculcas zamiifolia 'Raven'", rig: 'canes', form: 'zz', drop: 0.3,
+    count: 6, len: [56, 102], leaflets: 8, stem: '#2c3627',
+    leaf: { shape: 'oval', L: 17.5, W: 9.5, color: '#36452f', gloss: true, rib: false },
+  },
+
   // Shapes offered for plants without a preset.
   generic_leafy: {
     name: 'Leafy plant', rig: 'upright_leaf', generic: true,

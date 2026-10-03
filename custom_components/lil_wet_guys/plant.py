@@ -6,9 +6,10 @@ import logging
 from collections.abc import Callable, Mapping
 from datetime import datetime
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
-from homeassistant.config_entries import ConfigSubentry
+from homeassistant.config_entries import ConfigEntry, ConfigSubentry
 from homeassistant.const import (
     ATTR_UNIT_OF_MEASUREMENT,
     STATE_UNAVAILABLE,
@@ -47,6 +48,7 @@ from .const import (
     CONF_TEMP_SENSOR,
     DEFAULT_MOISTURE_JUMP,
     DEFAULT_POT_COLOR,
+    LIGHT_LEVELS,
     PHOTO_DIR,
     SPECIES_OTHER,
     STORAGE_KEY,
@@ -57,12 +59,21 @@ from .species import OTHER, SPECIES, Species
 _LOGGER = logging.getLogger(__name__)
 
 
+class _VersionedStore(Store[dict[str, dict[str, str]]]):
+    """The on-disk store, with a place to upgrade data saved by older versions."""
+
+    async def _async_migrate_func(self, old_major_version: int, old_minor_version: int, old_data: dict) -> dict:
+        # Nothing to convert yet. When a release changes the stored shape, bump
+        # STORAGE_VERSION and translate old_data here so nothing is lost.
+        return old_data
+
+
 class PlantStore:
     """When each plant was last watered, and its notes, keyed by subentry id."""
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Create the store; call async_load before use."""
-        self._store: Store[dict[str, dict[str, str]]] = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+        self._store = _VersionedStore(hass, STORAGE_VERSION, STORAGE_KEY)
         self._data: dict[str, dict[str, str]] = {}
 
     async def async_load(self) -> None:
@@ -131,9 +142,10 @@ def _number(state: State | None) -> float | None:
 class Plant:
     """One plant, shared by all of its entities."""
 
-    def __init__(self, hass: HomeAssistant, subentry: ConfigSubentry, store: PlantStore) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, subentry: ConfigSubentry, store: PlantStore) -> None:
         """Load the plant's settings and last-watered time."""
         self.hass = hass
+        self._entry = entry
         self.id = subentry.subentry_id
         self.name = subentry.title
         self.config: Mapping[str, Any] = subentry.data
@@ -289,6 +301,25 @@ class Plant:
         """Record a watering (or correct when the last one was)."""
         self.last_watered = dt_util.as_utc(when)
         self._store.set_last_watered(self.id, self.last_watered)
+        self._schedule()
+        self._notify()
+
+    @callback
+    def async_set_light(self, light: str) -> None:
+        """Move the plant to another light level; its watering interval follows.
+
+        The change is saved to the plant's settings without reloading the
+        integration: the settings this plant runs with already match, so the
+        update listener has nothing to do.
+        """
+        if light not in LIGHT_LEVELS:
+            raise ValueError(f"Unknown light level: {light}")
+        if light == self.light:
+            return
+        self.config = MappingProxyType({**self.config, CONF_LIGHT: light})
+        self.hass.config_entries.async_update_subentry(
+            self._entry, self._entry.subentries[self.id], data=dict(self.config)
+        )
         self._schedule()
         self._notify()
 

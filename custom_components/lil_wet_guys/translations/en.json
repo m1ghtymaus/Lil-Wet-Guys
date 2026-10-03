@@ -126,6 +126,12 @@
         "generic_spiky": "Upright spiky",
         "generic_tree": "Small tree"
       }
+    },
+    "existing": {
+      "options": {
+        "skip": "Skip them",
+        "add": "Add them anyway"
+      }
     }
   },
   "entity": {
@@ -149,6 +155,17 @@
         "name": "Photo"
       }
     },
+    "select": {
+      "light": {
+        "name": "Light",
+        "state": {
+          "direct": "Direct sun",
+          "bright_indirect": "Bright, indirect light",
+          "medium": "Medium light",
+          "low": "Low light"
+        }
+      }
+    },
     "sensor": {
       "next_watering": {
         "name": "Next watering"
@@ -167,6 +184,36 @@
       "notes": {
         "name": "Notes"
       }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lil Wet Guys",
+        "description": "Back up your plants, or bring in plants exported from another Home Assistant.",
+        "menu_options": {
+          "export": "Export all plants",
+          "import_plants": "Import plants from a file"
+        }
+      },
+      "import_plants": {
+        "title": "Import plants",
+        "description": "Choose a file made with **Export all plants**. Each plant comes in with its settings, last-watered time, notes and photo.",
+        "data": {
+          "file": "Export file",
+          "existing": "Plants with a name you already use"
+        },
+        "data_description": {
+          "existing": "Skip them to avoid duplicates, or add them as extra plants."
+        }
+      }
+    },
+    "error": {
+      "bad_export": "That file isn't a Lil Wet Guys export, or it was made by a newer version."
+    },
+    "abort": {
+      "export_ready": "Exported {count} plants. [Download the export]({url}). The link works for one hour, and a copy is saved at `{path}`.",
+      "import_done": "Added {added} plants and skipped {skipped}."
     }
   }
 }

@@ -19,6 +19,7 @@ Each plant is its own device with these entities:
 | `sensor.<plant>_status` | `happy`, `thirsty` (0–1½ days late), `wilting` (1½–3 days late) or `ghost` (3+ days late). Its attributes carry everything the card needs. |
 | `button.<plant>_watered` | Press after watering; the countdown starts again. |
 | `datetime.<plant>_last_watered` | When it was last watered. Change it if you watered yesterday and forgot to press the button. |
+| `select.<plant>_light` | How much light the plant gets where it lives (see below). Changing it moves the next watering straight away. Also editable in the card's plant popup. |
 | `text.<plant>_notes` | Free-text notes (up to 255 characters). Also editable in the card's plant popup. |
 | `image.<plant>_photo` | The plant's photo, if you added one. |
 | `binary_sensor.<plant>_temperature` | On when the room is too cold or hot for the plant (only if you linked a thermometer). |
@@ -40,6 +41,9 @@ where it actually lives stretches or shortens that:
 So a golden pothos (8 days in bright light) in medium light is due every 10
 days. The next watering is the last watering plus that interval.
 
+Moved a plant to a sunnier or darker spot? Change its **Light** in the card's
+plant popup, or on its device page, and the countdown adjusts.
+
 If you link a **soil moisture sensor**, a rise of 10 percentage points (you can
 change this) within an hour counts as watering and resets the countdown.
 
@@ -51,9 +55,17 @@ change this) within an hour counts as watering and resets the countdown.
 
 ## Install
 
-This repository is private, and [HACS can't install from private
-repositories](https://www.hacs.xyz/docs/faq/private_repositories/), so install by
-hand: copy `custom_components/lil_wet_guys` into your Home Assistant config
+The repository is private, and [HACS can only read public
+repositories](https://www.hacs.xyz/docs/faq/private_repositories/). Two ways in:
+
+**Through HACS (recommended).** Make the repository public for a few minutes, then
+in HACS: ⋮ → **Custom repositories** → add
+`https://github.com/m1ghtymaus/Lil-Wet-Guys` as an **Integration** → open
+**Lil Wet Guys** → **Download** → restart Home Assistant. Make the repository
+private again. HACS installs the latest release.
+
+**By hand.** Download the latest release from the repository's **Releases** page,
+copy its `custom_components/lil_wet_guys` folder into your Home Assistant config
 directory, next to `configuration.yaml`, and restart. The result should be
 `<config>/custom_components/lil_wet_guys/manifest.json`.
 
@@ -63,9 +75,35 @@ directory, next to `configuration.yaml`, and restart. The result should be
 | Container / Docker | whatever you mounted at `/config` | copy into that directory on the host |
 | Core (venv) | `~/.homeassistant` | copy it there |
 
-To update, copy the folder again and restart. (If the repository is ever made
-public, `hacs.json` is already in place for adding it to HACS as a custom
-repository.)
+## Updating
+
+Updates keep your plants. Their settings, last-watered times, notes and photos
+are stored by Home Assistant outside the integration's folder, so replacing the
+integration doesn't touch them.
+
+1. Make a Home Assistant backup first (Settings → System → Backups). It's cheap
+   insurance.
+2. Make the repository public.
+3. In HACS open **Lil Wet Guys** → ⋮ → **Update information**, then **Download**
+   and pick the new version. Restart Home Assistant.
+4. Make the repository private again, and refresh your browser so it loads the
+   new card.
+
+Installed by hand? Copy the new release's `lil_wet_guys` folder over the old one
+and restart. What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
+
+## Moving plants to another Home Assistant
+
+Settings → Devices & services → Lil Wet Guys → **Configure**:
+
+- **Export all plants** saves every plant (settings, last-watered time, notes and
+  photo) to a `.zip` and gives you a download link that works for an hour. A copy
+  stays in `/config/lil_wet_guys/exports` (the five newest are kept).
+- **Import plants from a file** adds the plants from an export. Choose whether to
+  skip plants whose names you already use or add them anyway.
+
+Linked thermometers and moisture sensors come across by entity id, so link them
+again on the new instance if their ids differ.
 
 ## Set up
 
@@ -88,7 +126,9 @@ philodendron, Lipstick plant, Lucky bamboo, Monkey mask, Peperomia, Peperomia
 'Hope', Pink Princess philodendron, Rubber plant 'Ruby', Satin pothos, Snake
 plant 'Laurentii', Snake plant 'Zeylanica', Snake plant 'Moonshine', Spider
 plant, Split-leaf philodendron, Tiger aloe, Tiger tooth aloe, Umbrella plant,
-Variegated peperomia, Weeping fig and ZZ plant.
+Variegated peperomia, Weeping fig, ZZ plant, Black Raven ZZ plant, Epipremnum
+pinnatum, Inch plant, White bird of paradise, Monstera deliciosa and Thai
+Constellation monstera.
 
 Each has its own drawing and care preset (see
 [`species.py`](custom_components/lil_wet_guys/species.py)). For anything else
@@ -115,8 +155,9 @@ title: My plants   # optional
 - The **watering can** marks a plant as watered, with **Undo** in the pop-up
   message.
 - **Tap a plant** for its photo, care notes, room temperature and moisture, a
-  **Watered** button, and your own **Notes**, which you can edit right there.
-  They save when you press **Save notes** (or Cmd/Ctrl+Enter) or close the popup.
+  **Watered** button, its **Light**, and your own **Notes**. You can change both
+  right there. The light saves as soon as you pick one; notes save when you
+  press **Save notes** (or Cmd/Ctrl+Enter) or close the popup.
 - The **°C / °F** switch next to a plant's temperature range changes every
   temperature on the card. Each device remembers its own choice.
 
@@ -137,6 +178,8 @@ automation** and pick your phone. Notifications need the Home Assistant
 Companion app.
 
 ## Development
+
+Releases: see [RELEASING.md](RELEASING.md).
 
 ```bash
 uv venv --python 3.13 .venv

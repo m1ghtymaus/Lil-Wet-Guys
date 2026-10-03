@@ -2,12 +2,13 @@
 
 One config entry holds every plant as a config subentry. Each plant becomes a
 device with a next-watering countdown, a status, a "Watered" button, an
-editable last-watered time, notes and, when configured, a photo and a
-temperature warning. The integration also serves the dashboard card.
+editable last-watered time and light level, notes and, when configured, a
+photo and a temperature warning. The integration also serves the dashboard card.
 """
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -19,14 +20,18 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 
+from .backup import ExportDownloadView
 from .const import CARD_FILE, DOMAIN, SUBENTRY_PLANT, URL_BASE
 from .plant import Plant, PlantStore, remove_orphan_photos
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
     Platform.DATETIME,
     Platform.IMAGE,
+    Platform.SELECT,
     Platform.SENSOR,
     Platform.TEXT,
 ]
@@ -40,6 +45,15 @@ class LilWetGuysData:
 
     store: PlantStore
     plants: dict[str, Plant]
+    importing: bool = False  # an import adds many plants, then reloads once
+
+    def matches(self, entry: ConfigEntry) -> bool:
+        """Whether the running plants are exactly the entry's plant subentries."""
+        subentries = {sid: sub for sid, sub in entry.subentries.items() if sub.subentry_type == SUBENTRY_PLANT}
+        return subentries.keys() == self.plants.keys() and all(
+            sub.title == self.plants[sid].name and sub.data == self.plants[sid].config
+            for sid, sub in subentries.items()
+        )
 
 
 type LilWetGuysConfigEntry = ConfigEntry[LilWetGuysData]
@@ -51,6 +65,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await hass.http.async_register_static_paths(
         [StaticPathConfig(URL_BASE, str(frontend_dir), cache_headers=False)]
     )
+    hass.http.register_view(ExportDownloadView)
     if "frontend" in hass.config.components:
         from homeassistant.components.frontend import add_extra_js_url  # noqa: PLC0415
 
@@ -64,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: LilWetGuysConfigEntry) -
     store = PlantStore(hass)
     await store.async_load()
     plants = {
-        subentry_id: Plant(hass, subentry, store)
+        subentry_id: Plant(hass, entry, subentry, store)
         for subentry_id, subentry in entry.subentries.items()
         if subentry.subentry_type == SUBENTRY_PLANT
     }
@@ -96,4 +111,21 @@ async def async_unload_entry(hass: HomeAssistant, entry: LilWetGuysConfigEntry) 
 
 
 async def _async_reload(hass: HomeAssistant, entry: LilWetGuysConfigEntry) -> None:
+    data = entry.runtime_data
+    if data.importing or data.matches(entry):
+        return  # nothing to pick up, e.g. a plant's light was changed in place
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: LilWetGuysConfigEntry) -> bool:
+    """Upgrade an entry saved by an older version.
+
+    Nothing has changed shape yet (version 1.1). When a release changes the
+    subentry data, bump VERSION/MINOR_VERSION in config_flow.py and convert the
+    old data here, so existing plants survive the update.
+    """
+    if entry.version > 1:
+        # Saved by a newer release; refusing beats corrupting it.
+        _LOGGER.error("This Lil Wet Guys entry was saved by a newer version; update the integration")
+        return False
+    return True

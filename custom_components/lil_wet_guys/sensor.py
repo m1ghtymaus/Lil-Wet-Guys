@@ -88,6 +88,7 @@ class StatusSensor(PlantEntity, SensorEntity):
             "button_entity": self._sibling("button", "watered"),
             "last_watered_entity": self._sibling("datetime", "last_watered"),
             "notes_entity": self._sibling("text", "notes"),
+            "light_entity": self._sibling("select", "light"),
         }
         if plant.photo_file:
             attrs["photo_entity"] = self._sibling("image", "photo")

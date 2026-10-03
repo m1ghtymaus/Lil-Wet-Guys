@@ -374,7 +374,39 @@ function zz(ctx) {
   return { back };
 }
 
-const CANES = { dragon, bamboo, banana, zz };
+function bird(ctx) {
+  // White bird of paradise: big paddle leaves on long stalks fanning up from the soil.
+  const { p, d } = ctx;
+  const n = p.count;
+  const items = [];
+  for (let i = 0; i < n; i++) {
+    const c = fan(i, n);
+    items.push({
+      i, c,
+      a0: c * (p.spread ?? 0.55) + ctx.jit(i, 'a', 0.07),
+      h: lerp(p.stalk[1], p.stalk[0], Math.abs(c)) * (0.88 + 0.24 * ctx.r(i, 'h')),
+    });
+  }
+  items.sort((u, v) => v.h - u.h); // tallest at the back
+  let back = '';
+  for (const { i, c, a0, h } of items) {
+    if (ctx.drops(i, Math.abs(c) > 0.7 ? 0.6 : 0.15, 1 - Math.abs(c))) {
+      ctx.fell({ shape: 'lance', L: 26, W: 11, color: p.strap.color });
+      continue;
+    }
+    const s = sgn(a0);
+    const stalk = curve(BX + c * 8, BY + 1, a0 * 0.6, a0 + s * d * 0.5, h, 8, 1.2);
+    back += stem(ctx, stalk, p.stalkColor, 3);
+    const e = stalk[stalk.length - 1];
+    const len = lerp(p.len[1], p.len[0], Math.abs(c)) * (0.9 + 0.2 * ctx.r(i, 'l'));
+    const pts = curve(e.x, e.y, e.a + s * 0.12, e.a + s * (0.25 + 0.35 * Math.abs(c)) + s * d * 1.3, len, 12, 1.3);
+    const W = p.W * (1 - 0.15 * d);
+    back += strapLeaf(ctx, pts, { ...p.strap, id: i, wf: (t) => W * PROFILES.paddle(t), tip: 'round', sw: 1.7 });
+  }
+  return { back };
+}
+
+const CANES = { dragon, bamboo, banana, zz, bird };
 const canes = (ctx) => CANES[ctx.p.form](ctx);
 
 /* ------------------------------------------------------------------ trees */

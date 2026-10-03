@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Mapping
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -11,11 +12,13 @@ import voluptuous as vol
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from homeassistant.components.file_upload import process_uploaded_file
+from homeassistant.components.http.auth import async_sign_path
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
     ConfigSubentryFlow,
+    OptionsFlow,
     SubentryFlowResult,
 )
 from homeassistant.const import CONF_NAME, UnitOfTemperature
@@ -25,6 +28,14 @@ from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
 from homeassistant.util.unit_conversion import TemperatureConverter
 
+from .backup import (
+    EXPORT_DIR,
+    EXPORT_URL,
+    InvalidExport,
+    async_create_export,
+    async_import_bundle,
+    read_bundle,
+)
 from .const import (
     CONF_BASE_DAYS,
     CONF_LAST_WATERED,
@@ -51,6 +62,9 @@ from .const import (
     SUBENTRY_PLANT,
 )
 from .species import GENERIC_SHAPES, OTHER, SPECIES
+
+CONF_FILE = "file"  # import form: the uploaded export
+CONF_EXISTING = "existing"  # import form: skip or add plants whose name already exists
 
 C = UnitOfTemperature.CELSIUS
 F = UnitOfTemperature.FAHRENHEIT
@@ -79,7 +93,10 @@ def save_photo(hass: HomeAssistant, file_id: str) -> str:
 class LilWetGuysConfigFlow(ConfigFlow, domain=DOMAIN):
     """Create the single Lil Wet Guys entry."""
 
+    # Bump these (and handle the old shape in __init__.async_migrate_entry) whenever
+    # a release changes what a plant's subentry data looks like.
     VERSION = 1
+    MINOR_VERSION = 1
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Confirm setup."""
@@ -94,6 +111,66 @@ class LilWetGuysConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> dict[str, type[ConfigSubentryFlow]]:
         """Plants are added as subentries."""
         return {SUBENTRY_PLANT: PlantFlow}
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        """Configure offers export and import."""
+        return BackupFlow()
+
+
+class BackupFlow(OptionsFlow):
+    """Export every plant to a file, or import plants from one."""
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Choose export or import."""
+        return self.async_show_menu(step_id="init", menu_options=["export", "import_plants"])
+
+    async def async_step_export(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Write an export and hand back a download link that works for an hour."""
+        name, count = await async_create_export(self.hass, self.config_entry)
+        url = async_sign_path(self.hass, EXPORT_URL.format(filename=name), timedelta(hours=1))
+        return self.async_abort(
+            reason="export_ready",
+            description_placeholders={"count": str(count), "url": url, "path": f"/config/{EXPORT_DIR}/{name}"},
+        )
+
+    async def async_step_import_plants(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Add the plants from an export file."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            try:
+                bundle = await self.hass.async_add_executor_job(_read_upload, self.hass, user_input[CONF_FILE])
+            except InvalidExport:
+                errors[CONF_FILE] = "bad_export"
+            else:
+                added, skipped = await async_import_bundle(
+                    self.hass, self.config_entry, bundle, skip_existing=user_input[CONF_EXISTING] == "skip"
+                )
+                return self.async_abort(
+                    reason="import_done", description_placeholders={"added": str(added), "skipped": str(skipped)}
+                )
+        return self.async_show_form(
+            step_id="import_plants",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_FILE): selector.FileSelector(
+                        selector.FileSelectorConfig(accept=".zip,.json,application/zip,application/json")
+                    ),
+                    vol.Required(CONF_EXISTING, default="skip"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(options=["skip", "add"], translation_key="existing")
+                    ),
+                }
+            ),
+            errors=errors,
+        )
+
+
+
+def _read_upload(hass: HomeAssistant, file_id: str) -> Any:
+    """Read an uploaded export (runs in the executor; the upload is removed after)."""
+    with process_uploaded_file(hass, file_id) as path:
+        return read_bundle(path)
 
 
 class PlantFlow(ConfigSubentryFlow):

@@ -1,6 +1,6 @@
 // Lil Wet Guys dashboard card: every tracked plant as a cartoon in its pot,
 // most urgent first. Tap the watering can to mark a plant watered (with Undo),
-// or tap the plant for its photo, care details and editable notes.
+// or tap the plant for its photo, care details, light setting and notes.
 
 import { ART_CSS, LIMB_STYLES, SPECIES, drawPlant } from './art/index.js';
 
@@ -111,8 +111,10 @@ dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; f
 dt { color: var(--secondary-text-color); }
 dd { margin: 0; }
 .note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--secondary-background-color, rgba(127,127,127,.08)); font-size: 14px; }
-.notes { display: grid; gap: 6px; }
-.notes label { font-size: 13px; color: var(--secondary-text-color); }
+.notes, .light { display: grid; gap: 6px; }
+.notes label, .light label { font-size: 13px; color: var(--secondary-text-color); }
+.light select { font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color, rgba(127,127,127,.3)); background: var(--secondary-background-color, rgba(127,127,127,.08)); color: var(--primary-text-color); }
+.light select:focus { outline: 2px solid var(--primary-color); outline-offset: 1px; }
 .notes textarea { font: inherit; font-size: 14px; line-height: 1.4; resize: vertical; min-height: 64px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--divider-color, rgba(127,127,127,.3)); background: var(--secondary-background-color, rgba(127,127,127,.08)); color: var(--primary-text-color); }
 .notes textarea:focus { outline: 2px solid var(--primary-color); outline-offset: 1px; }
 .notes-foot { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
@@ -165,6 +167,9 @@ class LilWetGuysCard extends HTMLElement {
       const dialog = root.querySelector('dialog');
       dialog.addEventListener('click', (e) => this._onDialogClick(e));
       dialog.addEventListener('input', (e) => this._onNotesInput(e));
+      dialog.addEventListener('change', (e) => {
+        if (e.target.matches('select[data-light]')) this._setLight(e.target);
+      });
       dialog.addEventListener('keydown', (e) => {
         if (e.target.matches('textarea[data-notes]') && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
           e.preventDefault();
@@ -428,6 +433,8 @@ class LilWetGuysCard extends HTMLElement {
       // is only replaced when the plant itself changed.
       dialog.querySelector('.state').innerHTML = stateHtml;
       dialog.querySelector('dl').innerHTML = rowsHtml;
+      const pick = dialog.querySelector('select[data-light]');
+      if (pick && !pick.disabled && pick.value !== a.light) pick.value = a.light; // changed elsewhere
       if (drawKey !== this._drawKey) {
         this._drawKey = drawKey;
         dialog.querySelector('.hero .art').innerHTML = drawing();
@@ -438,6 +445,7 @@ class LilWetGuysCard extends HTMLElement {
     this._drawKey = drawKey;
     this._notesDirty = false;
     this._notesEntity = a.notes_entity || null;
+    this._lightEntity = a.light_entity || null;
     const rawNotes = this._notesEntity ? this._hass.states[this._notesEntity]?.state : null;
     const notes = rawNotes && !['unknown', 'unavailable'].includes(rawNotes) ? rawNotes : '';
 
@@ -447,6 +455,9 @@ class LilWetGuysCard extends HTMLElement {
       <div class="hero${photo ? '' : ' solo'}"><div class="art">${drawing()}</div>${photo ? `<img src="${esc(photo)}" alt="Photo of ${esc(name)}">` : ''}</div>
       <div class="state">${stateHtml}</div>
       <dl>${rowsHtml}</dl>
+      ${this._lightEntity ? `<div class="light"><label for="pt-light">Light</label>
+        <select id="pt-light" data-light>${Object.entries(LIGHT).map(([key, label]) =>
+          `<option value="${key}"${key === a.light ? ' selected' : ''}>${esc(label[0].toUpperCase() + label.slice(1))}</option>`).join('')}</select></div>` : ''}
       ${a.care_note ? `<p class="note">${esc(a.care_note)}</p>` : ''}
       ${this._notesEntity ? `<div class="notes"><label for="pt-notes">Notes</label>
         <textarea id="pt-notes" data-notes maxlength="255" rows="3" placeholder="Repotted in spring, likes the east window…">${esc(notes)}</textarea>
@@ -486,6 +497,22 @@ class LilWetGuysCard extends HTMLElement {
     const button = dialog.querySelector('[data-act="save-notes"]');
     button.disabled = false;
     button.textContent = 'Save notes';
+  }
+
+  async _setLight(pick) {
+    const entity = this._lightEntity;
+    if (!entity) return;
+    pick.disabled = true;
+    try {
+      await this._hass.callService('select', 'select_option', { entity_id: entity, option: pick.value });
+    } catch (err) {
+      pick.value = this._hass.states[entity]?.state ?? pick.value;
+      this.dispatchEvent(new CustomEvent('hass-notification', {
+        detail: { message: `Couldn't change the light: ${err?.message || err}` }, bubbles: true, composed: true,
+      }));
+    } finally {
+      pick.disabled = false;
+    }
   }
 
   async _saveNotes() {
