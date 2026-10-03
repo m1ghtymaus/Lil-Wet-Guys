@@ -602,7 +602,7 @@ export function drawBookshelf(g, rand) {
     }
   });
   // Uprights splitting the case into compartments: props keep off them.
-  const DIVIDER = 10;
+  const DIVIDER = 16; // as wide as the side posts
   for (const x of g.dividers ?? []) {
     const gap = DIVIDER / 2 + 4;
     for (const sp of [...spans]) {
@@ -869,13 +869,6 @@ export function drawBookshelf(g, rand) {
     }
   }
 
-  for (const x of g.dividers ?? []) {
-    const l = x - DIVIDER / 2;
-    planks += `<rect x="${f1(l)}" y="${f1(top)}" width="${DIVIDER}" height="${f1(h - top - bottom)}" fill="${WOOD.frame}" stroke="${LINE}" stroke-width="2"/>`
-      + `<rect x="${f1(l + 1.6)}" y="${f1(top + 1)}" width="2" height="${f1(h - top - bottom - 2)}" fill="${WOOD.light}" fill-opacity=".7"/>`
-      + `<rect x="${f1(l + DIVIDER - 3.6)}" y="${f1(top + 1)}" width="2.6" height="${f1(h - top - bottom - 2)}" fill="${WOOD.dark}"/>`;
-  }
-
   // The frame: two posts, a crown along the top and a base.
   const post = (x, wd, inner) => `<rect x="${f1(x)}" y="0" width="${f1(wd)}" height="${f1(h)}" fill="${WOOD.frame}"/>`
     + `<rect x="${f1(inner === 'right' ? x + wd - 4 : x)}" y="0" width="4" height="${f1(h)}" fill="${WOOD.dark}"/>`
@@ -888,6 +881,16 @@ export function drawBookshelf(g, rand) {
     + `<rect x="0" y="${f1(h - bottom + 3)}" width="${f1(w)}" height="2.5" fill="${WOOD.light}" fill-opacity=".8"/>`;
   frame += `<path d="M${f1(left)} ${f1(top)}V${f1(h - bottom)}M${f1(w - right)} ${f1(top)}V${f1(h - bottom)}`
     + `M${f1(left)} ${f1(top)}H${f1(w - right)}M${f1(left)} ${f1(h - bottom)}H${f1(w - right)}" stroke="${LINE}" stroke-width="2" fill="none"/>`;
+  // Dividers are part of the frame, like the side posts: they run up into the crown and
+  // down into the base, outlined only down their sides so their edges turn into the
+  // frame's inner outline rather than stopping at a line.
+  for (const x of g.dividers ?? []) {
+    const l = x - DIVIDER / 2, r = x + DIVIDER / 2;
+    frame += `<rect x="${f1(l)}" y="${f1(top - 6)}" width="${DIVIDER}" height="${f1(h - bottom - top + 7)}" fill="${WOOD.frame}"/>`
+      + `<rect x="${f1(l + 2.5)}" y="${f1(top)}" width="3" height="${f1(h - top - bottom)}" fill="${WOOD.light}" fill-opacity=".7"/>`
+      + `<rect x="${f1(r - 5)}" y="${f1(top)}" width="4" height="${f1(h - top - bottom)}" fill="${WOOD.dark}"/>`
+      + `<path d="M${f1(l)} ${f1(top)}V${f1(h - bottom)}M${f1(r)} ${f1(top)}V${f1(h - bottom)}" stroke="${LINE}" stroke-width="2"/>`;
+  }
   if (rand() < 0.7) {
     const kx = rand() < 0.5 ? left / 2 : w - right / 2;
     frame += `<ellipse cx="${f1(kx)}" cy="${f1(between(top + 30, h - bottom - 30))}" rx="2.6" ry="4" fill="${WOOD.dark}" stroke="${WOOD.light}" stroke-width="1"/>`;

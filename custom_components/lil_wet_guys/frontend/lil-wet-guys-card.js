@@ -114,7 +114,7 @@ ha-card.shelf { padding: 0; overflow: hidden; background: #4e3326; }
 .shelf .header { position: relative; width: fit-content; max-width: calc(100% - 24px); box-sizing: border-box; margin: -6px auto 14px; padding: 3px 14px; background: #f7f0dc; color: #2f2a26; border: 2px solid #2f2a26; border-radius: 8px; font-size: 17px; font-weight: 600; text-align: center; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
 .shelf .grid { position: relative; gap: 6px; }
 .shelf .tile { background: none; border-radius: 0; padding: 0 2px 5px; }
-.shelf .info { position: relative; justify-self: center; justify-items: center; max-width: calc(100% - 6px); box-sizing: border-box; margin-top: 6px; padding: 3px 9px 4px; background: #f7f0dc; border: 1.6px solid #2f2a26; border-radius: 6px; box-shadow: 0 2px 0 rgba(0,0,0,.28); text-align: center; }
+.shelf .info { position: relative; justify-self: center; justify-items: center; align-content: center; width: calc(100% - 16px); box-sizing: border-box; margin-top: 6px; padding: 3px 9px 4px; background: #f7f0dc; border: 1.6px solid #2f2a26; border-radius: 6px; box-shadow: 0 2px 0 rgba(0,0,0,.28); text-align: center; }
 .shelf .name { color: #2f2a26; font-size: 13px; }
 .shelf .when { color: #6b5848; font-size: 12px; }
 .shelf .when.thirsty { color: #b06a0c; }

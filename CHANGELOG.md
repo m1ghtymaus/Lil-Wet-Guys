@@ -3,6 +3,14 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.7.1 — 2026-10-03
+
+### Changed
+- Bookshelf dividers are as thick as the side posts and join the crown and base
+  the same way, instead of looking set in behind them. Plant labels on the
+  bookshelf are all the same width with their text centred both ways, so each
+  divider sits evenly between its neighbours and every label in a row lines up.
+
 ## 0.7.0 — 2026-10-03
 
 ### Added
