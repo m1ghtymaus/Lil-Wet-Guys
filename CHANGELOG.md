@@ -3,6 +3,14 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.8.0 — 2026-10-03
+
+### Added
+- **Sweating** and **scorching** moods: when a plant's thermometer says the room
+  is a little too hot, its face sweats; 5 °C (9 °F) or more over its range, it
+  scorches, with a red-hot pot and heat rising beside it. The `heat` attribute
+  on the status and temperature sensors reports the same, for automations.
+
 ## 0.7.1 — 2026-10-03
 
 ### Changed

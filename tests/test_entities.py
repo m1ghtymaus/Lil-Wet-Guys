@@ -125,6 +125,16 @@ async def test_temperature_warning(hass: HomeAssistant, hass_storage: dict[str, 
     assert hass.states.get(problem).attributes["problem"] == "cold"
     assert hass.states.get(STATUS).attributes["temperature_problem"] == "cold"
 
+    # The pothos is comfortable up to 85 °F: a little over makes it sweat, far over scorch.
+    assert hass.states.get(STATUS).attributes["heat"] is None
+    hass.states.async_set("sensor.living_room", "88", {ATTR_UNIT_OF_MEASUREMENT: UnitOfTemperature.FAHRENHEIT})
+    await hass.async_block_till_done()
+    assert hass.states.get(STATUS).attributes["heat"] == "sweating"
+    assert hass.states.get(problem).attributes["heat"] == "sweating"
+    hass.states.async_set("sensor.living_room", "96", {ATTR_UNIT_OF_MEASUREMENT: UnitOfTemperature.FAHRENHEIT})
+    await hass.async_block_till_done()
+    assert hass.states.get(STATUS).attributes["heat"] == "scorching"
+
     hass.states.async_set("sensor.living_room", "unavailable")
     await hass.async_block_till_done()
     assert hass.states.get(problem).state == "unknown"

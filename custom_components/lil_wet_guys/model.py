@@ -60,6 +60,18 @@ def next_change(now: datetime, due: datetime) -> datetime | None:
     return None
 
 
+# Degrees (°C) past a plant's highest comfortable temperature at which it stops
+# merely sweating and starts scorching.
+SCORCHING_OVER = 5.0
+
+
+def heat_level(value: float | None, high: float) -> str | None:
+    """'sweating' when a little too hot, 'scorching' when far too hot, None otherwise."""
+    if value is None or value <= high:
+        return None
+    return "scorching" if value - high >= SCORCHING_OVER else "sweating"
+
+
 def temperature_problem(value: float | None, low: float, high: float) -> str | None:
     """'cold' or 'hot' when outside the range, None when fine or unknown."""
     if value is None:

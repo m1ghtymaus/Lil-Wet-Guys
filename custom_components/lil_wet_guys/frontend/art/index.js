@@ -3,7 +3,7 @@
 import { GHOST_LINE, OUTLINE, clamp, dryColor, ghostify } from './color.js';
 import { LIMB_STYLES, drawArms, drawFeet } from './limbs.js';
 import { jarBack, jarFront } from './jar.js';
-import { potBack, potFront, ground } from './pot.js';
+import { ground, heatHaze, potBack, potFront } from './pot.js';
 import { RIGS } from './rigs.js';
 import { SPECIES } from './species.js';
 
@@ -44,13 +44,14 @@ function rand(seed, i, salt) {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
-function makeCtx(def, d, ghost, seedStr) {
+function makeCtx(def, d, ghost, seedStr, heat = null) {
   const seed = hashStr(seedStr);
   const dryHue = def.dryHue ?? 36;
   return {
     p: def,
     d,
     ghost,
+    heat: ghost ? null : heat, // 'sweating' or 'scorching' when the room is too hot
     fallen: [],
     line: ghost ? GHOST_LINE : OUTLINE,
     r: (i, salt = '') => rand(seed, i, salt),
@@ -87,6 +88,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
  * @param {string} o.potColor  #rrggbb
  * @param {number} o.dryness   0 (watered on time) .. 1 (three days overdue)
  * @param {boolean} o.ghost    past saving
+ * @param {string} o.heat     'sweating' or 'scorching' when the room is too hot for it
  * @param {string} o.seed      varies angles between plants of the same species
  * @param {string} o.label     accessible name
  * @param {number|object|boolean} o.limbs  arms and feet: true picks a pose from the seed (default), a LIMB_STYLES index or style picks one, false draws none
@@ -94,11 +96,11 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
  *   whole layers lets the browser animate on the GPU instead of redrawing every path each frame.
  */
 export function drawPlant({
-  species, potColor = '#c8643c', dryness = 0, ghost = false, seed = '', label = '', limbs = true, layered = false,
+  species, potColor = '#c8643c', dryness = 0, ghost = false, heat = null, seed = '', label = '', limbs = true, layered = false,
 } = {}) {
   const def = SPECIES[species] ?? SPECIES.generic_leafy;
   const d = ghost ? 0 : clamp(dryness);
-  const ctx = makeCtx(def, d, ghost, `${species}|${seed}`);
+  const ctx = makeCtx(def, d, ghost, `${species}|${seed}`, heat);
   const { back = '', front = '' } = RIGS[def.rig](ctx);
   const state = ghost ? 'pt-ghost' : d === 0 ? 'pt-happy' : 'pt-dry';
   const delay = `animation-delay:-${(ctx.r(0, 'sway') * 5.5).toFixed(2)}s`;
@@ -117,7 +119,7 @@ export function drawPlant({
   const [back0, front0] = jar ? [jarBack, jarFront] : [potBack, potFront];
   const floor = ground(ctx);
   const inside = back0(ctx, potColor);
-  const pot = `${front0(ctx, potColor)}${feet}`;
+  const pot = `${front0(ctx, potColor)}${feet}${heatHaze(ctx)}`;
   const aria = `role="img" aria-label="${esc(label || def.name)}"`;
 
   if (!layered) {

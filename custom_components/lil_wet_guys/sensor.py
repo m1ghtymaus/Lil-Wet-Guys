@@ -95,6 +95,7 @@ class StatusSensor(PlantEntity, SensorEntity):
         if plant.temperature_sensor:
             attrs["temperature"] = temp(plant.temperature_c)
             attrs["temperature_problem"] = plant.temperature_problem
+            attrs["heat"] = plant.heat
             attrs["temperature_entity"] = self._sibling("binary_sensor", "temperature")
         if plant.moisture_sensor:
             attrs["moisture"] = plant.moisture

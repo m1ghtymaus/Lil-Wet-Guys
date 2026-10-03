@@ -147,6 +147,14 @@
       </div>
     </div>
     <div class="row">
+      <span class="label" id="roomlabel">Room</span>
+      <div class="seg" role="group" aria-labelledby="roomlabel" id="room">
+        <button type="button" class="quiet" data-heat="" aria-pressed="true">Comfortable</button>
+        <button type="button" class="quiet" data-heat="sweating" aria-pressed="false">Too warm: sweating</button>
+        <button type="button" class="quiet" data-heat="scorching" aria-pressed="false">Far too hot: scorching</button>
+      </div>
+    </div>
+    <div class="row">
       <span class="label" id="potlabel">Pot colour</span>
       <div class="swatches" role="group" aria-labelledby="potlabel" id="swatches"></div>
       <label class="custom" for="custom">Custom <input id="custom" type="color" value="#c8643c"></label>
@@ -337,7 +345,12 @@
     ['Mustard', '#d9a52b'], ['Blush', '#e8a9a4'], ['Charcoal', '#3b3b3d'], ['Cobalt', '#2d5fb8'],
   ];
 
-  const state = { day: -1, pot: 'mixed' };
+  const state = { day: -1, pot: 'mixed', heat: null };
+  document.querySelectorAll('#room button').forEach((b) => b.addEventListener('click', () => {
+    state.heat = b.dataset.heat || null;
+    document.querySelectorAll('#room button').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+    schedule();
+  }));
   const ids = Object.keys(SPECIES);
   const generics = ids.filter((id) => SPECIES[id].generic);
 
@@ -417,7 +430,7 @@
     const ghost = d >= 3;
     for (const el of cards) {
       const pot = state.pot === 'mixed' ? POTS[Number(el.dataset.i) % POTS.length][1] : state.pot;
-      el.querySelector('.art').innerHTML = drawPlant({ species: el.dataset.id, potColor: pot, dryness, ghost, seed: el.dataset.seed });
+      el.querySelector('.art').innerHTML = drawPlant({ species: el.dataset.id, potColor: pot, dryness, ghost, heat: state.heat, seed: el.dataset.seed });
     }
     for (const b of sw.children) b.setAttribute('aria-pressed', String(b.dataset.pot === state.pot));
   }

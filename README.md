@@ -22,9 +22,14 @@ Each plant is its own device with these entities:
 | `select.<plant>_light` | How much light the plant gets where it lives (see below). Changing it moves the next watering straight away. Also editable in the card's plant popup. |
 | `text.<plant>_notes` | Free-text notes (up to 255 characters). Also editable in the card's plant popup. |
 | `image.<plant>_photo` | The plant's photo, if you added one. |
-| `binary_sensor.<plant>_temperature` | On when the room is too cold or hot for the plant (only if you linked a thermometer). |
+| `binary_sensor.<plant>_temperature` | On when the room is too cold or hot for the plant (only if you linked a thermometer). Its `heat` attribute (also on the status sensor) is `sweating` when it's a little too hot and `scorching` when it's 5 °C (9 °F) or more over the plant's highest comfortable temperature. |
 
 Plus a dashboard card and a daily reminder blueprint.
+
+When a linked thermometer says the room is too hot, the plant's face shows it:
+**sweating** (a little too warm: heavy eyes, a wobbly mouth, flushed cheeks and
+sweat drops) or **scorching** (5 °C / 9 °F or more too hot: eyes squeezed shut,
+panting, a red-hot pot and heat rising beside it).
 
 ## How the countdown works
 

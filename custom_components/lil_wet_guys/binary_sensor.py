@@ -49,6 +49,7 @@ class TemperatureProblem(PlantEntity, BinarySensorEntity):
 
         return {
             "problem": self.plant.temperature_problem,
+            "heat": self.plant.heat,
             "temperature": temp(self.plant.temperature_c),
             "minimum": temp(self.plant.temp_min_c),
             "maximum": temp(self.plant.temp_max_c),

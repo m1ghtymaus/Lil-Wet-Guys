@@ -268,6 +268,11 @@ class Plant:
         return model.status_for(self.days_overdue)
 
     @property
+    def heat(self) -> str | None:
+        """'sweating' or 'scorching' when the room is too hot for the plant."""
+        return model.heat_level(self.temperature_c, self.temp_max_c)
+
+    @property
     def temperature_problem(self) -> str | None:
         """'cold' or 'hot' when the room is outside the plant's range."""
         return model.temperature_problem(self.temperature_c, self.temp_min_c, self.temp_max_c)

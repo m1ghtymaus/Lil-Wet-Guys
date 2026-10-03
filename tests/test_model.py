@@ -65,6 +65,15 @@ def test_temperature_problem() -> None:
     assert model.temperature_problem(None, 15, 29) is None
 
 
+def test_heat_level() -> None:
+    """A little over the top is sweating; five degrees or more is scorching."""
+    assert model.heat_level(29, 29) is None
+    assert model.heat_level(30, 29) == "sweating"
+    assert model.heat_level(33.9, 29) == "sweating"
+    assert model.heat_level(34, 29) == "scorching"
+    assert model.heat_level(None, 29) is None
+
+
 def test_moisture_jump_counts_as_watering() -> None:
     """A rise of the threshold above the recent low is a watering."""
     watch = model.MoistureWatch(jump=10)
