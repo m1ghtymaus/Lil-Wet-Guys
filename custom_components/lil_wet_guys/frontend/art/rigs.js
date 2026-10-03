@@ -6,6 +6,7 @@
 
 import { clamp, lerp } from './color.js';
 import { BX, BY, at, curve, deg, dirv, droopTo, f1, sgn, side } from './geom.js';
+import { terrarium } from './jar.js';
 import { PROFILES, leaf, stem, strapLeaf } from './leaves.js';
 
 const fan = (i, n) => (n === 1 ? 0 : (i / (n - 1) - 0.5) * 2); // -1 .. 1
@@ -788,4 +789,5 @@ export const RIGS = {
   canes,
   tree,
   bushy,
+  terrarium,
 };

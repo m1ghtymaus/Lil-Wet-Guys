@@ -103,8 +103,17 @@
 
   .shelf-controls { gap: 10px; }
   .seg { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .whimsy { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .whimsy input { width: 140px; accent-color: var(--water); }
   .seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
   #shelf { width: min(100%, var(--sw, 720px)); transition: width .25s ease; }
+  .addons { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: 12px; }
+  .addon { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; display: grid; min-width: 0; }
+  .addon .big { position: relative; background: #4e3326; aspect-ratio: 4 / 3; }
+  .addon .big svg { position: absolute; inset: 10px; width: calc(100% - 20px); height: calc(100% - 20px); overflow: visible; }
+  .addon .meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; }
+  .addon .meta .name { flex: 1; min-width: 0; }
+  .addon .real { background: #4e3326; border-radius: 6px; padding: 4px; display: grid; place-items: center; flex: none; }
 
   @media (max-width: 520px) {
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -116,7 +125,7 @@
 <div class="wrap">
   <header>
     <h1>Lil Wet Guys Drawings</h1>
-    <p class="lede">All 42 of your houseplants, one card each, drawn the way the dashboard will show them. Drag the day marker past the watering date to watch them dry out. Three days late, they turn into ghosts.</p>
+    <p class="lede">All 43 of your houseplants, one card each, drawn the way the dashboard will show them. Drag the day marker past the watering date to watch them dry out. Three days late, they turn into ghosts.</p>
   </header>
 
   <section class="controls" aria-label="Preview controls">
@@ -158,6 +167,7 @@
   <p class="note">The dashboard card with <code>background: bookshelf</code>. Each page load brings a different handful of surprises, so shuffle to see more of them.</p>
   <div class="row shelf-controls">
     <button id="shuffle" type="button">Shuffle the surprises</button>
+    <label class="whimsy"><span>Less whimsy</span><input id="whimsy" type="range" min="0" max="4" step="0.5" value="1" aria-label="Whimsy: surprises per plant"><span>More whimsy</span></label>
     <div class="seg" role="group" aria-label="Card width">
       <button type="button" class="quiet" data-w="360" aria-pressed="false">Phone</button>
       <button type="button" class="quiet" data-w="720" aria-pressed="true">Tablet</button>
@@ -165,6 +175,10 @@
     </div>
   </div>
   <div id="shelf"></div>
+
+  <h2>Bookshelf add-ons</h2>
+  <p class="note">Every surprise on its own: enlarged on top, and at the size it's drawn on the shelf next to its name. Fireflies twinkle on every shelf, so they're only in the bookshelf above.</p>
+  <div class="addons" id="addons"></div>
 </div>
 
 <script type="module">
@@ -184,6 +198,14 @@
     });
   }
   await import('./lil-wet-guys-card.js');
+  const { propGallery } = await import('./art/shelf.js');
+  const UNIT = 0.65; // pixels per plant unit on a typical tablet-width shelf
+  document.getElementById('addons').innerHTML = propGallery().map(({ label, svg, scale, box }) => {
+    const [x, y, w, h] = box;
+    const real = `<svg width="${(w * UNIT * scale).toFixed(1)}" height="${(h * UNIT * scale).toFixed(1)}" viewBox="${box.join(' ')}" aria-hidden="true">${svg}</svg>`;
+    return `<figure class="addon" style="margin:0"><div class="big"><svg viewBox="${x} ${y} ${w} ${h}" role="img" aria-label="${label}">${svg}</svg></div>`
+      + `<figcaption class="meta"><span class="name">${label}</span><span class="real">${real}</span></figcaption></figure>`;
+  }).join('');
 
   const DAY = 86400000;
   const now = Date.now();
@@ -209,6 +231,9 @@
   const holder = document.getElementById('shelf');
   holder.append(card);
 
+  document.getElementById('whimsy').addEventListener('input', (e) => {
+    card.setConfig({ title: 'Lil Wet Guys', background: 'bookshelf', whimsy: Number(e.target.value) });
+  });
   document.getElementById('shuffle').addEventListener('click', () => {
     card._shelfSeed = (Math.random() * 2 ** 32) >>> 0;
     card._shelfKey = null;
@@ -269,6 +294,7 @@
     mini_monstera: [7, 'Bright indirect', '60–85'],
     nerve_plant: [4, 'Medium to bright', '60–80'],
     million_hearts_variegated: [10, 'Bright indirect', '60–85'],
+    moss_terrarium: [14, 'Low to medium', '60–75'],
   };
   // Your plants, one entry each. Duplicates get their own card and a slightly different shape.
   const MINE = [
@@ -280,7 +306,7 @@
     'umbrella_plant', 'umbrella_plant', 'variegated_peperomia', 'weeping_fig', 'zz_plant',
     'epipremnum_pinnatum', 'inch_plant', 'white_bird_of_paradise', 'monstera_deliciosa',
     'monstera_thai_constellation', 'zz_plant_raven', 'jade_pothos', 'alocasia_frydek', 'money_tree',
-    'mini_monstera', 'nerve_plant', 'million_hearts_variegated',
+    'mini_monstera', 'nerve_plant', 'million_hearts_variegated', 'moss_terrarium',
   ];
 
   const POTS = [

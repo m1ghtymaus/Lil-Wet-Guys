@@ -3,6 +3,29 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.5.0 — 2026-10-03
+
+### Added
+- Moss terrarium: moss and a string of fairy lights in a glass jar with a
+  wooden lid. Its pot colour becomes a ribbon round the jar's neck.
+- New bookshelf surprises: a toadstool cottage with a lit window, a frog with
+  fairy wings, a dripping candle, a crystal and herb charm hanging from a twig,
+  two little mushroom people leaning together, a mortar and pestle with the triple
+  moon, a mushroom garland, acorns, a beetle, a jar of jam, a basket of
+  mushrooms, a tree stump with shelf fungi, a newt climbing a post, a frog on a
+  crescent-moon swing, a cobweb in a corner, and now and then a snail with
+  mushrooms growing on its shell.
+- A **Whimsy** slider for the bookshelf (`whimsy`, 0–4): from just the shelves to
+  four surprises per plant. Fireflies follow it too.
+
+### Removed
+- The sleeping dragon, the fairy and the mouse hole are gone from the bookshelf.
+
+### Fixed
+- On the bookshelf, props (like a snail on a side post) no longer slip
+  underneath plant labels; they always sit on top, while still tucking behind
+  the plants themselves.
+
 ## 0.4.1 — 2026-10-03
 
 ### Changed

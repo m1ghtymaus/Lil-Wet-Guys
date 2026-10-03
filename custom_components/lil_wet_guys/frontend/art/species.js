@@ -215,6 +215,10 @@ export const SPECIES = {
     count: 13, len: [12, 30], spread: 1.4, nodes: 1, stem: '#5f7f4a',
     leaf: { shape: 'oval', L: 21, W: 16.5, color: '#2a5a30', vari: '#eef3ea', variType: 'ribs', veins: 3, veinW: 0.6, net: true, rib: false },
   },
+  moss_terrarium: {
+    name: 'Moss terrarium', latin: 'Bryophyta', rig: 'terrarium', container: 'jar', still: true, dryHue: 45,
+    moss: ['#5f9e3f', '#4b8634', '#79b24c'], lights: '#ffd56a', lid: '#a8743f',
+  },
   million_hearts_variegated: {
     name: 'Variegated million hearts', latin: "Dischidia ruscifolia 'Variegata'", rig: 'trailing', form: 'strings',
     arches: 10, hangs: 8, spacing: 8.5, stem: '#7f8a5a',

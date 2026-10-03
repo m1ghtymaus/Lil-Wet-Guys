@@ -2,6 +2,7 @@
 
 import { GHOST_LINE, OUTLINE, clamp, dryColor, ghostify } from './color.js';
 import { LIMB_STYLES, drawArms, drawFeet } from './limbs.js';
+import { jarBack, jarFront } from './jar.js';
 import { potBack, potFront, ground } from './pot.js';
 import { RIGS } from './rigs.js';
 import { SPECIES } from './species.js';
@@ -104,27 +105,38 @@ export function drawPlant({
   const scale = def.scale && def.scale !== 1 ? ` transform="translate(100 167) scale(${def.scale}) translate(-100 -167)"` : '';
   const style = pickStyle(limbs, seed, def);
   const plantOpacity = ghost ? ' opacity=".88"' : '';
-  const layer = (body) => (body ? `<g class="pt-sway" style="${delay}"${plantOpacity}><g${scale}>${body}</g></g>` : '');
+  // Plants sway; moss shut in a jar doesn't (def.still).
+  const sway = def.still ? '' : ' class="pt-sway"';
+  const layer = (body) => (body ? `<g${sway} style="${delay}"${plantOpacity}><g${scale}>${body}</g></g>` : '');
   const feet = style ? drawFeet(ctx, style, potColor) : '';
   const arms = style ? drawArms(ctx, style, potColor) : [];
   const stillArms = arms.filter((a) => !a.waving).map((a) => a.svg).join('');
   const wavingArms = arms.filter((a) => a.waving);
-  const base = `${ground(ctx)}${potBack(ctx, potColor)}`;
-  const pot = `${potFront(ctx, potColor)}${feet}`;
+  // A pot hides the arms' roots behind its rim; a see-through jar has to be drawn over them.
+  const jar = def.container === 'jar';
+  const [back0, front0] = jar ? [jarBack, jarFront] : [potBack, potFront];
+  const floor = ground(ctx);
+  const inside = back0(ctx, potColor);
+  const pot = `${front0(ctx, potColor)}${feet}`;
   const aria = `role="img" aria-label="${esc(label || def.name)}"`;
 
   if (!layered) {
     const wave = wavingArms.map((a) => `<g class="pt-wave" style="transform-origin:${a.origin[0]}px ${a.origin[1]}px">${a.svg}</g>`).join('');
-    return `<svg class="pt-art ${state}" viewBox="0 0 200 248" xmlns="http://www.w3.org/2000/svg" ${aria}>`
-      + `<g class="pt-float">${base}${layer(back)}${stillArms}${wave}${pot}${layer(front)}</g></svg>`;
+    const body = jar
+      ? `${floor}${stillArms}${wave}${inside}${layer(back)}${pot}${layer(front)}`
+      : `${floor}${inside}${layer(back)}${stillArms}${wave}${pot}${layer(front)}`;
+    return `<svg class="pt-art ${state}" viewBox="0 0 200 248" xmlns="http://www.w3.org/2000/svg" ${aria}><g class="pt-float">${body}</g></svg>`;
   }
 
   // Same drawing as separate stacked SVGs, in paint order.
   const svg = (body, cls = '', css = '') => (body
     ? `<svg class="pt-layer${cls}" viewBox="0 0 200 248" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"${css ? ` style="${css}"` : ''}>${body}</svg>`
     : '');
-  const plant = (body) => svg(scale ? `<g${scale}>${body}</g>` : body, ' pt-lsway', `${delay}${ghost ? ';opacity:.88' : ''}`);
+  const plant = (body) => svg(scale ? `<g${scale}>${body}</g>` : body, def.still ? '' : ' pt-lsway', `${delay}${ghost ? ';opacity:.88' : ''}`);
   const pct = ([x, y]) => `${((x / 200) * 100).toFixed(2)}% ${((y / 248) * 100).toFixed(2)}%`;
   const wave = wavingArms.map((a) => svg(a.svg, ' pt-lwave', `transform-origin:${pct(a.origin)}`)).join('');
-  return `<div class="pt-stack ${state}" ${aria}>${svg(base)}${plant(back)}${svg(stillArms)}${wave}${svg(pot)}${plant(front)}</div>`;
+  const layers = jar
+    ? `${svg(floor)}${svg(stillArms)}${wave}${svg(inside)}${plant(back)}${svg(pot)}${plant(front)}`
+    : `${svg(floor + inside)}${plant(back)}${svg(stillArms)}${wave}${svg(pot)}${plant(front)}`;
+  return `<div class="pt-stack ${state}" ${aria}>${layers}</div>`;
 }

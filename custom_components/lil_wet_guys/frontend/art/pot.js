@@ -74,6 +74,9 @@ export function potFront(ctx, color) {
   return s;
 }
 
+/** The face moved up or down by dy (the terrarium wears it higher, on its glass). */
+export const faceAt = (ctx, potColor, dy) => `<g transform="translate(0 ${dy})">${face(ctx, potColor)}</g>`;
+
 function face(ctx, potColor) {
   const d = ctx.d;
   // Black features on every pot except a black (or near-black) one, where they'd vanish.

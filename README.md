@@ -129,7 +129,7 @@ plant, Split-leaf philodendron, Tiger aloe, Tiger tooth aloe, Umbrella plant,
 Variegated peperomia, Weeping fig, ZZ plant, Black Raven ZZ plant, Epipremnum
 pinnatum, Inch plant, White bird of paradise, Monstera deliciosa, Thai
 Constellation monstera, Jade pothos, Alocasia 'Frydek', Money tree, Mini
-monstera, Nerve plant and Variegated million hearts.
+monstera, Nerve plant, Variegated million hearts and Moss terrarium.
 
 Each has its own drawing and care preset (see
 [`species.py`](custom_components/lil_wet_guys/species.py)). For anything else
@@ -150,6 +150,7 @@ title: My plants   # optional
 | `title` | none | Heading above the plants. |
 | `limbs` | `true` | Little arms and feet on each pot. |
 | `background` | `none` | `bookshelf` stands the plants on a cartoon wooden bookshelf, with a few small surprises hidden around them. |
+| `whimsy` | `1` | Bookshelf only: surprises per plant, from `0` (just the shelves) to `4` (as many as fit). The card editor shows it as a slider. |
 | `temperature_unit` | Home Assistant's unit | `C` or `F` for the temperatures the card shows. |
 | `entities` | all plants | A list of `sensor.<plant>_status` ids, to show only some plants. |
 
@@ -164,10 +165,10 @@ title: My plants   # optional
   temperature on the card. Each device remembers its own choice.
 - With `background: bookshelf` each row of plants gets its own shelf, with
   names on little labels. Every time the page loads, a different handful of
-  surprises turns up: books, a snail, a fairy peeking out from behind a pot, a
-  vine up the side, a mouse hole and more, plus something magical every time
-  (potions, crystals, a sleeping baby dragon…), and fireflies twinkle on every
-  shelf.
+  surprises turns up: books, a snail, a vine up the side, a toadstool cottage,
+  a candle, a jar of jam, acorns and more, plus something magical every time
+  (potions, crystals, a frog with fairy wings, mushroom folk…), and fireflies
+  twinkle on every shelf.
 
 ![Plant details](docs/details.jpg)
 

@@ -94,11 +94,20 @@ ha-card { padding: 12px; }
 @keyframes drop { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(150px); opacity: 0; } }
 .empty { padding: 12px 4px 8px; color: var(--secondary-text-color); line-height: 1.5; }
 .case { position: relative; }
-.backdrop, .glows { display: none; }
+.backdrop, .props, .glows { display: none; }
 ha-card.shelf { padding: 0; overflow: hidden; background: #4e3326; }
 .shelf .case { padding: 16px 16px 14px; }
-.shelf .backdrop { display: block; position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.shelf .backdrop, .shelf .props { display: block; position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .shelf .glows { display: block; position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+/* Stacking, back to front: the case, labels, props and fireflies, plants, buttons. Tiles
+   don't make their own stacking context, so a label and its plant can sit either side of the props. */
+.shelf .backdrop { z-index: 0; }
+.shelf .info, .shelf .header { z-index: 1; }
+.shelf .props, .shelf .glows { z-index: 2; }
+.shelf .art { z-index: 3; transition: transform .15s ease; }
+.shelf .water { z-index: 4; }
+.shelf .tile:hover { transform: none; }
+.shelf .tile:hover .art { transform: translateY(-1px); }
 .glow { position: absolute; width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); border-radius: 50%; background: radial-gradient(circle, #fffef2 0 9%, var(--c) 16%, color-mix(in srgb, var(--c) 35%, transparent) 34%, transparent 70%); opacity: .35; will-change: opacity, transform; animation: lwg-firefly 3.4s ease-in-out infinite; }
 @keyframes lwg-firefly { 0%, 100% { opacity: .3; transform: translate(0, 0); } 50% { opacity: 1; transform: translate(3px, -5px); } }
 @media (prefers-reduced-motion: reduce) { .glow { animation: none; opacity: .8; } }
@@ -167,14 +176,16 @@ class LilWetGuysCard extends HTMLElement {
           name: 'background',
           selector: { select: { mode: 'dropdown', options: [{ value: 'none', label: 'None' }, { value: 'bookshelf', label: 'Bookshelf' }] } },
         },
+        { name: 'whimsy', selector: { number: { min: 0, max: 4, step: 0.5, mode: 'slider' } } },
         {
           name: 'temperature_unit',
           selector: { select: { mode: 'dropdown', options: [{ value: 'C', label: 'Celsius (°C)' }, { value: 'F', label: 'Fahrenheit (°F)' }] } },
         },
       ],
-      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', background: 'Background', temperature_unit: 'Temperature unit' })[s.name],
+      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', background: 'Background', whimsy: 'Whimsy', temperature_unit: 'Temperature unit' })[s.name],
       computeHelper: (s) => ({
         background: 'Bookshelf stands your plants on cartoon wooden shelves, with a few surprises hidden around them.',
+        whimsy: 'Bookshelf only. From less whimsy (0: just the shelves) to more whimsy (4 surprises per plant, as many as fit).',
         temperature_unit: "Leave empty to use Home Assistant's setting. The °C/°F switch in a plant's popup overrides it on that device.",
       })[s.name],
     };
@@ -184,7 +195,7 @@ class LilWetGuysCard extends HTMLElement {
     this._config = { limbs: true, ...config };
     if (!this.shadowRoot) {
       const root = this.attachShadow({ mode: 'open' });
-      root.innerHTML = `<style>${ART_CSS}${CSS}</style><ha-card><div class="case"><svg class="backdrop" aria-hidden="true"></svg><div class="glows"></div>`
+      root.innerHTML = `<style>${ART_CSS}${CSS}</style><ha-card><div class="case"><svg class="backdrop" aria-hidden="true"></svg><svg class="props" aria-hidden="true"></svg><div class="glows"></div>`
         + '<div class="header" hidden></div><div class="grid"></div>'
         + '<div class="empty" hidden>No plants yet. Add one from <b>Settings → Devices &amp; services → Lil Wet Guys → Add plant</b>.</div></div></ha-card>'
         + '<dialog></dialog>';
@@ -326,10 +337,10 @@ class LilWetGuysCard extends HTMLElement {
     this._shelfQueued = false;
     const root = this.shadowRoot;
     const svg = root.querySelector('.backdrop');
+    const props = root.querySelector('.props');
     const lights = root.querySelector('.glows');
     if (!root.querySelector('ha-card').classList.contains('shelf')) {
-      svg.innerHTML = '';
-      lights.innerHTML = '';
+      svg.innerHTML = props.innerHTML = lights.innerHTML = '';
       return;
     }
     const box = root.querySelector('.case');
@@ -357,7 +368,7 @@ class LilWetGuysCard extends HTMLElement {
     }
     const pad = getComputedStyle(box);
     const g = {
-      w, h, scale, rows,
+      w, h, scale, rows, whimsy: Number(this._config.whimsy ?? 1),
       left: parseFloat(pad.paddingLeft), right: parseFloat(pad.paddingRight),
       top: grid.offsetTop - 2, bottom: parseFloat(pad.paddingBottom),
     };
@@ -365,8 +376,9 @@ class LilWetGuysCard extends HTMLElement {
     if (key === this._shelfKey) return;
     this._shelfKey = key;
     const shelf = drawBookshelf(g, rng(this._shelfSeed));
-    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    for (const layer of [svg, props]) layer.setAttribute('viewBox', `0 0 ${w} ${h}`);
     svg.innerHTML = shelf.svg;
+    props.innerHTML = shelf.props;
     // Fireflies twinkle as their own little layers, so the shelf itself never repaints.
     lights.innerHTML = shelf.glows.map((f) => `<i class="glow" style="left:${f.x.toFixed(1)}px;top:${f.y.toFixed(1)}px;`
       + `--d:${f.size.toFixed(1)}px;--c:${f.color};animation-delay:-${f.delay.toFixed(2)}s"></i>`).join('');

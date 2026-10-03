@@ -181,6 +181,10 @@ SPECIES: dict[str, Species] = {
         "Nerve plant", "Fittonia albivenis", "medium", 4, 60, 80,
         "Keep the soil evenly moist. It flops dramatically when thirsty and perks up after a drink.",
     ),
+    "moss_terrarium": Species(
+        "Moss terrarium", "Bryophyta", "medium", 14, 60, 75,
+        "Mist lightly when the moss looks pale or the glass stops fogging up. Keep it out of direct sun.",
+    ),
     "million_hearts_variegated": Species(
         "Variegated million hearts", "Dischidia ruscifolia 'Variegata'", "bright_indirect", 10, 60, 85,
         "Let the mix dry out between waterings; it stores water in its leaves.",

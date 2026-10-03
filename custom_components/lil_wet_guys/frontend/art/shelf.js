@@ -66,10 +66,10 @@ const sparkle = (x, y, r) => `<path d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${
 /* ----------------------------------------------------------------- props */
 // Each is drawn standing on y = 0 (or hanging from it), facing right.
 
-function books(rand) {
+function books(rand, pile = rand() < 0.3) {
   const cols = shuffled(BOOKS, rand);
   let s = '', width = 0;
-  if (rand() < 0.3) {
+  if (pile) {
     // A little pile lying down.
     let y = 0;
     const n = 2 + Math.floor(rand() * 2);
@@ -99,7 +99,7 @@ function books(rand) {
   return { svg: `<g transform="translate(${f1(-width / 2)} 0)">${s}</g>`, width };
 }
 
-function snail() {
+function snail(shrooms = false) {
   let spiral = '';
   for (let i = 0; i <= 24; i++) {
     const t = (i / 24) * Math.PI * 3.2;
@@ -112,23 +112,22 @@ function snail() {
     + `<circle cx="12" cy="-18.4" r="1.5" fill="${LINE}"/><circle cx="17.2" cy="-18" r="1.5" fill="${LINE}"/>`
     + `<path d="M14.3 -8.4Q15.5 -7.2 16.5 -8.6" fill="none" stroke="${LINE}" stroke-width="1" stroke-linecap="round"/>`
     + `<circle cx="-1" cy="-12" r="9" fill="#c97f4c" stroke="${LINE}" stroke-width="1.6"/>`
-    + `<path d="${spiral}" fill="none" stroke="${shade('#c97f4c', -0.35)}" stroke-width="1.3" stroke-linecap="round"/>`;
+    + `<path d="${spiral}" fill="none" stroke="${shade('#c97f4c', -0.35)}" stroke-width="1.3" stroke-linecap="round"/>`
+    + (shrooms ? shellShrooms() : '');
 }
 
-function fairy() {
-  const skin = '#f7d4b8', wing = '#dff4ff';
-  return `<ellipse cx="-9" cy="-30" rx="9" ry="5" transform="rotate(-25 -9 -30)" fill="${wing}" fill-opacity=".9" stroke="${LINE}" stroke-width="1.3"/>`
-    + `<ellipse cx="-8" cy="-21.5" rx="6.5" ry="3.6" transform="rotate(20 -8 -21.5)" fill="${wing}" fill-opacity=".9" stroke="${LINE}" stroke-width="1.3"/>`
-    + inked('M-2 -9L-2.5 -1.5M2 -9L2.5 -1.5', skin, 1.8)
-    + inked('M-2 -20Q-6 -19 -9 -16', skin, 1.8)
-    + `<path d="M-3.5 -22L3.5 -22L8 -9Q4 -7 0 -9Q-4 -7 -8 -9Z" fill="#f29bbd" stroke="${LINE}" stroke-width="1.5" stroke-linejoin="round"/>`
-    + `<circle cx="1.5" cy="-28.5" r="6.2" fill="${skin}" stroke="${LINE}" stroke-width="1.5"/>`
-    + `<path d="M-4.6 -28Q-5 -35.5 1.5 -35Q7.5 -35 7.6 -30Q4 -32 1 -31Q-2 -30 -4.6 -28Z" fill="#8b5aa8" stroke="${LINE}" stroke-width="1.3" stroke-linejoin="round"/>`
-    + `<circle cx="-4.2" cy="-35" r="2.8" fill="#8b5aa8" stroke="${LINE}" stroke-width="1.3"/>`
-    + `<circle cx="3.2" cy="-28.2" r=".95" fill="${LINE}"/><circle cx="6" cy="-28.2" r=".95" fill="${LINE}"/>`
-    + `<path d="M3.6 -25.6Q4.8 -24.6 6 -25.6" fill="none" stroke="${LINE}" stroke-width=".9" stroke-linecap="round"/>`
-    + `<ellipse cx="6.8" cy="-26.2" rx="1.3" ry=".8" fill="#ff8a8a" fill-opacity=".55"/>`
-    + sparkle(11, -37, 2.4) + sparkle(14, -24, 1.6);
+/** Little toadstools growing out of the snail's shell, following its curve. */
+function shellShrooms() {
+  let s = '';
+  for (const [deg, h, r] of [[-150, 2.6, 3.2], [-114, 4, 4.3], [-80, 2.8, 3.4]]) {
+    const a = (deg * Math.PI) / 180;
+    const x = -1 + 8.4 * Math.cos(a), y = -12 + 8.4 * Math.sin(a);
+    s += `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${deg + 90})">`
+      + `<path d="M-1.1 1V${f1(-h)}H1.1V1Z" fill="#f4ead2" stroke="${LINE}" stroke-width="1"/>`
+      + `<path d="M${f1(-r)} ${f1(-h + 0.5)}Q${f1(-r)} ${f1(-h - r * 1.15)} 0 ${f1(-h - r * 1.15)}Q${f1(r)} ${f1(-h - r * 1.15)} ${f1(r)} ${f1(-h + 0.5)}Z" fill="#d9473f" stroke="${LINE}" stroke-width="1.1" stroke-linejoin="round"/>`
+      + `<circle cx="${f1(-r * 0.35)}" cy="${f1(-h - r * 0.6)}" r="${f1(r * 0.16)}" fill="#fff"/></g>`;
+  }
+  return s;
 }
 
 function mushrooms(rand) {
@@ -169,17 +168,6 @@ function frog() {
     + `<circle cx="-3.7" cy="-12.6" r="1.1" fill="${LINE}"/><circle cx="4.7" cy="-12.6" r="1.1" fill="${LINE}"/>`
     + `<path d="M-4 -8.4Q0 -5.6 4 -8.4" fill="none" stroke="${LINE}" stroke-width="1.2" stroke-linecap="round"/>`
     + `<ellipse cx="-3.4" cy="-.8" rx="2.3" ry="1.2" fill="${d}" stroke="${LINE}" stroke-width="1.1"/><ellipse cx="3.4" cy="-.8" rx="2.3" ry="1.2" fill="${d}" stroke="${LINE}" stroke-width="1.1"/>`;
-}
-
-function mouseHole() {
-  const fur = '#9c9aa8';
-  return `<path d="M-12 0V-10A12 12 0 0 1 12 -10V0Z" fill="#2b1b12" stroke="${LINE}" stroke-width="1.8"/>`
-    + `<circle cx="-4.6" cy="-12" r="3.3" fill="${fur}" stroke="${LINE}" stroke-width="1.2"/><circle cx="4.6" cy="-12" r="3.3" fill="${fur}" stroke="${LINE}" stroke-width="1.2"/>`
-    + `<circle cx="-4.6" cy="-12" r="1.7" fill="#f2a7b5"/><circle cx="4.6" cy="-12" r="1.7" fill="#f2a7b5"/>`
-    + `<ellipse cx="0" cy="-6.6" rx="5.6" ry="5" fill="${fur}" stroke="${LINE}" stroke-width="1.3"/>`
-    + `<circle cx="-2.1" cy="-7.6" r=".95" fill="${LINE}"/><circle cx="2.1" cy="-7.6" r=".95" fill="${LINE}"/>`
-    + `<circle cx="0" cy="-4.9" r="1.3" fill="#f28a9e"/>`
-    + `<path d="M-1.6 -4.6L-7 -5.6M-1.6 -4.2L-7 -3.4M1.6 -4.6L7 -5.6M1.6 -4.2L7 -3.4" stroke="${LINE}" stroke-width=".5"/>`;
 }
 
 function fairyDoor() {
@@ -287,22 +275,220 @@ function moonMobile(len) {
     + star(-11, y - 11, 4.4, moon) + star(10, y - 3, 3.6, moon);
 }
 
-function dragon() {
-  const g = '#5fbf9f', d = '#46997e', belly = '#f1e3a8';
-  const z = (x, y, k) => `<path d="M${x} ${y}h${f1(3.4 * k)}l${f1(-3.4 * k)} ${f1(3.4 * k)}h${f1(3.4 * k)}" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>`;
-  return inked('M12 -4Q22 -4 20 -12Q19 -17 14 -16', g, 4.4)
-    + `<path d="M13.6 -16.6l3.4 -2.6l-.6 4.2z" fill="#f29b52" stroke="${LINE}" stroke-width="1" stroke-linejoin="round"/>`
-    + `<ellipse cx="2" cy="-8.5" rx="13" ry="8.4" fill="${g}" stroke="${LINE}" stroke-width="1.6"/>`
-    + `<path d="M-4 -15.6l2 -3.6l2 3.4M2 -16.8l2 -3.6l2 3.6M8 -15.6l2.2 -3l1.4 3.6" fill="#f29b52" stroke="${LINE}" stroke-width="1" stroke-linejoin="round"/>`
-    + `<path d="M0 -12Q6 -21 12 -12Q8 -14 6 -11Q4 -14 0 -12Z" fill="${d}" stroke="${LINE}" stroke-width="1.3" stroke-linejoin="round"/>`
-    + `<path d="M-6 -1.4Q2 1.4 10 -1.4Q8 -5 2 -5Q-4 -5 -6 -1.4Z" fill="${belly}"/>`
-    + `<ellipse cx="-12" cy="-6.4" rx="7.4" ry="6" fill="${g}" stroke="${LINE}" stroke-width="1.5"/>`
-    + `<ellipse cx="-17.2" cy="-4.4" rx="4" ry="3.2" fill="${g}" stroke="${LINE}" stroke-width="1.3"/>`
-    + `<circle cx="-19" cy="-5" r=".6" fill="${LINE}"/>`
-    + `<path d="M-14.6 -7.4q1.8 1.4 3.6 0" fill="none" stroke="${LINE}" stroke-width="1.1" stroke-linecap="round"/>`
-    + `<path d="M-10.6 -11.6l1.6 -4l1.4 3.2" fill="${belly}" stroke="${LINE}" stroke-width="1" stroke-linejoin="round"/>`
-    + `<ellipse cx="-11" cy="-4.2" rx="1.4" ry=".8" fill="#ff8a8a" fill-opacity=".5"/>`
-    + z(-22, -22, 1) + z(-27, -30, 0.75);
+/* --------------------------------------- cottage and goblin-core props */
+
+function mushroomHouse() {
+  // A toadstool cottage with a lit window.
+  return halo(5, -15, 12, '#ffd56a')
+    + `<path d="M-10 0Q-11.4 -12 -8 -24H8Q11.4 -12 10 0Z" fill="#f4ead2" stroke="${LINE}" stroke-width="1.5" stroke-linejoin="round"/>`
+    + `<path d="M-3.8 0V-7.4A3.8 3.8 0 0 1 3.8 -7.4V0Z" fill="#a8673e" stroke="${LINE}" stroke-width="1.3"/>`
+    + `<circle cx="2" cy="-3.6" r=".8" fill="#f1c24b"/>`
+    + `<circle cx="5" cy="-15" r="2.8" fill="#ffe7a3" stroke="${LINE}" stroke-width="1.2"/><path d="M5 -17.8V-12.2M2.2 -15H7.8" stroke="${LINE}" stroke-width=".8"/>`
+    + `<circle cx="-4.6" cy="-17" r="2" fill="#ffe7a3" stroke="${LINE}" stroke-width="1.1"/>`
+    + `<path d="M-17 -21.6Q-16 -38 0 -40Q16 -38 17 -21.6Q0 -26 -17 -21.6Z" fill="#d9473f" stroke="${LINE}" stroke-width="1.6" stroke-linejoin="round"/>`
+    + `<circle cx="-8" cy="-31" r="2.2" fill="#fff"/><circle cx="3" cy="-35" r="2.6" fill="#fff"/><circle cx="10" cy="-28" r="1.8" fill="#fff"/><circle cx="-12" cy="-25" r="1.3" fill="#fff"/>`
+    + `<path d="M-13 0q1 -4 2 0M12 0q1.2 -5 2.4 0" fill="none" stroke="#7fbf63" stroke-width="1.4" stroke-linecap="round"/>`;
+}
+
+function fairyFrog() {
+  // A frog with fairy wings.
+  const wing = '#dccdf7';
+  const pair = (sd) => `<ellipse cx="${sd * 10}" cy="-15" rx="8.4" ry="5" transform="rotate(${sd * -38} ${sd * 10} -15)" fill="${wing}" fill-opacity=".92" stroke="${LINE}" stroke-width="1.3"/>`
+    + `<ellipse cx="${sd * 9}" cy="-7" rx="5.6" ry="3.4" transform="rotate(${sd * 22} ${sd * 9} -7)" fill="${wing}" fill-opacity=".92" stroke="${LINE}" stroke-width="1.3"/>`
+    + `<ellipse cx="${sd * 10.6}" cy="-16.4" rx="3.2" ry="1.3" transform="rotate(${sd * -38} ${sd * 10.6} -16.4)" fill="#fff" fill-opacity=".8"/>`;
+  return pair(-1) + pair(1) + frog() + sparkle(13, -22, 2) + sparkle(-14, -24, 1.5);
+}
+
+function candle() {
+  return halo(0, -25, 17, '#ffd56a')
+    + `<circle cx="10.6" cy="-3.6" r="2.8" fill="none" stroke="${LINE}" stroke-width="2.6"/><circle cx="10.6" cy="-3.6" r="2.8" fill="none" stroke="#d6a95a" stroke-width="1.2"/>`
+    + `<ellipse cx="0" cy="-1.6" rx="9.4" ry="2.6" fill="#d6a95a" stroke="${LINE}" stroke-width="1.4"/>`
+    + `<path d="M-4 -3V-18.4Q-4 -20 -2.6 -20H2.6Q4 -20 4 -18.4V-3Z" fill="#f4ecd8" stroke="${LINE}" stroke-width="1.4"/>`
+    + `<path d="M-4 -17Q-3 -13 -2 -16.4Q-1.2 -11 .2 -15.6M2 -17.4Q3 -14 4 -16" fill="none" stroke="#e2d6bb" stroke-width="1.4" stroke-linecap="round"/>`
+    + `<path d="M0 -20V-22.4" stroke="${LINE}" stroke-width="1"/>`
+    + `<path d="M0 -31Q3.6 -25.6 0 -22.6Q-3.6 -25.6 0 -31Z" fill="#ffc94a" stroke="${LINE}" stroke-width="1" stroke-linejoin="round"/>`
+    + `<path d="M0 -27.6Q1.6 -25 0 -23.6Q-1.6 -25 0 -27.6Z" fill="#fff4c2"/>`;
+}
+
+function charms(len) {
+  // A twig hung on two threads, with a crystal and a bundle of herbs dangling from it.
+  const thread = (x, a, b) => `<path d="M${x} ${f1(a)}V${f1(b)}" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>`;
+  const y = len;
+  return thread(-13, 0, y) + thread(13, 0, y) + thread(-7, y, y + 7) + thread(7, y, y + 4)
+    + inked(`M-17 ${f1(y)}Q0 ${f1(y - 2)} 17 ${f1(y + 0.6)}M9 ${f1(y - 0.6)}l4 -3`, '#8a6a4a', 2.2)
+    + `<path d="M-7 ${f1(y + 7)}L-10.4 ${f1(y + 12)}L-7 ${f1(y + 21)}L-3.6 ${f1(y + 12)}Z" fill="#a77be0" stroke="${LINE}" stroke-width="1.3" stroke-linejoin="round"/>`
+    + `<path d="M-7 ${f1(y + 7)}L-7 ${f1(y + 21)}L-3.6 ${f1(y + 12)}Z" fill="#cdb0f6"/>`
+    + `<path d="M4.6 ${f1(y + 4)}H9.4L12.6 ${f1(y + 19)}Q7 ${f1(y + 23)} 1.4 ${f1(y + 19)}Z" fill="#7fa650" stroke="${LINE}" stroke-width="1.3" stroke-linejoin="round"/>`
+    + `<path d="M5.6 ${f1(y + 9)}L4 ${f1(y + 18)}M7 ${f1(y + 9)}V${f1(y + 20)}M8.4 ${f1(y + 9)}L10.2 ${f1(y + 18)}" stroke="#5d8a3c" stroke-width="1" stroke-linecap="round"/>`
+    + `<path d="M4.4 ${f1(y + 6.4)}H9.6M4 ${f1(y + 8.4)}H10" stroke="#c9a46b" stroke-width="1.3" stroke-linecap="round"/>`
+    + sparkle(-12, y + 17, 1.6);
+}
+
+function mushroomFolk() {
+  // Two little mushroom people leaning together: a tall amanita and a short brown
+  // one, drawn like the shelf's other mushrooms with dot faces on their stems.
+  const stem = '#f4ead2', ink = LINE;
+  const face = (x, y, happy) => (happy
+    ? `<path d="M${f1(x - 2.6)} ${f1(y)}q.9 -1 1.8 0M${f1(x + 0.8)} ${f1(y)}q.9 -1 1.8 0" fill="none" stroke="${ink}" stroke-width=".85" stroke-linecap="round"/>`
+    : `<circle cx="${f1(x - 1.7)}" cy="${f1(y)}" r=".85" fill="${ink}"/><circle cx="${f1(x + 1.7)}" cy="${f1(y)}" r=".85" fill="${ink}"/>`)
+    + `<path d="M${f1(x - 0.9)} ${f1(y + 1.9)}q.9 .8 1.8 0" fill="none" stroke="${ink}" stroke-width=".8" stroke-linecap="round"/>`
+    + `<ellipse cx="${f1(x - 3)}" cy="${f1(y + 1.5)}" rx="1" ry=".6" fill="#ff8a8a" fill-opacity=".6"/><ellipse cx="${f1(x + 3)}" cy="${f1(y + 1.5)}" rx="1" ry=".6" fill="#ff8a8a" fill-opacity=".6"/>`;
+  const tall = `<g transform="rotate(6 -5 0)">`
+    + `<path d="M-9.6 0Q-11 -6.4 -8 -14H-2.6Q.2 -6.4 -1.2 0Z" fill="${stem}" stroke="${ink}" stroke-width="1.3" stroke-linejoin="round"/>`
+    + face(-5.3, -8, false)
+    + `<path d="M-13.6 -13.4Q-13.6 -23.4 -5.3 -23.4Q3 -23.4 3 -13.4Q-5.3 -15.8 -13.6 -13.4Z" fill="#d9473f" stroke="${ink}" stroke-width="1.4" stroke-linejoin="round"/>`
+    + `<circle cx="-9" cy="-18.4" r="1.4" fill="#fff"/><circle cx="-3.4" cy="-20.6" r="1.7" fill="#fff"/><circle cx="-.4" cy="-16.4" r="1" fill="#fff"/></g>`;
+  const short = `<g transform="rotate(-8 6 0)">`
+    + `<path d="M2.6 0Q1.6 -4.4 3.8 -9.4H8.6Q10.6 -4.4 9.6 0Z" fill="${stem}" stroke="${ink}" stroke-width="1.3" stroke-linejoin="round"/>`
+    + face(6.2, -5, true)
+    + `<path d="M-.4 -9Q.4 -15.6 6.2 -15.6Q12 -15.6 12.8 -9Q6.2 -10.8 -.4 -9Z" fill="#b5794a" stroke="${ink}" stroke-width="1.4" stroke-linejoin="round"/>`
+    + `<circle cx="3.6" cy="-12.4" r=".9" fill="#e8c39a"/><circle cx="7.6" cy="-13.6" r="1.1" fill="#e8c39a"/><circle cx="10.4" cy="-11" r=".8" fill="#e8c39a"/></g>`;
+  return `<path d="M-12 0q1 -3.4 2 0M11 0q1.2 -4 2.4 0" fill="none" stroke="#7fbf63" stroke-width="1.3" stroke-linecap="round"/>` + tall + short;
+}
+
+function mortar() {
+  // A stone mortar with the triple moon on its side, herbs poking out and the pestle in it.
+  // Crescents with their backs to the full moon: ) O (
+  const crescent = (x, y, sd) => `<path d="M${x} ${f1(y - 2.5)}A2.5 2.5 0 0 ${sd > 0 ? 1 : 0} ${x} ${f1(y + 2.5)}A1.2 2.5 0 0 ${sd > 0 ? 0 : 1} ${x} ${f1(y - 2.5)}Z" fill="#f4ecd8"/>`;
+  return `<path d="M-9 -15Q-12 -22 -8 -27M-6 -15Q-6 -24 -1 -27" fill="none" stroke="#5d8a3c" stroke-width="1.2" stroke-linecap="round"/>`
+    + `<ellipse cx="-8" cy="-26.4" rx="2.6" ry="1.4" transform="rotate(-50 -8 -26.4)" fill="#7fa650" stroke="${LINE}" stroke-width=".8"/>`
+    + `<ellipse cx="-1.4" cy="-26.6" rx="2.6" ry="1.4" transform="rotate(30 -1.4 -26.6)" fill="#7fa650" stroke="${LINE}" stroke-width=".8"/>`
+    + inked('M1 -13L11 -26', '#e2d9c8', 3.6)
+    + `<path d="M-12 -14H12Q11.4 -3 5 -1.4L6 0H-6L-5 -1.4Q-11.4 -3 -12 -14Z" fill="#b8b2a7" stroke="${LINE}" stroke-width="1.5" stroke-linejoin="round"/>`
+    + `<ellipse cx="0" cy="-14" rx="12" ry="2.8" fill="#8f8a80" stroke="${LINE}" stroke-width="1.4"/>`
+    + `<path d="M4 -14.6L10 -22" stroke="${LINE}" stroke-width="4.6" stroke-linecap="round"/><path d="M4 -14.6L10 -22" stroke="#e2d9c8" stroke-width="2.4" stroke-linecap="round"/>`
+    + crescent(-6.6, -7.6, 1) + `<circle cx="0" cy="-7.6" r="2.3" fill="#f4ecd8"/>` + crescent(6.6, -7.6, -1)
+    + `<path d="M-9.4 -11Q-9 -6 -6.4 -3.4" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1.3" stroke-linecap="round"/>`;
+}
+
+function mushroomGarland(len) {
+  // Strings of little mushrooms and beads hanging from the shelf above.
+  const caps = ['#d9473f', '#b5794a', '#e8c39a'];
+  let s = '';
+  [[-8, 1], [0, 0.78], [8, 0.92]].forEach(([x, f], i) => {
+    const l = len * f;
+    s += `<path d="M${x} 0V${f1(l)}" stroke="#d9c7a3" stroke-width=".9"/>`;
+    for (let k = 0; k < 3; k++) {
+      const y = l * (0.28 + 0.3 * k);
+      if ((i + k) % 2) {
+        s += `<circle cx="${x}" cy="${f1(y)}" r="1.5" fill="#c3b08d" stroke="${LINE}" stroke-width=".8"/>`;
+        continue;
+      }
+      const c = caps[(i + k) % 3];
+      s += `<path d="M${x - 1} ${f1(y - 1)}V${f1(y + 3.4)}H${x + 1}V${f1(y - 1)}Z" fill="#f4ead2" stroke="${LINE}" stroke-width=".8"/>`
+        + `<path d="M${x - 3.6} ${f1(y)}Q${x - 3.6} ${f1(y - 4.2)} ${x} ${f1(y - 4.2)}Q${x + 3.6} ${f1(y - 4.2)} ${x + 3.6} ${f1(y)}Z" fill="${c}" stroke="${LINE}" stroke-width="1" stroke-linejoin="round"/>`
+        + (c === '#d9473f' ? `<circle cx="${x - 1.2}" cy="${f1(y - 2.4)}" r=".6" fill="#fff"/>` : '');
+    }
+    s += `<circle cx="${x}" cy="${f1(l + 1.6)}" r="1.4" fill="#a77be0" stroke="${LINE}" stroke-width=".8"/>`;
+  });
+  return s;
+}
+
+function acorns() {
+  // Two acorns on an autumn oak leaf.
+  const nut = (x, rot) => `<g transform="translate(${x} -5.2) rotate(${rot})">`
+    + `<ellipse cx="0" cy="1.2" rx="3.6" ry="4.4" fill="#c8894a" stroke="${LINE}" stroke-width="1.2"/>`
+    + `<path d="M-1.4 -.4Q-1.6 2.4 -.4 4" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width=".9" stroke-linecap="round"/>`
+    + `<path d="M-4.4 -1.2Q-4.4 -5.4 0 -5.4Q4.4 -5.4 4.4 -1.2Q0 -.2 -4.4 -1.2Z" fill="#8a5a35" stroke="${LINE}" stroke-width="1.2" stroke-linejoin="round"/>`
+    + `<path d="M-3 -2.6L-1.6 -4.4M-1 -2.2L.6 -4.6M1.2 -2.2L2.8 -4" stroke="#6a4428" stroke-width=".7" stroke-linecap="round"/>`
+    + `<path d="M0 -5.4Q.4 -7.2 1.6 -7.6" fill="none" stroke="${LINE}" stroke-width="1.1" stroke-linecap="round"/></g>`;
+  return `<path d="M-12 -.6Q-11 -4 -8 -3.6Q-8 -7 -4.6 -6Q-3 -9 0 -7Q3 -9 4.6 -6Q8 -7 8 -3.6Q11 -4 12 -.6Q0 1 -12 -.6Z" fill="#d9893a" stroke="${LINE}" stroke-width="1.2" stroke-linejoin="round"/>`
+    + `<path d="M-10 -1.2Q0 -2.6 10 -1.2M-4.6 -1.6L-6 -4.6M0 -1.8V-6M4.6 -1.6L6 -4.6" fill="none" stroke="#b56a26" stroke-width=".8" stroke-linecap="round"/>`
+    + nut(-3.4, -12) + nut(3.8, 10);
+}
+
+function beetle() {
+  // A shiny beetle, head up.
+  let legs = '';
+  for (const sd of [-1, 1]) {
+    for (const [y, dy] of [[-2.4, -2.6], [0.6, 0], [3.4, 2.6]]) legs += `M${sd * 3.4} ${y}l${sd * 3} ${dy}`;
+  }
+  return `<path d="${legs}" fill="none" stroke="${LINE}" stroke-width="1" stroke-linecap="round"/>`
+    + `<path d="M-1 -7.4Q-2.6 -10 -4.4 -10.6M1 -7.4Q2.6 -10 4.4 -10.6" fill="none" stroke="${LINE}" stroke-width=".9" stroke-linecap="round"/>`
+    + `<ellipse cx="0" cy="-6.4" rx="2.6" ry="2" fill="#2d3a40" stroke="${LINE}" stroke-width="1"/>`
+    + `<ellipse cx="0" cy="1" rx="4.4" ry="6.2" fill="#3a7f8c" stroke="${LINE}" stroke-width="1.2"/>`
+    + `<path d="M0 -4.8V7" stroke="${LINE}" stroke-width=".9"/>`
+    + `<path d="M-2.6 -2.6Q-3.2 0 -2.4 2.6M2.2 -3Q2.8 -1.6 2.6 0" fill="none" stroke="#9fe3df" stroke-width=".9" stroke-linecap="round"/>`;
+}
+
+function jamJar() {
+  // Strawberry jam with a gingham cloth over the lid, tied with twine.
+  let checks = '';
+  for (const x of [-7, -3.5, 0, 3.5, 7]) checks += `M${x} -21.4V-16.6`;
+  return `<path d="M-7.6 -15H7.6V-2Q7.6 0 5.6 0H-5.6Q-7.6 0 -7.6 -2Z" fill="#b8344c" stroke="${LINE}" stroke-width="1.4" stroke-linejoin="round"/>`
+    + `<rect x="-5" y="-10.6" width="10" height="5.6" rx="1" fill="#f6efdc" stroke="${LINE}" stroke-width=".9"/>`
+    + `<path d="M0 -6.4Q-1.6 -7.6 -1.4 -8.6Q-.4 -9.6 0 -8.6Q.4 -9.6 1.4 -8.6Q1.6 -7.6 0 -6.4Z" fill="#d9473f"/>`
+    + `<path d="M-5.6 -12.6V-3" stroke="#fff" stroke-opacity=".4" stroke-width="1.3" stroke-linecap="round"/>`
+    + `<path d="M-9 -16Q-9.6 -22 0 -22Q9.6 -22 9 -16Q6 -14.4 4.4 -16.4Q2 -14.2 0 -16.4Q-2 -14.2 -4.4 -16.4Q-6 -14.4 -9 -16Z" fill="#f4ecd8" stroke="${LINE}" stroke-width="1.3" stroke-linejoin="round"/>`
+    + `<path d="${checks}M-8.4 -19.6H8.4M-8.8 -17.4H8.8" stroke="#d9473f" stroke-opacity=".55" stroke-width="1"/>`
+    + `<path d="M-8.2 -15.6Q0 -14 8.2 -15.6" fill="none" stroke="#c9a46b" stroke-width="1.6" stroke-linecap="round"/>`;
+}
+
+function mushroomBasket() {
+  // A woven basket full of foraged mushrooms.
+  let weave = '';
+  for (const x of [-7.4, -2.6, 2.2, 7]) weave += `M${x} -10.6L${f1(x * 0.8)} -1.2`;
+  return inked('M-10.4 -12Q0 -41 10.4 -12', '#a87a4a', 2.2)
+    + `<path d="M-5.2 -12V-17H-2.8V-12ZM4.6 -12V-18H7V-12Z" fill="#f4ead2" stroke="${LINE}" stroke-width="1"/>`
+    + `<path d="M-9 -16.6Q-9 -22.6 -4 -22.6Q1 -22.6 1 -16.6Q-4 -17.8 -9 -16.6Z" fill="#d9473f" stroke="${LINE}" stroke-width="1.2" stroke-linejoin="round"/>`
+    + `<circle cx="-6" cy="-20" r=".9" fill="#fff"/><circle cx="-2.4" cy="-21" r=".7" fill="#fff"/>`
+    + `<path d="M.6 -17.4Q1 -23.6 5.8 -23.6Q10.6 -23.6 11 -17.4Q5.8 -18.6 .6 -17.4Z" fill="#b5794a" stroke="${LINE}" stroke-width="1.2" stroke-linejoin="round"/>`
+    + `<path d="M-12 -12H12L9.6 -1.2Q9.4 0 8 0H-8Q-9.4 0 -9.6 -1.2Z" fill="#c99a5e" stroke="${LINE}" stroke-width="1.4" stroke-linejoin="round"/>`
+    + `<path d="${weave}M-10.8 -7.6H10.8M-10 -3.8H10" stroke="#a87a4a" stroke-width=".9"/>`
+    + `<rect x="-13" y="-14" width="26" height="3.4" rx="1.7" fill="#b5834d" stroke="${LINE}" stroke-width="1.3"/>`
+    + `<ellipse cx="11.6" cy="-15.4" rx="3.2" ry="1.6" transform="rotate(-30 11.6 -15.4)" fill="#7fa650" stroke="${LINE}" stroke-width=".9"/>`;
+}
+
+function stump() {
+  // A little tree stump with shelf fungi on its side and a toadstool on top.
+  return `<path d="M-12 0Q-13.4 -2 -11 -3Q-11.6 -10 -10.6 -16H10.6Q11.6 -10 11 -3Q13.4 -2 12 0Z" fill="#8a5a3a" stroke="${LINE}" stroke-width="1.4" stroke-linejoin="round"/>`
+    + `<path d="M-7 -14V-3M-2 -13V-1M3.6 -14V-4M8 -12V-2" stroke="#6a4428" stroke-width="1" stroke-linecap="round"/>`
+    + `<ellipse cx="0" cy="-16" rx="10.6" ry="3.4" fill="#e2b77f" stroke="${LINE}" stroke-width="1.3"/>`
+    + `<ellipse cx="0" cy="-16" rx="6.6" ry="2" fill="none" stroke="#c29358" stroke-width=".8"/><ellipse cx="0" cy="-16" rx="3" ry=".9" fill="none" stroke="#c29358" stroke-width=".8"/>`
+    + `<path d="M10.4 -10Q16 -10.6 15 -8Q12.6 -7.4 10.6 -8ZM10.6 -6Q15 -6.4 14.2 -4.2Q12.4 -3.6 10.8 -4.2Z" fill="#e8c39a" stroke="${LINE}" stroke-width="1" stroke-linejoin="round"/>`
+    + `<path d="M-5 -16.6V-20.6H-3.4V-16.6Z" fill="#f4ead2" stroke="${LINE}" stroke-width=".9"/>`
+    + `<path d="M-7.4 -20.4Q-7.4 -24.2 -4.2 -24.2Q-1 -24.2 -1 -20.4Z" fill="#d9473f" stroke="${LINE}" stroke-width="1.1" stroke-linejoin="round"/>`
+    + `<circle cx="-5.2" cy="-22.4" r=".7" fill="#fff"/>`;
+}
+
+function newt() {
+  // A spotted newt climbing, head up.
+  const c = '#e8743a';
+  return inked('M-1.6 -6L-5.6 -8.6M1.6 -6L5.6 -8.6M-1.4 2.4L-5.4 5M1.4 2.4L5.4 5', c, 1.6)
+    + inked('M0 3Q-2.4 9 .4 14Q2.4 17.4 5.4 18', c, 2.6)
+    + inked('M0 -10Q1.6 -3.4 0 3.4', c, 4.8)
+    + `<ellipse cx="0" cy="-12.6" rx="3.2" ry="3.7" fill="${c}" stroke="${LINE}" stroke-width="1.2"/>`
+    + `<circle cx="-1.5" cy="-13.6" r=".75" fill="${LINE}"/><circle cx="1.5" cy="-13.6" r=".75" fill="${LINE}"/>`
+    + `<circle cx=".2" cy="-5" r=".8" fill="#3b2a24"/><circle cx="-.6" cy="-1" r=".7" fill="#3b2a24"/><circle cx=".8" cy="1.8" r=".6" fill="#3b2a24"/>`
+    + `<circle cx="-6" cy="-8.8" r=".7" fill="${c}"/><circle cx="6" cy="-8.8" r=".7" fill="${c}"/>`;
+}
+
+function moonSwing(len) {
+  // A crescent moon hung like a swing, with a frog sitting in it.
+  const thread = (x) => `<path d="M${x} 0V${f1(len)}" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>`;
+  const y = len;
+  return thread(-11.6) + thread(11.6)
+    + `<g transform="translate(0 ${f1(y + 4.6)}) scale(.55)">${frog()}</g>`
+    + `<path d="M-12 ${f1(y)}A12 12 0 0 0 12 ${f1(y)}A12 5 0 0 1 -12 ${f1(y)}Z" fill="#f6d76b" stroke="${LINE}" stroke-width="1.4" stroke-linejoin="round"/>`
+    + `<path d="M-9.6 ${f1(y + 4.6)}Q-5.4 ${f1(y + 9.4)} 1.4 ${f1(y + 9.8)}" fill="none" stroke="#fff3c0" stroke-width="1.2" stroke-linecap="round"/>`
+    + sparkle(-15, y + 6, 1.8) + sparkle(15, y - 2, 1.5);
+}
+
+function cobweb() {
+  // A web strung across a top corner, from the corner at (0, 0) into the case.
+  const angles = [0, 22.5, 45, 67.5, 90].map((a) => (a * Math.PI) / 180);
+  let d = '';
+  // Spokes into the corner, but none along the frame's edges.
+  for (const a of angles.slice(1, -1)) d += `M0 0L${f1(26 * Math.cos(a))} ${f1(26 * Math.sin(a))}`;
+  for (const r of [7, 13.5, 20]) {
+    angles.forEach((a, i) => {
+      const x = r * Math.cos(a), y = r * Math.sin(a);
+      if (!i) { d += `M${f1(x)} ${f1(y)}`; return; }
+      const m = (a + angles[i - 1]) / 2, rr = r * 0.82; // each strand sags toward the corner
+      d += `Q${f1(rr * Math.cos(m))} ${f1(rr * Math.sin(m))} ${f1(x)} ${f1(y)}`;
+    });
+  }
+  return `<path d="${d}" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width=".8" stroke-linecap="round"/>`;
 }
 
 /** A vine winding up a post, with heart leaves. Pixels in, pixels out. */
@@ -330,15 +516,18 @@ function postVine(x, y0, y1, postW, s, rand) {
 
 /* --------------------------------------------------------------- the case */
 
-const MAGIC = ['potions', 'crystals', 'dragon', 'moonMobile'];
+const MAGIC = ['potions', 'crystals', 'moonMobile', 'fairyFrog', 'charms', 'mushroomHouse', 'mushroomFolk', 'mortar', 'moonSwing'];
 
 /**
- * Draw the bookshelf. Returns { svg, glows }: the drawing, and twinkling lights
- * ({ x, y, size, delay, color } in pixels) for the card to animate on top of it.
- * g: { w, h, left, right, top, bottom, scale, rows: [{ floor, bottom, pots: [{ x, trailing }] }] }
+ * Draw the bookshelf. Returns { svg, props, glows }: the case itself (behind
+ * everything), the props standing about (which go above the plant labels but behind
+ * the plants), and twinkling lights ({ x, y, size, delay, color } in pixels) for
+ * the card to animate.
+ * g: { w, h, left, right, top, bottom, scale, whimsy, rows: [{ floor, bottom, pots: [{ x, trailing }] }] }
  *    sizes in pixels: the frame's post, crown and base thickness, pixels per plant unit,
  *    and for each row the y its plants stand on, the y its plank ends and each pot's centre
- *    (trailing plants hang vines past their pot, so props keep further away).
+ *    (trailing plants hang vines past their pot, so props keep further away). whimsy is
+ *    how many surprises to place per plant, 0 to 4 (default 1).
  */
 export function drawBookshelf(g, rand) {
   const { w, h, left, right, top, bottom, rows } = g;
@@ -412,7 +601,7 @@ export function drawBookshelf(g, rand) {
       const k = S(2), at = claim(34 * k);
       if (!at) return false;
       const flip = rand() < 0.5 ? -1 : 1;
-      shelfProps += place(snail(), at.x + flip * 12 * k, at.row.floor, k, { flip });
+      shelfProps += place(snail(rand() < 0.35), at.x + flip * 12 * k, at.row.floor, k, { flip });
       return true;
     },
     mushrooms: () => {
@@ -433,12 +622,6 @@ export function drawBookshelf(g, rand) {
       shelfProps += place(frog(), at.x, at.row.floor, k, { flip: rand() < 0.5 ? -1 : 1 });
       return true;
     },
-    mouseHole: () => {
-      const k = S(2.1), at = claim(26 * k);
-      if (!at) return false;
-      wall += place(mouseHole(), at.x, at.row.floor, k);
-      return true;
-    },
     fairyDoor: () => {
       const k = S(2.2), at = claim(40 * k);
       if (!at) return false;
@@ -451,20 +634,6 @@ export function drawBookshelf(g, rand) {
       const from = at.r === 0 ? top : rows[at.r - 1].bottom;
       const len = between(0.15, 0.4) * (at.row.floor - from) / k;
       wall += place(spider(len), at.x, from, k);
-      return true;
-    },
-    fairy: () => {
-      // Half hidden behind a pot, leaning out to look.
-      const k = S(1.5);
-      const fits = spans.filter((sp) => (sp.potLeft || sp.potRight) && sp.b - sp.a >= 16 * k);
-      if (!fits.length) return false;
-      const sp = pick(fits);
-      const fromLeft = sp.potLeft && (!sp.potRight || rand() < 0.5);
-      const pot = fromLeft ? sp.a - 42 * u : sp.b + 42 * u; // the pot's centre, just past the span's end
-      const sd = fromLeft ? 1 : -1;
-      shelfProps += place(fairy(), pot + sd * 44 * u, rows[sp.r].floor, k, { flip: sd, rot: 12 });
-      if (fromLeft) sp.a += 20 * k;
-      else sp.b -= 20 * k;
       return true;
     },
     vine: () => {
@@ -515,10 +684,103 @@ export function drawBookshelf(g, rand) {
       shelfProps += place(crystals(rand), at.x, at.row.floor, k);
       return true;
     },
-    dragon: () => {
-      const k = S(1.9), at = claim(44 * k);
+    mushroomHouse: () => {
+      const k = S(1.8), at = claim(36 * k);
       if (!at) return false;
-      shelfProps += place(dragon(), at.x, at.row.floor, k, { flip: rand() < 0.5 ? -1 : 1 });
+      shelfProps += place(mushroomHouse(), at.x, at.row.floor, k);
+      return true;
+    },
+    fairyFrog: () => {
+      const k = S(1.8), at = claim(34 * k);
+      if (!at) return false;
+      shelfProps += place(fairyFrog(), at.x, at.row.floor, k);
+      return true;
+    },
+    mushroomFolk: () => {
+      const k = S(2), at = claim(40 * k);
+      if (!at) return false;
+      shelfProps += place(mushroomFolk(), at.x, at.row.floor, k, { flip: rand() < 0.5 ? -1 : 1 });
+      return true;
+    },
+    mortar: () => {
+      const k = S(2), at = claim(30 * k);
+      if (!at) return false;
+      shelfProps += place(mortar(), at.x, at.row.floor, k, { flip: rand() < 0.5 ? -1 : 1 });
+      return true;
+    },
+    acorns: () => {
+      const k = S(2), at = claim(28 * k);
+      if (!at) return false;
+      shelfProps += place(acorns(), at.x, at.row.floor, k, { flip: rand() < 0.5 ? -1 : 1 });
+      return true;
+    },
+    jamJar: () => {
+      const k = S(2), at = claim(22 * k);
+      if (!at) return false;
+      shelfProps += place(jamJar(), at.x, at.row.floor, k);
+      return true;
+    },
+    mushroomGarland: () => {
+      const k = S(1.7), at = claim(30 * k);
+      if (!at) return false;
+      const from = at.r === 0 ? top : rows[at.r - 1].bottom;
+      wall += place(mushroomGarland(between(0.2, 0.32) * (at.row.floor - from) / k + 6), at.x, from, k);
+      return true;
+    },
+    beetle: () => {
+      const side = rand() < 0.5 ? 'L' : 'R';
+      const y = between(top + 20, h - bottom - 20);
+      if (!postFree(side, y - 16, y + 16)) return false;
+      posts[side].push([y - 16, y + 16]);
+      frameProps += place(beetle(), side === 'L' ? left / 2 : w - right / 2, y, S(1.9), { rot: between(-30, 30) + (rand() < 0.5 ? 180 : 0) });
+      return true;
+    },
+    mushroomBasket: () => {
+      const k = S(2), at = claim(30 * k);
+      if (!at) return false;
+      shelfProps += place(mushroomBasket(), at.x, at.row.floor, k, { flip: rand() < 0.5 ? -1 : 1 });
+      return true;
+    },
+    stump: () => {
+      const k = S(2), at = claim(30 * k);
+      if (!at) return false;
+      shelfProps += place(stump(), at.x, at.row.floor, k, { flip: rand() < 0.5 ? -1 : 1 });
+      return true;
+    },
+    newt: () => {
+      const side = rand() < 0.5 ? 'L' : 'R';
+      const y = between(top + 30, h - bottom - 30);
+      if (!postFree(side, y - 24, y + 30)) return false;
+      posts[side].push([y - 24, y + 30]);
+      frameProps += place(newt(), side === 'L' ? left / 2 : w - right / 2, y, S(1.8), { rot: between(-15, 15), flip: side === 'L' ? 1 : -1 });
+      return true;
+    },
+    moonSwing: () => {
+      const k = S(1.7), at = claim(34 * k);
+      if (!at) return false;
+      const from = at.r === 0 ? top : rows[at.r - 1].bottom;
+      wall += place(moonSwing(between(0.15, 0.25) * (at.row.floor - from) / k + 4), at.x, from, k);
+      return true;
+    },
+    cobweb: () => {
+      const side = rand() < 0.5 ? 'L' : 'R';
+      if (!postFree(side, 0, top + 46)) return false;
+      posts[side].push([0, top + 46]);
+      // On the back wall, behind everything else, tucked under the frame at its corner.
+      wall += place(cobweb(), side === 'L' ? left : w - right, top, S(2.2), { flip: side === 'L' ? 1 : -1 });
+      return true;
+    },
+    candle: () => {
+      const k = S(1.8), at = claim(26 * k);
+      if (!at) return false;
+      shelfProps += place(candle(), at.x, at.row.floor, k, { flip: rand() < 0.5 ? -1 : 1 });
+      return true;
+    },
+    charms: () => {
+      const k = S(1.7), at = claim(36 * k);
+      if (!at) return false;
+      const from = at.r === 0 ? top : rows[at.r - 1].bottom;
+      wall += place(charms(between(0.1, 0.2) * (at.row.floor - from) / k + 4), at.x, from, k);
       return true;
     },
     moonMobile: () => {
@@ -531,22 +793,22 @@ export function drawBookshelf(g, rand) {
     },
   };
 
-  // A different handful every time, always with something magical; books may turn up
-  // more than once. Long empty stretches (the end of a short row) get a few extra.
-  const roomy = spans.reduce((sum, sp) => sum + Math.max(0, sp.b - sp.a - 60 * u), 0);
-  const wanted = Math.min(9, Math.max(3, 2 + Math.round(rows.length * 1.5) + Math.floor(roomy / (140 * u))));
-  const magic = shuffled(MAGIC, rand)[0];
-  const queue = [magic, ...shuffled([...Object.keys(ITEMS).filter((name) => name !== magic), 'books', 'books'], rand)];
+  // A different handful every time, always starting with something magical: whimsy
+  // surprises per plant, as many as there's room for. Once every kind has had a turn
+  // they come round again, so a very whimsical shelf can have two of a thing.
+  const whimsy = Math.min(4, Math.max(0, g.whimsy ?? 1));
+  const wanted = Math.round(whimsy * rows.reduce((n, row) => n + row.pots.length, 0));
+  let queue = wanted ? [shuffled(MAGIC, rand)[0]] : [];
   let placed = 0;
-  for (const name of queue) {
-    if (placed >= wanted) break;
-    if (ITEMS[name]()) placed++;
+  for (let tries = 0; placed < wanted && tries < wanted * 3 + 10; tries++) {
+    if (!queue.length) queue = shuffled([...Object.keys(ITEMS), 'books', 'books'], rand);
+    if (ITEMS[queue.shift()]()) placed++;
   }
 
-  // Fireflies drifting about every shelf.
+  // Fireflies drifting about every shelf, fewer on a less whimsical one.
   rows.forEach((row, r) => {
     const from = r === 0 ? top : rows[r - 1].bottom;
-    const n = 3 + Math.floor(rand() * 3);
+    const n = Math.round((3 + rand() * 2) * Math.min(1.5, whimsy));
     for (let i = 0; i < n; i++) {
       glows.push({
         // Spread along the shelf rather than bunched up.
@@ -587,5 +849,48 @@ export function drawBookshelf(g, rand) {
     frame += `<ellipse cx="${f1(kx)}" cy="${f1(between(top + 30, h - bottom - 30))}" rx="2.6" ry="4" fill="${WOOD.dark}" stroke="${WOOD.light}" stroke-width="1"/>`;
   }
 
-  return { svg: back + wall + planks + shelfProps + frame + frameProps, glows };
+  return { svg: back + wall + planks + frame, props: shelfProps + frameProps, glows };
+}
+
+/**
+ * Every prop on its own, for the preview page: [{ id, label, svg, scale, box }]. Each
+ * svg is in plant units, standing on (or hanging from) y = 0; scale is how much larger
+ * than the plants it is drawn on the shelf, and box ([x, y, w, h]) frames it.
+ */
+export function propGallery() {
+  const r = rng(11);
+  const fixed = (v) => () => v;
+  return [
+    ['books', 'Books', books(rng(5), false).svg, 1.45, [-40, -56, 80, 60]],
+    ['book-pile', 'Pile of books', books(rng(5), true).svg, 1.45, [-26, -32, 52, 36]],
+    ['snail', 'Snail', snail(), 2, [-46, -26, 68, 30]],
+    ['mushroom-snail', 'Mushroom snail', snail(true), 2, [-46, -34, 68, 38]],
+    ['mushrooms', 'Mushrooms', mushrooms(fixed(0.45)), 2.1, [-17, -26, 36, 30]],
+    ['glowing-mushrooms', 'Glowing mushrooms', mushrooms(fixed(0.1)), 2.1, [-24, -36, 52, 40]],
+    ['teacup', 'Teacup', teacup(), 2, [-15, -30, 30, 32]],
+    ['frog', 'Frog', frog(), 2, [-14, -18, 28, 20]],
+    ['fairy-door', 'Fairy door', fairyDoor(), 2.2, [-14, -26, 46, 28]],
+    ['spider', 'Spider', spider(20), 1.9, [-10, -2, 20, 30]],
+    ['ladybug', 'Ladybug', ladybug(), 2, [-8, -10, 16, 16]],
+    ['butterfly', 'Butterfly', butterfly(r), 1.8, [-15, -12, 30, 22]],
+    ['potions', 'Potions', potions(rng(3)), 1.9, [-25, -27, 50, 31]],
+    ['crystals', 'Crystals', crystals(fixed(0.99)), 1.9, [-28, -42, 56, 44]],
+    ['moon-mobile', 'Moon mobile', moonMobile(24), 1.7, [-18, -2, 36, 38]],
+    ['toadstool-cottage', 'Toadstool cottage', mushroomHouse(), 1.8, [-20, -42, 40, 44]],
+    ['fairy-frog', 'Fairy frog', fairyFrog(), 1.8, [-22, -30, 44, 32]],
+    ['candle', 'Candle', candle(), 1.8, [-18, -42, 36, 44]],
+    ['charms', 'Hanging charms', charms(8), 1.7, [-20, -2, 40, 34]],
+    ['mushroom-folk', 'Mushroom folk', mushroomFolk(), 2, [-16, -26, 32, 28]],
+    ['mortar', 'Mortar and pestle', mortar(), 2, [-15, -30, 30, 32]],
+    ['mushroom-garland', 'Mushroom garland', mushroomGarland(24), 1.7, [-14, -2, 28, 32]],
+    ['acorns', 'Acorns', acorns(), 2, [-14, -15, 28, 17]],
+    ['beetle', 'Beetle', beetle(), 1.9, [-9, -12, 18, 21]],
+    ['jam-jar', 'Jam jar', jamJar(), 2, [-11, -24, 22, 26]],
+    ['mushroom-basket', 'Mushroom basket', mushroomBasket(), 2, [-15, -30, 30, 32]],
+    ['stump', 'Tree stump', stump(), 2, [-15, -26, 32, 28]],
+    ['newt', 'Newt', newt(), 1.8, [-9, -18, 18, 38]],
+    ['moon-swing', 'Moon swing', moonSwing(14), 1.7, [-17, -2, 34, 30]],
+    ['cobweb', 'Cobweb', cobweb(), 2.2, [-2, -2, 30, 30]],
+    ['vine', 'Climbing vine', postVine(0, 30, -30, 10, 1, rng(4)), 1.8, [-14, -34, 28, 68]],
+  ].map(([id, label, svg, scale, box]) => ({ id, label, svg, scale, box }));
 }
