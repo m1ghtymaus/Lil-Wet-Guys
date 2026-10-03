@@ -90,7 +90,7 @@ export const SPECIES = {
   },
   satin_pothos: {
     name: 'Satin pothos', latin: 'Scindapsus pictus', rig: 'trailing',
-    top: 8, topLen: 24, vines: 3, vineLen: 74, perVine: 7, stem: '#58704a',
+    top: 9, topLen: 24, tuft: 5, vines: 3, vineLen: 74, perVine: 7, stem: '#58704a',
     leaf: { shape: 'heart', L: 21, W: 15, color: '#2e5a3e', vari: '#c3d3cf', variType: 'spots', curl: 1.8 },
   },
   snake_plant_laurentii: {

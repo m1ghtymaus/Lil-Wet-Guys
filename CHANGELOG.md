@@ -3,6 +3,11 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.4.1 — 2026-10-03
+
+### Changed
+- The satin pothos drawing has a fuller middle instead of a fan of bare stems.
+
 ## 0.4.0 — 2026-10-03
 
 ### Added

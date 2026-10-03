@@ -142,6 +142,19 @@ function trailing(ctx) {
     }
   }
 
+  // A tuft of short stems with leaves low in the middle (p.tuft), so the centre isn't bare.
+  const nTuft = p.tuft ?? 0;
+  for (let i = 0; i < nTuft; i++) {
+    const c = fan(i, nTuft) * 0.8 + ctx.jit(i, 'tc', 0.1);
+    const s = sgn(c);
+    const len = (p.topLen ?? 26) * (0.35 + 0.25 * ctx.r(i, 'tt'));
+    const pts = curve(BX + c * 14, BY + 1, c * 0.55, c * 0.9 + s * d * 1.2, len, 6, 1.4);
+    back += stem(ctx, pts, p.stem, 1.6);
+    if (ctx.drops(300 + i)) { ctx.fell(lf); continue; }
+    const tip = pts[pts.length - 1];
+    back += leaf(ctx, tip.x, tip.y, droopTo(tip.a + s * 0.3, d * 0.55), { ...lf, L: lf.L * 0.9, W: lf.W * 0.9, k: 300 + i });
+  }
+
   const nV = p.vines ?? 3;
   for (let v = 0; v < nV; v++) {
     const sd = v % 2 === 0 ? -1 : 1;
