@@ -105,6 +105,8 @@
   .seg { display: inline-flex; gap: 6px; flex-wrap: wrap; }
   .whimsy { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
   .whimsy input { width: 140px; accent-color: var(--water); }
+  .whimsy select { font: inherit; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); }
+  .whimsy input[type="color"] { width: 34px; height: 28px; padding: 0 2px; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); }
   .seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
   #shelf { width: min(100%, var(--sw, 720px)); transition: width .25s ease; }
   .addons { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: 12px; }
@@ -169,6 +171,11 @@
     <button id="shuffle" type="button">Shuffle the surprises</button>
     <label class="whimsy"><span>Less whimsy</span><input id="whimsy" type="range" min="0" max="4" step="0.5" value="1" aria-label="Whimsy: surprises per plant"><span>More whimsy</span></label>
     <label class="whimsy"><input id="dividers" type="checkbox" checked> Dividers</label>
+    <label class="whimsy">Wood <select id="wood">
+      <option value="walnut">Walnut</option><option value="oak">Oak</option><option value="maple">Maple</option>
+      <option value="cherry">Cherry</option><option value="mahogany">Mahogany</option><option value="ebony">Ebony</option>
+      <option value="whitewash">Whitewash</option><option value="custom">Custom</option>
+    </select> <input id="woodColor" type="color" value="#8a6d4f" aria-label="Custom wood colour"></label>
     <div class="seg" role="group" aria-label="Card width">
       <button type="button" class="quiet" data-w="360" aria-pressed="false">Phone</button>
       <button type="button" class="quiet" data-w="720" aria-pressed="true">Tablet</button>
@@ -238,6 +245,17 @@
   });
   document.getElementById('dividers').addEventListener('change', (e) => {
     card.setConfig({ ...config, dividers: (config.dividers = e.target.checked) });
+  });
+  const woodChanged = () => {
+    const hex = document.getElementById('woodColor').value;
+    config.wood = document.getElementById('wood').value;
+    config.wood_color = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    card.setConfig({ ...config });
+  };
+  document.getElementById('wood').addEventListener('change', woodChanged);
+  document.getElementById('woodColor').addEventListener('input', () => {
+    document.getElementById('wood').value = 'custom';
+    woodChanged();
   });
   document.getElementById('shuffle').addEventListener('click', () => {
     card._shelfSeed = (Math.random() * 2 ** 32) >>> 0;

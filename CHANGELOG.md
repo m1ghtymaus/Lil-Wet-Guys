@@ -3,6 +3,12 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.7.0 — 2026-10-03
+
+### Added
+- A **Wood** choice for the bookshelf: walnut, oak, maple, cherry, mahogany,
+  ebony, whitewash, or any custom colour, with the whole case shaded from it.
+
 ## 0.6.0 — 2026-10-03
 
 ### Added

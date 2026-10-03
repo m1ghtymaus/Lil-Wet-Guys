@@ -3,7 +3,7 @@
 // spots. The card measures where things stand (in pixels); props are drawn in plant
 // units (a pot is about 108 wide) and scaled to match the plants.
 
-import { OUTLINE, shade } from './color.js';
+import { OUTLINE, luminance, rgbToHex, shade } from './color.js';
 import { f1 } from './geom.js';
 import { SHAPES } from './leaves.js';
 
@@ -12,11 +12,35 @@ export const FLOOR = 240 / 248;
 
 const LINE = OUTLINE;
 // Walnut: a deep chocolate back panel, warmer frame and shelves.
-const WOOD = {
+const WALNUT = {
   back: '#4e3326', seam: '#3d281d', grain: '#644232',
   frame: '#7b5137', light: '#9a6b4b', dark: '#5e3c29',
   top: '#a5764f', front: '#86593b', frontDark: '#6a4530',
 };
+
+/** The bookshelf's wood choices, by the colour of their frame. */
+export const WOODS = {
+  walnut: WALNUT.frame, oak: '#a8763f', maple: '#cfa36a', cherry: '#93472c',
+  mahogany: '#6b2a1f', ebony: '#3d322d', whitewash: '#d8cdbd',
+};
+
+/**
+ * Every shade the case is drawn in, for a wood name, a #rrggbb colour or [r, g, b].
+ * Walnut is hand-picked; anything else is shaded from its frame colour the same way.
+ */
+export function woodPalette(wood = 'walnut') {
+  if (!wood || wood === 'walnut') return WALNUT;
+  const frame = Array.isArray(wood) ? rgbToHex(wood) : WOODS[wood] ?? (/^#[0-9a-f]{6}$/i.test(wood) ? wood : WALNUT.frame);
+  const at = (l) => shade(frame, l);
+  return {
+    back: at(-0.12), seam: at(-0.17), grain: at(-0.06),
+    frame, light: at(0.1), dark: at(-0.08),
+    top: at(0.13), front: at(0.03), frontDark: at(-0.05),
+  };
+}
+
+// Thread, web and slime colour: white on dark wood, a dark brown on pale wood.
+let THREAD = '#fff';
 const BOOKS = ['#c4504a', '#4f7fb8', '#7fa650', '#8a6aa8', '#e8b64a', '#4aa6b8', '#d9773a', '#6b8f6e', '#b8546f'];
 
 /** A small seeded random number generator (mulberry32), so a layout can be redrawn the same way. */
@@ -106,7 +130,7 @@ function snail(shrooms = false) {
     const r = 1 + t * 0.62;
     spiral += `${i ? 'L' : 'M'}${f1(-1 + r * Math.cos(t))} ${f1(-12 + r * Math.sin(t))}`;
   }
-  return `<path d="M-42 -.6H-13" stroke="#fff" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>`
+  return `<path d="M-42 -.6H-13" stroke="${THREAD}" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>`
     + `<path d="M-14 0Q-15 -4 -10 -4.5L8 -4.5Q10 -5 10.5 -9Q11 -13 14.5 -12.5Q17.5 -12 17 -8Q16.5 -3 13 -1Q11 0 8 0Z" fill="#e8d3a6" stroke="${LINE}" stroke-width="1.6" stroke-linejoin="round"/>`
     + `<path d="M13 -12L12 -18M15.5 -12L17 -17.5" stroke="${LINE}" stroke-width="1.4" stroke-linecap="round"/>`
     + `<circle cx="12" cy="-18.4" r="1.5" fill="${LINE}"/><circle cx="17.2" cy="-18" r="1.5" fill="${LINE}"/>`
@@ -187,7 +211,7 @@ function spider(len) {
       legs += `M0 ${f1(len)}q${f1(sd * 3.4)} ${f1(-2 + a * 3)} ${f1(sd * 5.2)} ${f1(a * 5 + 1.2)}`;
     }
   }
-  return `<path d="M0 0V${f1(len)}" stroke="#fff" stroke-opacity=".6" stroke-width=".8"/>`
+  return `<path d="M0 0V${f1(len)}" stroke="${THREAD}" stroke-opacity=".6" stroke-width=".8"/>`
     + `<path d="${legs}" fill="none" stroke="${LINE}" stroke-width="1.1" stroke-linecap="round"/>`
     + `<circle cx="0" cy="${f1(len + 0.4)}" r="3.6" fill="#3b3436" stroke="${LINE}" stroke-width="1"/>`
     + `<circle cx="0" cy="${f1(len + 4.4)}" r="2.3" fill="#3b3436" stroke="${LINE}" stroke-width="1"/>`
@@ -264,7 +288,7 @@ function crystals(rand) {
 
 function moonMobile(len) {
   const moon = '#f6d76b';
-  const hang = (x, l) => `<path d="M${x} 0V${f1(l)}" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>`;
+  const hang = (x, l) => `<path d="M${x} 0V${f1(l)}" stroke="${THREAD}" stroke-opacity=".55" stroke-width=".8"/>`;
   const y = len;
   return hang(0, y - 9) + hang(-11, y - 14) + hang(10, y - 6)
     + `<path d="M-12 0H11" stroke="#c9a46b" stroke-width="1.6" stroke-linecap="round"/>`
@@ -312,7 +336,7 @@ function candle() {
 
 function charms(len) {
   // A twig hung on two threads, with a crystal and a bundle of herbs dangling from it.
-  const thread = (x, a, b) => `<path d="M${x} ${f1(a)}V${f1(b)}" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>`;
+  const thread = (x, a, b) => `<path d="M${x} ${f1(a)}V${f1(b)}" stroke="${THREAD}" stroke-opacity=".55" stroke-width=".8"/>`;
   const y = len;
   return thread(-13, 0, y) + thread(13, 0, y) + thread(-7, y, y + 7) + thread(7, y, y + 4)
     + inked(`M-17 ${f1(y)}Q0 ${f1(y - 2)} 17 ${f1(y + 0.6)}M9 ${f1(y - 0.6)}l4 -3`, '#8a6a4a', 2.2)
@@ -465,7 +489,7 @@ function newt() {
 
 function moonSwing(len) {
   // A crescent moon hung like a swing, with a frog sitting in it.
-  const thread = (x) => `<path d="M${x} 0V${f1(len)}" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>`;
+  const thread = (x) => `<path d="M${x} 0V${f1(len)}" stroke="${THREAD}" stroke-opacity=".55" stroke-width=".8"/>`;
   const y = len;
   return thread(-11.6) + thread(11.6)
     + `<g transform="translate(0 ${f1(y + 4.6)}) scale(.55)">${frog()}</g>`
@@ -488,7 +512,7 @@ function cobweb() {
       d += `Q${f1(rr * Math.cos(m))} ${f1(rr * Math.sin(m))} ${f1(x)} ${f1(y)}`;
     });
   }
-  return `<path d="${d}" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width=".8" stroke-linecap="round"/>`;
+  return `<path d="${d}" fill="none" stroke="${THREAD}" stroke-opacity=".6" stroke-width=".8" stroke-linecap="round"/>`;
 }
 
 /** A vine winding up a post, with heart leaves. Pixels in, pixels out. */
@@ -523,15 +547,18 @@ const MAGIC = ['potions', 'crystals', 'moonMobile', 'fairyFrog', 'charms', 'mush
  * everything), the props standing about (which go above the plant labels but behind
  * the plants), and twinkling lights ({ x, y, size, delay, color } in pixels) for
  * the card to animate.
- * g: { w, h, left, right, top, bottom, scale, whimsy, dividers, rows: [{ floor, bottom, pots: [{ x, trailing }] }] }
+ * g: { w, h, left, right, top, bottom, scale, whimsy, dividers, wood, rows: [{ floor, bottom, pots: [{ x, trailing }] }] }
  *    sizes in pixels: the frame's post, crown and base thickness, pixels per plant unit,
  *    and for each row the y its plants stand on, the y its plank ends and each pot's centre
  *    (trailing plants hang vines past their pot, so props keep further away). whimsy is
  *    how many surprises to place per plant, 0 to 4 (default 1); dividers are the x of
- *    any wooden uprights splitting the case into compartments.
+ *    any wooden uprights splitting the case into compartments; wood is a WOODS name or a
+ *    colour (see woodPalette).
  */
 export function drawBookshelf(g, rand) {
   const { w, h, left, right, top, bottom, rows } = g;
+  const WOOD = woodPalette(g.wood);
+  THREAD = luminance(WOOD.back) > 0.4 ? '#5c4a3c' : '#fff';
   const u = g.scale; // pixels per plant unit
   const S = (k) => u * k; // props are drawn a little larger than the plants so they read
   const x0 = left, x1 = w - right;
@@ -875,6 +902,7 @@ export function drawBookshelf(g, rand) {
  * than the plants it is drawn on the shelf, and box ([x, y, w, h]) frames it.
  */
 export function propGallery() {
+  THREAD = '#fff'; // the gallery shows them on walnut
   const r = rng(11);
   const fixed = (v) => () => v;
   return [

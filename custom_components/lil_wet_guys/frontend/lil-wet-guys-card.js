@@ -3,7 +3,7 @@
 // or tap the plant for its photo, care details, light setting and notes.
 
 import { ART_CSS, LIMB_STYLES, SPECIES, drawPlant } from './art/index.js';
-import { FLOOR, drawBookshelf, rng } from './art/shelf.js';
+import { FLOOR, drawBookshelf, rng, woodPalette } from './art/shelf.js';
 
 const DAY = 86400000;
 const GHOST_AT = 3;
@@ -176,6 +176,20 @@ class LilWetGuysCard extends HTMLElement {
           name: 'background',
           selector: { select: { mode: 'dropdown', options: [{ value: 'none', label: 'None' }, { value: 'bookshelf', label: 'Bookshelf' }] } },
         },
+        {
+          name: 'wood',
+          selector: {
+            select: {
+              mode: 'dropdown',
+              options: [
+                { value: 'walnut', label: 'Walnut' }, { value: 'oak', label: 'Oak' }, { value: 'maple', label: 'Maple' },
+                { value: 'cherry', label: 'Cherry' }, { value: 'mahogany', label: 'Mahogany' }, { value: 'ebony', label: 'Ebony' },
+                { value: 'whitewash', label: 'Whitewash' }, { value: 'custom', label: 'Custom colour' },
+              ],
+            },
+          },
+        },
+        { name: 'wood_color', selector: { color_rgb: {} } },
         { name: 'whimsy', selector: { number: { min: 0, max: 4, step: 0.5, mode: 'slider' } } },
         { name: 'dividers', selector: { boolean: {} } },
         {
@@ -183,9 +197,11 @@ class LilWetGuysCard extends HTMLElement {
           selector: { select: { mode: 'dropdown', options: [{ value: 'C', label: 'Celsius (°C)' }, { value: 'F', label: 'Fahrenheit (°F)' }] } },
         },
       ],
-      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', background: 'Background', whimsy: 'Whimsy', dividers: 'Shelf dividers', temperature_unit: 'Temperature unit' })[s.name],
+      computeLabel: (s) => ({ title: 'Title', limbs: 'Arms and feet', background: 'Background', wood: 'Wood', wood_color: 'Custom wood colour', whimsy: 'Whimsy', dividers: 'Shelf dividers', temperature_unit: 'Temperature unit' })[s.name],
       computeHelper: (s) => ({
         background: 'Bookshelf stands your plants on cartoon wooden shelves, with a few surprises hidden around them.',
+        wood: 'Bookshelf only. Walnut unless you choose another.',
+        wood_color: 'Used when Wood is set to Custom colour: the whole case is shaded from it.',
         whimsy: 'Bookshelf only. From less whimsy (0: just the shelves) to more whimsy (4 surprises per plant, as many as fit).',
         dividers: 'Bookshelf only: wooden uprights splitting each row into equal compartments of two or three plants. On unless you turn it off.',
         temperature_unit: "Leave empty to use the Temperature unit under Lil Wet Guys → Configure → Settings. The °C/°F switch in a plant's popup overrides it on that device.",
@@ -341,10 +357,14 @@ class LilWetGuysCard extends HTMLElement {
     const svg = root.querySelector('.backdrop');
     const props = root.querySelector('.props');
     const lights = root.querySelector('.glows');
-    if (!root.querySelector('ha-card').classList.contains('shelf')) {
+    const card = root.querySelector('ha-card');
+    if (!card.classList.contains('shelf')) {
       svg.innerHTML = props.innerHTML = lights.innerHTML = '';
+      card.style.removeProperty('background');
       return;
     }
+    const wood = this._config.wood === 'custom' && Array.isArray(this._config.wood_color) ? this._config.wood_color : this._config.wood;
+    card.style.background = woodPalette(wood).back; // shows before the shelf is drawn, and round its corners
     const box = root.querySelector('.case');
     const grid = root.querySelector('.grid');
     const w = box.clientWidth, h = box.clientHeight;
@@ -380,7 +400,7 @@ class LilWetGuysCard extends HTMLElement {
     }
     const pad = getComputedStyle(box);
     const g = {
-      w, h, scale, rows, dividers, whimsy: Number(this._config.whimsy ?? 1),
+      w, h, scale, rows, dividers, wood, whimsy: Number(this._config.whimsy ?? 1),
       left: parseFloat(pad.paddingLeft), right: parseFloat(pad.paddingRight),
       top: grid.offsetTop - 2, bottom: parseFloat(pad.paddingBottom),
     };

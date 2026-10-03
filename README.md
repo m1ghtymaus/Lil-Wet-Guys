@@ -157,6 +157,8 @@ title: My plants   # optional
 | `title` | none | Heading above the plants. |
 | `limbs` | `true` | Little arms and feet on each pot. |
 | `background` | `none` | `bookshelf` stands the plants on a cartoon wooden bookshelf, with a few small surprises hidden around them. |
+| `wood` | `walnut` | Bookshelf only: `walnut`, `oak`, `maple`, `cherry`, `mahogany`, `ebony`, `whitewash`, or `custom` with `wood_color`. |
+| `wood_color` | none | With `wood: custom`, the colour (as `[r, g, b]`) the whole case is shaded from. |
 | `whimsy` | `1` | Bookshelf only: surprises per plant, from `0` (just the shelves) to `4` (as many as fit). The card editor shows it as a slider. |
 | `dividers` | `true` | Bookshelf only: wooden uprights splitting each row into equal compartments, every third plant when a row's plants divide by three, else every second when they divide by two. |
 | `temperature_unit` | the integration's setting | `C` or `F` for the temperatures this card shows. Without it the card follows **Configure → Settings → Temperature unit**. |
