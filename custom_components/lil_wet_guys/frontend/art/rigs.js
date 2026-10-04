@@ -776,7 +776,50 @@ function cactus(ctx) {
   return { back };
 }
 
-const BUSHY = { peperomia, obtusifolia, fern, cactus };
+function gynura(ctx) {
+  // Purple passion: upright purple stems dressed all the way up with small jagged
+  // leaves, smaller toward the tips, where the young leaves are purple all over.
+  // The outermost stems lean out and spill over the rim.
+  const { p, d } = ctx;
+  const lf = p.leaf;
+  let back = '', front = '';
+  const n = p.count;
+  const order = [...Array(n).keys()].sort((a, b) => Math.abs(fan(b, n)) - Math.abs(fan(a, n))); // outer stems behind
+  for (const i of order) {
+    const c = fan(i, n) + ctx.jit(i, 'gc', 0.05);
+    const s = sgn(c);
+    const spill = Math.abs(fan(i, n)) === 1;
+    const len = (spill ? 46 : lerp(76, 52, Math.abs(c))) * (0.88 + 0.24 * ctx.r(i, 'gl'));
+    const pts = spill
+      ? curve(BX + s * 32, BY - 1, s * 0.8, s * (2.0 + 0.3 * ctx.r(i, 'gb')) + s * d * 0.5, len, 14, 0.9)
+      : curve(BX + c * 18, BY + 1, c * 0.55, c * 0.95 + s * d * 1.2, len, 12, 1.3);
+    let g = stem(ctx, pts, p.stem, 1.8);
+    const nL = p.perStem ?? 6;
+    for (let k = 0; k < nL; k++) {
+      const id = i * 20 + k;
+      if (ctx.drops(id)) { if (k % 2 === 0) ctx.fell(lf); continue; }
+      const t = 0.2 + (k / nL) * 0.72;
+      const q = at(pts, t);
+      const ls = (k + i) % 2 ? 1 : -1;
+      const sc = 1.12 - 0.5 * t;
+      const sheen = t > 0.75 ? 0.75 : 0.05 + 0.35 * ctx.r(id, 'sh');
+      g += leaf(ctx, q.x, q.y, droopTo(q.a + ls * 0.95, 0.1 + d * 0.5), { ...lf, L: lf.L * sc, W: lf.W * sc, sheen, k: id });
+    }
+    // The newest leaves: a tight pair at the tip, the most purple of all.
+    const e = pts[pts.length - 1];
+    if (!ctx.drops(i * 20 + 19, 1, 0.2)) {
+      const sheen = 0.45 + 0.55 * ctx.r(i, 'young');
+      for (const ls of [-1, 1]) {
+        g += leaf(ctx, e.x, e.y, e.a + ls * 0.4, { ...lf, L: lf.L * 0.5, W: lf.W * 0.5, sheen, k: i * 20 + 18 + (ls > 0 ? 1 : 0) });
+      }
+    }
+    if (spill) front += g;
+    else back += g;
+  }
+  return { back, front };
+}
+
+const BUSHY = { peperomia, obtusifolia, fern, cactus, gynura };
 const bushy = (ctx) => BUSHY[ctx.p.form](ctx);
 
 export const RIGS = {

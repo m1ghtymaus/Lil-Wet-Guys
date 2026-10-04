@@ -96,6 +96,44 @@ function constellation(ctx, o, L, W, vc) {
     ? `<path d="${d}" fill="none" stroke="${vc}" stroke-width="${f1(widths[i])}" stroke-linecap="round"/>` : '')).join('');
 }
 
+/* Outlines built from their right half: [x, y] as fractions of W and L, base to tip. */
+
+const mirror = (L, W, right) => {
+  const pts = right.map(([x, y]) => [x * W, y * L]);
+  return [...pts, ...pts.slice(1, -1).reverse().map(([x, y]) => [-x, y])];
+};
+const polyline = (pts) => `M${pts.map(([x, y]) => `${f1(x)} ${f1(y)}`).join('L')}Z`;
+
+/**
+ * Teeth along an outline whose half-width (fraction of W) at t (0 base, 1 tip) is profile(t).
+ * depth is a number, or a function of the tooth's index for irregular teeth.
+ */
+function toothed(profile, teeth, depth) {
+  const right = [[0, 0]];
+  for (let i = 0; i < teeth; i++) {
+    const a = 0.06 + (i / teeth) * 0.86, b = 0.06 + ((i + 0.62) / teeth) * 0.86;
+    const dp = typeof depth === 'function' ? depth(i) : depth;
+    right.push([Math.max(0, profile(a) - dp), -a], [profile(b), -b - 0.012]); // notch, then the tooth's point
+  }
+  right.push([0, -1]);
+  return right;
+}
+
+/** Alocasia 'Polly': an arrowhead with lobes swept back and a scalloped edge. */
+function pollyHalf() {
+  const env = (s) => [0.5 * Math.pow(1 - s, 0.9), -s];
+  const right = [[0, 0.03], [0.11, 0.17], [0.27, 0.31], [0.42, 0.21], [0.5, 0.02]];
+  const tips = [];
+  for (let k = 0; k < 5; k++) {
+    const s0 = 0.06 + k * 0.18, s1 = s0 + 0.09;
+    const [x0, y0] = env(s0), [x1, y1] = env(s1);
+    tips.push([x0, y0]);
+    right.push([x0 * 1.04, y0], [x1 * 0.7, y1 + 0.02]); // a scallop's crest, then the dip before the next
+  }
+  right.push([0, -1]);
+  return { right, tips };
+}
+
 export const SHAPES = {
   oval: (L, W) => `M0 0C${f1(W * 0.55)} ${f1(-L * 0.12)} ${f1(W * 0.55)} ${f1(-L * 0.72)} 0 ${f1(-L)}`
     + `C${f1(-W * 0.55)} ${f1(-L * 0.72)} ${f1(-W * 0.55)} ${f1(-L * 0.12)} 0 0Z`,
@@ -126,6 +164,18 @@ export const SHAPES = {
   lobed: (L, W, o) => lobed(L, W, o.lobes, o.depth),
   holes: (L, W) => SHAPES.oval(L, W),
   monstera: (L, W, o) => monstera(L, W, o.slits, o.depth, o.gap),
+  // Persian shield: a long pointed oval with fine teeth.
+  serrate: (L, W) => polyline(mirror(L, W, toothed((t) => 0.5 * Math.pow(Math.sin(Math.PI * t), 0.85), 13, 0.035))),
+  // Purple passion: a pointed oval, widest low down, with irregular jagged teeth.
+  dentate: (L, W) => polyline(mirror(L, W, toothed((t) => 0.5 * Math.pow(Math.sin(Math.PI * Math.pow(t, 0.68)), 0.8), 7,
+    (i) => (i % 2 ? 0.05 : 0.1)))),
+  polly: (L, W) => smooth(mirror(L, W, pollyHalf().right), true),
+  // Alocasia 'Regal Shield': a broad shield with rounded lobes at the base.
+  regal: (L, W) => smooth(mirror(L, W, [[0, 0.02], [0.12, 0.15], [0.3, 0.25], [0.45, 0.14], [0.5, -0.06],
+    [0.47, -0.26], [0.4, -0.46], [0.3, -0.64], [0.18, -0.8], [0.08, -0.92], [0, -1]]), true),
+  // Alocasia chienlii: a long, narrow arrowhead with a gently wavy edge.
+  sagittate: (L, W) => smooth(mirror(L, W, [[0, 0.02], [0.08, 0.17], [0.2, 0.3], [0.33, 0.17], [0.37, -0.04],
+    [0.35, -0.2], [0.31, -0.36], [0.28, -0.5], [0.22, -0.64], [0.17, -0.77], [0.09, -0.9], [0, -1]]), true),
 };
 
 function variegate(ctx, o, L, W, shape, sw) {
@@ -190,8 +240,10 @@ function variegate(ctx, o, L, W, shape, sw) {
     case 'ribs': {
       // Pale veins: a midrib and curving side veins (alocasia), joined by a loop
       // inside the margin when o.net is set (nerve plant).
-      const arrow = o.shape === 'arrow';
-      const half = arrow ? (t) => 0.5 * Math.pow(1 - t, 0.85) : (t) => 0.41 * Math.pow(Math.sin(Math.PI * t), 0.8);
+      const arrow = o.shape === 'arrow' || o.shape === 'sagittate' || o.shape === 'regal';
+      const half = o.shape === 'sagittate' ? (t) => 0.36 * Math.pow(1 - t, 0.85)
+        : o.shape === 'regal' ? (t) => 0.5 * Math.pow(1 - t, 0.6)
+        : arrow ? (t) => 0.5 * Math.pow(1 - t, 0.85) : (t) => 0.41 * Math.pow(Math.sin(Math.PI * t), 0.8);
       const pairs = o.veins ?? 4;
       let p = `M0 ${f1(-L * 0.02)}L0 ${f1(-L * 0.92)}`;
       const ends = [[], []];
@@ -208,7 +260,62 @@ function variegate(ctx, o, L, W, shape, sw) {
         for (const sd of [-1, 1]) p += `M0 ${f1(-L * 0.03)}Q${f1(sd * W * 0.2)} ${f1(L * 0.02)} ${f1(sd * W * 0.34)} ${f1(L * 0.13)}`;
       }
       if (o.net) for (const e of ends) p += smooth([[0, -L * 0.06], ...e, [0, -L * 0.93]]);
-      return `<path d="${p}" fill="none" stroke="${vc}" stroke-width="${f1(sw * (o.veinW ?? 0.8))}" stroke-linecap="round" stroke-linejoin="round"/>`;
+      // A pale rim just inside the edge (Alocasia 'Polly').
+      const rim = o.rim
+        ? `<path d="${shape(L * 0.9, W * 0.84, o)}" transform="translate(0 ${f1(-L * 0.035)})" fill="none" stroke="${vc}" stroke-width="${f1(sw * 0.55)}" stroke-linejoin="round"/>`
+        : '';
+      return `<path d="${p}" fill="none" stroke="${vc}" stroke-width="${f1(sw * (o.veinW ?? 0.8))}" stroke-linecap="round" stroke-linejoin="round"/>${rim}`;
+    }
+    case 'polly': {
+      // Thick white veins from the midrib out to every scallop, and a white rim.
+      let p = `M0 ${f1(L * 0.02)}L0 ${f1(-L * 0.94)}`;
+      for (const [x, y] of pollyHalf().tips) {
+        for (const sd of [-1, 1]) p += `M0 ${f1(-L * (-y - 0.1))}Q${f1(sd * x * W * 0.4)} ${f1(-L * (-y - 0.04))} ${f1(sd * x * W * 0.9)} ${f1(y * L)}`;
+      }
+      for (const sd of [-1, 1]) p += `M0 ${f1(-L * 0.02)}Q${f1(sd * W * 0.14)} ${f1(L * 0.1)} ${f1(sd * W * 0.24)} ${f1(L * 0.26)}`;
+      return `<path d="${shape(L * 0.9, W * 0.86, o)}" transform="translate(0 ${f1(-L * 0.035)})" fill="none" stroke="${vc}" stroke-width="${f1(sw * 0.55)}" stroke-linejoin="round"/>`
+        + `<path d="${p}" fill="none" stroke="${vc}" stroke-width="${f1(sw * 0.95)}" stroke-linecap="round"/>`;
+    }
+    case 'shield': {
+      // Persian shield: dark green at the edge and along every vein, violet between the
+      // veins brightening to a silvery lavender sheen down the middle.
+      let p = `M0 ${f1(-L * 0.02)}L0 ${f1(-L * 0.9)}`;
+      for (let i = 0; i < 6; i++) {
+        const t = 0.14 + i * 0.12;
+        const reach = W * 0.4 * Math.pow(Math.sin(Math.PI * (t + 0.08)), 0.85);
+        for (const sd of [-1, 1]) p += `M0 ${f1(-L * t)}Q${f1(sd * reach * 0.5)} ${f1(-L * (t + 0.04))} ${f1(sd * reach)} ${f1(-L * (t + 0.11))}`;
+      }
+      return `<path d="${SHAPES.oval(L * 0.66, W * 0.48)}" transform="translate(0 ${f1(-L * 0.15)})" fill="${ctx.fill(o.purple)}"/>`
+        + `<path d="${SHAPES.oval(L * 0.44, W * 0.22)}" transform="translate(0 ${f1(-L * 0.24)})" fill="${ctx.fill(o.silver)}" fill-opacity=".7"/>`
+        + `<path d="${p}" fill="none" stroke="${vc}" stroke-width="${f1(sw * 0.5)}" stroke-linecap="round"/>`;
+    }
+    case 'fuzz': {
+      // Purple passion: a green leaf under a coat of purple hairs. They show at the
+      // margin and wash over the leaf where the light catches them (o.sheen, 0-1);
+      // young leaves at the tips are purple all over.
+      const sheen = o.sheen ?? 0.4;
+      return `<path d="${shape(L * 0.96, W * 0.94, o)}" transform="translate(0 ${f1(-L * 0.02)})" fill="${vc}" fill-opacity="${f1(0.05 + 0.85 * sheen)}"/>`
+        + `<path d="${shape(L * 0.88, W * 0.82, o)}" transform="translate(0 ${f1(-L * 0.05)})" fill="none" stroke="${vc}" stroke-opacity="${f1(0.35 + 0.5 * sheen)}" stroke-width="${f1(sw * 0.35)}" stroke-linejoin="round"/>`;
+    }
+    case 'char': {
+      // Alocasia chienlii: matte near-black with a rough, scorched-looking surface of
+      // ashy flecks and crinkles.
+      let dots = '', crinkles = '';
+      for (let i = 0; i < 26; i++) {
+        const n = k * 41 + i;
+        const t = 0.04 + 0.88 * ctx.r(n, 'ct');
+        const x = (ctx.r(n, 'cx') * 2 - 1) * W * 0.3 * Math.pow(1 - t, 0.8);
+        const y = -L * t;
+        if (i % 3) {
+          const r = W * (0.012 + 0.022 * ctx.r(n, 'cr'));
+          dots += `M${f1(x - r)} ${f1(y)}a${f1(r)} ${f1(r)} 0 1 0 ${f1(2 * r)} 0a${f1(r)} ${f1(r)} 0 1 0 ${f1(-2 * r)} 0`;
+        } else {
+          const l = W * (0.06 + 0.06 * ctx.r(n, 'cl')), sd = ctx.r(n, 'cs') < 0.5 ? -1 : 1;
+          crinkles += `M${f1(x)} ${f1(y)}q${f1(l * 0.5)} ${f1(sd * l * 0.3)} ${f1(l)} 0`;
+        }
+      }
+      return `<path d="${dots}" fill="${vc}" fill-opacity=".55"/>`
+        + `<path d="${crinkles}" fill="none" stroke="${vc}" stroke-opacity=".45" stroke-width="${f1(sw * 0.35)}" stroke-linecap="round"/>`;
     }
     case 'ripple': {
       // Peperomia caperata style: deep curved grooves between the veins.

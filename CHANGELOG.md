@@ -3,6 +3,13 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.9.0 — 2026-10-03
+
+### Added
+- Five more plants, each with a care preset and its own drawing: Persian shield
+  (Strobilanthes dyerianus), Purple passion plant (Gynura aurantiaca), Alocasia
+  'Polly', Alocasia chienlii and Alocasia 'Regal Shield'.
+
 ## 0.8.0 — 2026-10-03
 
 ### Added

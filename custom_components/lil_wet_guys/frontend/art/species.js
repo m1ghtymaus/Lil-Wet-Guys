@@ -215,6 +215,31 @@ export const SPECIES = {
     count: 13, len: [12, 30], spread: 1.4, nodes: 1, stem: '#5f7f4a',
     leaf: { shape: 'oval', L: 21, W: 16.5, color: '#2a5a30', vari: '#eef3ea', variType: 'ribs', veins: 3, veinW: 0.6, net: true, rib: false },
   },
+  persian_shield: {
+    name: 'Persian shield', latin: 'Strobilanthes dyerianus', rig: 'bushy', form: 'obtusifolia', scale: 1.3,
+    count: 4, stem: '#5e4a6e',
+    leaf: { shape: 'serrate', L: 28, W: 12, color: '#3d6145', vari: '#2f4d38', purple: '#a058d8', silver: '#ecd6fa', variType: 'shield', rib: false, gloss: true },
+  },
+  purple_passion: {
+    name: 'Purple passion plant', latin: 'Gynura aurantiaca', rig: 'bushy', form: 'gynura',
+    count: 6, perStem: 5, stem: '#93408f',
+    leaf: { shape: 'dentate', L: 24, W: 15, color: '#587a4a', vari: '#8e3a9a', variType: 'fuzz', ribColor: '#9a5aa0' },
+  },
+  alocasia_polly: {
+    name: "Alocasia 'Polly'", latin: "Alocasia × amazonica 'Polly'", rig: 'upright_leaf',
+    count: 5, len: [40, 72], spread: 0.8, tilt: 0.95, stem: '#5d7a4c', stemW: 2.4,
+    leaf: { shape: 'polly', L: 40, W: 26, color: '#163522', vari: '#cfdcc6', variType: 'polly', rib: false, gloss: true },
+  },
+  alocasia_chienlii: {
+    name: 'Alocasia chienlii', latin: 'Alocasia chienlii', rig: 'upright_leaf',
+    count: 5, len: [34, 62], spread: 0.75, tilt: 0.9, stem: '#3b3833', stemW: 2.3,
+    leaf: { shape: 'sagittate', L: 40, W: 24, color: '#191b1a', vari: '#6e655d', variType: 'char', ribColor: '#2b2d2b' },
+  },
+  alocasia_regal_shield: {
+    name: "Alocasia 'Regal Shield'", latin: "Alocasia 'Regal Shield'", rig: 'upright_leaf',
+    count: 4, len: [52, 86], spread: 0.95, tilt: 0.7, stem: '#4f4a36', stemW: 3,
+    leaf: { shape: 'regal', L: 44, W: 34, color: '#1a2e1f', vari: '#4f7d44', variType: 'ribs', veins: 5, veinW: 0.7, rib: false },
+  },
   moss_terrarium: {
     name: 'Moss terrarium', latin: 'Bryophyta', rig: 'terrarium', container: 'jar', still: true, dryHue: 45,
     moss: ['#5f9e3f', '#4b8634', '#79b24c'], lights: '#ffd56a', lid: '#a8743f',

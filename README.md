@@ -141,7 +141,9 @@ plant, Split-leaf philodendron, Tiger aloe, Tiger tooth aloe, Umbrella plant,
 Variegated peperomia, Weeping fig, ZZ plant, Black Raven ZZ plant, Epipremnum
 pinnatum, Inch plant, White bird of paradise, Monstera deliciosa, Thai
 Constellation monstera, Jade pothos, Alocasia 'Frydek', Money tree, Mini
-monstera, Nerve plant, Variegated million hearts and Moss terrarium.
+monstera, Nerve plant, Variegated million hearts, Moss terrarium, Persian shield,
+Purple passion plant, Alocasia 'Polly', Alocasia chienlii and Alocasia 'Regal
+Shield'.
 
 Each has its own drawing and care preset (see
 [`species.py`](custom_components/lil_wet_guys/species.py)). For anything else

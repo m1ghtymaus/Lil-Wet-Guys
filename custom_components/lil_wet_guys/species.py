@@ -181,6 +181,26 @@ SPECIES: dict[str, Species] = {
         "Nerve plant", "Fittonia albivenis", "medium", 4, 60, 80,
         "Keep the soil evenly moist. It flops dramatically when thirsty and perks up after a drink.",
     ),
+    "persian_shield": Species(
+        "Persian shield", "Strobilanthes dyerianus", "bright_indirect", 5, 60, 80,
+        "Keep the soil lightly moist; water when the top inch is dry. Bright light keeps the purple vivid.",
+    ),
+    "purple_passion": Species(
+        "Purple passion plant", "Gynura aurantiaca", "bright_indirect", 7, 60, 75,
+        "Water when the top inch is dry, at the soil rather than on its fuzzy leaves.",
+    ),
+    "alocasia_polly": Species(
+        "Alocasia 'Polly'", "Alocasia × amazonica 'Polly'", "bright_indirect", 7, 65, 85,
+        "Water when the top 1–2 inches are dry. Likes humidity and hates cold drafts.",
+    ),
+    "alocasia_chienlii": Species(
+        "Alocasia chienlii", "Alocasia chienlii", "bright_indirect", 7, 65, 85,
+        "Water when the top inch is dry; keep it humid and away from cold drafts.",
+    ),
+    "alocasia_regal_shield": Species(
+        "Alocasia 'Regal Shield'", "Alocasia 'Regal Shield'", "bright_indirect", 6, 65, 85,
+        "Water when the top 2 inches are dry. Drinks more in summer, less in winter; keep it warm and humid.",
+    ),
     "moss_terrarium": Species(
         "Moss terrarium", "Bryophyta", "medium", 14, 60, 75,
         "Mist lightly when the moss looks pale or the glass stops fogging up. Keep it out of direct sun.",
