@@ -23,190 +23,195 @@ class Species:
     temp_max_f: int
     note: str
 
+    @property
+    def label(self) -> str:
+        """How the plant type is shown: Common Name (Scientific name)."""
+        return f"{self.name} ({self.latin})" if self.latin else self.name
+
 
 SPECIES: dict[str, Species] = {
     "arrowhead_plant": Species(
-        "Arrowhead plant", "Syngonium podophyllum", "bright_indirect", 7, 60, 85,
+        "Arrowhead Plant", "Syngonium podophyllum", "bright_indirect", 7, 60, 85,
         "Water when the top inch of soil is dry.",
     ),
     "asparagus_fern": Species(
-        "Asparagus fern 'Sprengeri'", "Asparagus densiflorus 'Sprengeri'", "bright_indirect", 5, 50, 80,
+        "Asparagus Fern", "Asparagus densiflorus 'Sprengeri'", "bright_indirect", 5, 50, 80,
         "Keep the soil evenly moist.",
     ),
     "banana_plant": Species(
-        "Banana plant", "Musa spp.", "direct", 3, 65, 85,
+        "Banana Plant", "Musa spp.", "direct", 3, 65, 85,
         "Keep the soil moist; it drinks a lot in warm weather.",
     ),
     "cylindrical_snake_plant": Species(
-        "Cylindrical snake plant", "Dracaena angolensis", "medium", 21, 60, 85,
+        "Cylindrical Snake Plant", "Dracaena angolensis", "medium", 21, 60, 85,
         "Let the soil dry out completely between waterings.",
     ),
     "dragon_tree": Species(
-        "Dragon tree", "Dracaena marginata", "bright_indirect", 12, 65, 80,
+        "Dragon Tree", "Dracaena marginata", "bright_indirect", 12, 65, 80,
         "Water when the top half of the soil is dry.",
     ),
     "easter_cactus": Species(
-        "Easter cactus", "Schlumbergera gaertneri", "bright_indirect", 8, 60, 75,
+        "Easter Cactus", "Schlumbergera gaertneri", "bright_indirect", 8, 60, 75,
         "Water when the top inch is dry. Cool nights help it bloom.",
     ),
     "gasteria": Species(
-        "Gasteria", "Gasteria spp.", "bright_indirect", 16, 60, 80,
+        "Ox Tongue", "Gasteria spp.", "bright_indirect", 16, 60, 80,
         "Let the soil dry out completely between waterings.",
     ),
     "golden_pothos": Species(
-        "Golden pothos", "Epipremnum aureum", "medium", 8, 60, 85,
+        "Golden Pothos", "Epipremnum aureum", "medium", 8, 60, 85,
         "Water when the top 1–2 inches of soil are dry.",
     ),
     "heartleaf_philodendron": Species(
-        "Heartleaf philodendron", "Philodendron hederaceum", "bright_indirect", 8, 60, 85,
+        "Heartleaf Philodendron", "Philodendron hederaceum", "bright_indirect", 8, 60, 85,
         "Water when the top inch of soil is dry.",
     ),
     "lipstick_plant": Species(
-        "Lipstick plant", "Aeschynanthus radicans", "bright_indirect", 6, 65, 80,
+        "Lipstick Plant", "Aeschynanthus radicans", "bright_indirect", 6, 65, 80,
         "Keep the soil lightly moist.",
     ),
     "lucky_bamboo": Species(
-        "Lucky bamboo", "Dracaena sanderiana", "medium", 6, 65, 90,
+        "Lucky Bamboo", "Dracaena sanderiana", "medium", 6, 65, 90,
         "In water, refresh it weekly. In soil, keep it moist.",
     ),
     "monkey_mask": Species(
-        "Monkey mask", "Monstera adansonii", "bright_indirect", 7, 60, 85,
+        "Monkey Mask", "Monstera adansonii", "bright_indirect", 7, 60, 85,
         "Water when the top inch is dry. Likes humidity.",
     ),
     "peperomia": Species(
-        "Peperomia", "Peperomia spp.", "bright_indirect", 10, 65, 80,
+        "Radiator Plant", "Peperomia spp.", "bright_indirect", 10, 65, 80,
         "Let most of the soil dry out between waterings.",
     ),
     "peperomia_hope": Species(
-        "Peperomia 'Hope'", "Peperomia 'Hope'", "bright_indirect", 12, 65, 80,
+        "Hope Peperomia", "Peperomia 'Hope'", "bright_indirect", 12, 65, 80,
         "Let most of the soil dry out between waterings.",
     ),
     "pink_princess_philodendron": Species(
-        "Pink Princess philodendron", "Philodendron erubescens 'Pink Princess'", "bright_indirect", 7, 65, 85,
+        "Pink Princess Philodendron", "Philodendron erubescens 'Pink Princess'", "bright_indirect", 7, 65, 85,
         "Water when the top inch of soil is dry.",
     ),
     "rubber_plant_ruby": Species(
-        "Rubber plant 'Ruby'", "Ficus elastica 'Ruby'", "bright_indirect", 10, 60, 85,
+        "Rubber Plant", "Ficus elastica 'Ruby'", "bright_indirect", 10, 60, 85,
         "Water when the top 2 inches of soil are dry.",
     ),
     "satin_pothos": Species(
-        "Satin pothos", "Scindapsus pictus", "bright_indirect", 10, 65, 85,
+        "Satin Pothos", "Scindapsus pictus", "bright_indirect", 10, 65, 85,
         "Let most of the soil dry out. Its leaves curl when it is thirsty.",
     ),
     "snake_plant_laurentii": Species(
-        "Snake plant 'Laurentii'", "Dracaena trifasciata 'Laurentii'", "medium", 21, 60, 85,
+        "Snake Plant", "Dracaena trifasciata 'Laurentii'", "medium", 21, 60, 85,
         "Let the soil dry out completely between waterings.",
     ),
     "snake_plant_zeylanica": Species(
-        "Snake plant 'Zeylanica'", "Dracaena trifasciata 'Zeylanica'", "medium", 21, 60, 85,
+        "Snake Plant", "Dracaena trifasciata 'Zeylanica'", "medium", 21, 60, 85,
         "Let the soil dry out completely between waterings.",
     ),
     "snake_plant_moonshine": Species(
-        "Snake plant 'Moonshine'", "Dracaena trifasciata 'Moonshine'", "medium", 21, 60, 85,
+        "Snake Plant", "Dracaena trifasciata 'Moonshine'", "medium", 21, 60, 85,
         "Let the soil dry out completely between waterings.",
     ),
     "spider_plant": Species(
-        "Spider plant", "Chlorophytum comosum", "bright_indirect", 7, 55, 80,
+        "Spider Plant", "Chlorophytum comosum", "bright_indirect", 7, 55, 80,
         "Water when the top inch of soil is dry.",
     ),
     "split_leaf_philodendron": Species(
-        "Split-leaf philodendron", "Thaumatophyllum bipinnatifidum", "bright_indirect", 7, 60, 85,
+        "Split-Leaf Philodendron", "Thaumatophyllum bipinnatifidum", "bright_indirect", 7, 60, 85,
         "Water when the top inch of soil is dry.",
     ),
     "tiger_aloe": Species(
-        "Tiger aloe", "Gonialoe variegata", "bright_indirect", 18, 55, 85,
+        "Tiger Aloe", "Gonialoe variegata", "bright_indirect", 18, 55, 85,
         "Let the soil dry out completely between waterings.",
     ),
     "tiger_tooth_aloe": Species(
-        "Tiger tooth aloe", "Aloe juvenna", "bright_indirect", 18, 50, 85,
+        "Tiger Tooth Aloe", "Aloe juvenna", "bright_indirect", 18, 50, 85,
         "Let the soil dry out completely between waterings.",
     ),
     "umbrella_plant": Species(
-        "Umbrella plant", "Schefflera arboricola", "bright_indirect", 9, 60, 80,
+        "Umbrella Plant", "Schefflera arboricola", "bright_indirect", 9, 60, 80,
         "Water when the top 1–2 inches of soil are dry.",
     ),
     "variegated_peperomia": Species(
-        "Variegated peperomia", "Peperomia obtusifolia 'Variegata'", "bright_indirect", 10, 65, 80,
+        "Variegated Baby Rubber Plant", "Peperomia obtusifolia 'Variegata'", "bright_indirect", 10, 65, 80,
         "Let most of the soil dry out between waterings.",
     ),
     "weeping_fig": Species(
-        "Weeping fig", "Ficus benjamina", "bright_indirect", 7, 60, 80,
+        "Weeping Fig", "Ficus benjamina", "bright_indirect", 7, 60, 80,
         "Water when the top inch is dry. Keep it away from drafts.",
     ),
     "zz_plant": Species(
-        "ZZ plant", "Zamioculcas zamiifolia", "medium", 18, 60, 85,
+        "ZZ Plant", "Zamioculcas zamiifolia", "medium", 18, 60, 85,
         "Let the soil dry out completely between waterings.",
     ),
     "epipremnum_pinnatum": Species(
-        "Epipremnum pinnatum", "Epipremnum pinnatum", "bright_indirect", 8, 60, 85,
+        "Dragon Tail Plant", "Epipremnum pinnatum", "bright_indirect", 8, 60, 85,
         "Water when the top 1–2 inches of soil are dry.",
     ),
     "inch_plant": Species(
-        "Inch plant", "Tradescantia zebrina", "bright_indirect", 6, 60, 80,
+        "Inch Plant", "Tradescantia zebrina", "bright_indirect", 6, 60, 80,
         "Keep the soil lightly moist; water when the top inch is dry.",
     ),
     "white_bird_of_paradise": Species(
-        "White bird of paradise", "Strelitzia nicolai", "bright_indirect", 8, 65, 85,
+        "White Bird of Paradise", "Strelitzia nicolai", "bright_indirect", 8, 65, 85,
         "Water when the top 2 inches are dry. Give it as much light as you can.",
     ),
     "monstera_deliciosa": Species(
-        "Monstera deliciosa", "Monstera deliciosa", "bright_indirect", 8, 65, 85,
+        "Swiss Cheese Plant", "Monstera deliciosa", "bright_indirect", 8, 65, 85,
         "Water when the top 2 inches of soil are dry.",
     ),
     "monstera_thai_constellation": Species(
-        "Thai Constellation monstera", "Monstera deliciosa 'Thai Constellation'", "bright_indirect", 8, 65, 85,
+        "Thai Constellation Monstera", "Monstera deliciosa 'Thai Constellation'", "bright_indirect", 8, 65, 85,
         "Water when the top 2 inches are dry. Bright light keeps the speckles strong.",
     ),
     "zz_plant_raven": Species(
-        "Black Raven ZZ plant", "Zamioculcas zamiifolia 'Raven'", "medium", 18, 60, 85,
+        "Black Raven ZZ Plant", "Zamioculcas zamiifolia 'Raven'", "medium", 18, 60, 85,
         "Let the soil dry out completely between waterings.",
     ),
     "jade_pothos": Species(
-        "Jade pothos", "Epipremnum aureum 'Jade'", "medium", 8, 60, 85,
+        "Jade Pothos", "Epipremnum aureum 'Jade'", "medium", 8, 60, 85,
         "Water when the top 1–2 inches of soil are dry.",
     ),
     "alocasia_frydek": Species(
-        "Alocasia 'Frydek'", "Alocasia micholitziana 'Frydek'", "bright_indirect", 6, 65, 85,
+        "Green Velvet Alocasia", "Alocasia micholitziana 'Frydek'", "bright_indirect", 6, 65, 85,
         "Water when the top inch is dry; keep it lightly moist, never soggy. Hates cold drafts.",
     ),
     "money_tree": Species(
-        "Money tree", "Pachira aquatica", "bright_indirect", 10, 60, 85,
+        "Money Tree", "Pachira aquatica", "bright_indirect", 10, 60, 85,
         "Water when the top 2 inches of soil are dry.",
     ),
     "mini_monstera": Species(
-        "Mini monstera", "Rhaphidophora tetrasperma", "bright_indirect", 7, 60, 85,
+        "Mini Monstera", "Rhaphidophora tetrasperma", "bright_indirect", 7, 60, 85,
         "Water when the top 1–2 inches of soil are dry.",
     ),
     "nerve_plant": Species(
-        "Nerve plant", "Fittonia albivenis", "medium", 4, 60, 80,
+        "Nerve Plant", "Fittonia albivenis", "medium", 4, 60, 80,
         "Keep the soil evenly moist. It flops dramatically when thirsty and perks up after a drink.",
     ),
     "persian_shield": Species(
-        "Persian shield", "Strobilanthes dyerianus", "bright_indirect", 5, 60, 80,
+        "Persian Shield", "Strobilanthes dyerianus", "bright_indirect", 5, 60, 80,
         "Keep the soil lightly moist; water when the top inch is dry. Bright light keeps the purple vivid.",
     ),
     "purple_passion": Species(
-        "Purple passion plant", "Gynura aurantiaca", "bright_indirect", 7, 60, 75,
+        "Purple Passion Plant", "Gynura aurantiaca", "bright_indirect", 7, 60, 75,
         "Water when the top inch is dry, at the soil rather than on its fuzzy leaves.",
     ),
     "alocasia_polly": Species(
-        "Alocasia 'Polly'", "Alocasia × amazonica 'Polly'", "bright_indirect", 7, 65, 85,
+        "African Mask Plant", "Alocasia × amazonica 'Polly'", "bright_indirect", 7, 65, 85,
         "Water when the top 1–2 inches are dry. Likes humidity and hates cold drafts.",
     ),
     "alocasia_chienlii": Species(
-        "Alocasia chienlii", "Alocasia chienlii", "bright_indirect", 7, 65, 85,
+        "Elephant Ear", "Alocasia chienlii", "bright_indirect", 7, 65, 85,
         "Water when the top inch is dry; keep it humid and away from cold drafts.",
     ),
     "alocasia_regal_shield": Species(
-        "Alocasia 'Regal Shield'", "Alocasia 'Regal Shield'", "bright_indirect", 6, 65, 85,
+        "Regal Shield", "Alocasia 'Regal Shield'", "bright_indirect", 6, 65, 85,
         "Water when the top 2 inches are dry. Drinks more in summer, less in winter; keep it warm and humid.",
     ),
     "moss_terrarium": Species(
-        "Moss terrarium", "Bryophyta", "medium", 14, 60, 75,
+        "Moss Terrarium", "Bryophyta", "medium", 14, 60, 75,
         "Mist lightly when the moss looks pale or the glass stops fogging up. Keep it out of direct sun.",
     ),
     "million_hearts_variegated": Species(
-        "Variegated million hearts", "Dischidia ruscifolia 'Variegata'", "bright_indirect", 10, 60, 85,
+        "Variegated Million Hearts", "Dischidia ruscifolia 'Variegata'", "bright_indirect", 10, 60, 85,
         "Let the mix dry out between waterings; it stores water in its leaves.",
     ),
 }
@@ -220,4 +225,4 @@ GENERIC_SHAPES: list[str] = [
     "generic_tree",
 ]
 
-OTHER = Species("Other plant", "", "bright_indirect", 7, 60, 80, "")
+OTHER = Species("Other Plant", "", "bright_indirect", 7, 60, 80, "")

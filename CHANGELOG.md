@@ -3,6 +3,16 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.9.1 — 2026-10-03
+
+### Changed
+- Plant types are named the same way everywhere: **Common Name (Scientific
+  name)**, with every common name capitalised. That covers the add-plant list,
+  each plant's device model and the card's details. Plant types that went by a
+  cultivar or scientific name now use their common name, for example Swiss
+  Cheese Plant (*Monstera deliciosa*) and African Mask Plant (*Alocasia ×
+  amazonica 'Polly'*). The names you gave your own plants don't change.
+
 ## 0.9.0 — 2026-10-03
 
 ### Added

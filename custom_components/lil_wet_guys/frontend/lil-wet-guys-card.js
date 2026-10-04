@@ -558,7 +558,7 @@ class LilWetGuysCard extends HTMLElement {
       species: a.shape, potColor: a.pot_color, dryness, ghost: overdue >= GHOST_AT, heat: a.heat,
       seed: id, limbs: this._config.limbs !== false && poseFor(id), label: name, layered: true,
     });
-    const sub = a.species === 'other' ? '' : `${esc(a.species_name || art?.name || '')}${art?.latin ? ` · <i>${esc(art.latin)}</i>` : ''}`;
+    const sub = a.species === 'other' ? '' : `${esc(a.species_name || art?.name || '')}${art?.latin ? ` (<i>${esc(art.latin)}</i>)` : ''}`;
     const rows = [
       ['Watering', `Every ${esc(a.interval_days)} days in ${esc(LIGHT[a.light] || a.light)}`
         + (a.interval_days !== a.base_days ? ` (${esc(a.base_days)} in bright, indirect light)` : '')],

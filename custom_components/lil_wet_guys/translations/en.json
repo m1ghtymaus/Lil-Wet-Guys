@@ -120,11 +120,11 @@
     },
     "shape": {
       "options": {
-        "generic_leafy": "Leafy plant",
-        "generic_trailing": "Trailing vine",
+        "generic_leafy": "Leafy Plant",
+        "generic_trailing": "Trailing Vine",
         "generic_succulent": "Succulent",
-        "generic_spiky": "Upright spiky",
-        "generic_tree": "Small tree"
+        "generic_spiky": "Upright Spiky",
+        "generic_tree": "Small Tree"
       }
     },
     "existing": {

@@ -41,7 +41,7 @@ async def test_entities_and_device(hass: HomeAssistant, hass_storage: dict[str, 
 
     device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, PLANT_ID)})
     assert device.name == "Pothos"
-    assert device.model == "Golden pothos"
+    assert device.model == "Golden Pothos (Epipremnum aureum)"
     assert device.manufacturer == "Lil Wet Guys"
     entity = er.async_get(hass).async_get(STATUS)
     assert entity.config_subentry_id == PLANT_ID

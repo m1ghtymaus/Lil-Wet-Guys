@@ -74,8 +74,8 @@ C = UnitOfTemperature.CELSIUS
 F = UnitOfTemperature.FAHRENHEIT
 
 SPECIES_OPTIONS = [
-    selector.SelectOptionDict(value=key, label=sp.name)
-    for key, sp in sorted(SPECIES.items(), key=lambda item: item[1].name.lower())
+    selector.SelectOptionDict(value=key, label=sp.label)
+    for key, sp in sorted(SPECIES.items(), key=lambda item: item[1].label.lower())
 ] + [selector.SelectOptionDict(value=SPECIES_OTHER, label="Other (not listed)")]
 
 
@@ -411,7 +411,7 @@ def _species_selector() -> selector.SelectSelector:
 
 
 def _species_label(species: str) -> str:
-    return SPECIES[species].name if species in SPECIES else "a plant without a preset"
+    return SPECIES[species].label if species in SPECIES else "a plant without a preset"
 
 
 def _parse_last_watered(value: str | None) -> str:

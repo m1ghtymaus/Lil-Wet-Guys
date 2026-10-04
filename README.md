@@ -132,18 +132,52 @@ To change a plant later, use the pencil next to it on the integration page
 
 ### Plant types with presets
 
-Arrowhead plant, Asparagus fern 'Sprengeri', Banana plant, Cylindrical snake
-plant, Dragon tree, Easter cactus, Gasteria, Golden pothos, Heartleaf
-philodendron, Lipstick plant, Lucky bamboo, Monkey mask, Peperomia, Peperomia
-'Hope', Pink Princess philodendron, Rubber plant 'Ruby', Satin pothos, Snake
-plant 'Laurentii', Snake plant 'Zeylanica', Snake plant 'Moonshine', Spider
-plant, Split-leaf philodendron, Tiger aloe, Tiger tooth aloe, Umbrella plant,
-Variegated peperomia, Weeping fig, ZZ plant, Black Raven ZZ plant, Epipremnum
-pinnatum, Inch plant, White bird of paradise, Monstera deliciosa, Thai
-Constellation monstera, Jade pothos, Alocasia 'Frydek', Money tree, Mini
-monstera, Nerve plant, Variegated million hearts, Moss terrarium, Persian shield,
-Purple passion plant, Alocasia 'Polly', Alocasia chienlii and Alocasia 'Regal
-Shield'.
+- African Mask Plant (*Alocasia × amazonica 'Polly'*)
+- Arrowhead Plant (*Syngonium podophyllum*)
+- Asparagus Fern (*Asparagus densiflorus 'Sprengeri'*)
+- Banana Plant (*Musa spp.*)
+- Black Raven ZZ Plant (*Zamioculcas zamiifolia 'Raven'*)
+- Cylindrical Snake Plant (*Dracaena angolensis*)
+- Dragon Tail Plant (*Epipremnum pinnatum*)
+- Dragon Tree (*Dracaena marginata*)
+- Easter Cactus (*Schlumbergera gaertneri*)
+- Elephant Ear (*Alocasia chienlii*)
+- Golden Pothos (*Epipremnum aureum*)
+- Green Velvet Alocasia (*Alocasia micholitziana 'Frydek'*)
+- Heartleaf Philodendron (*Philodendron hederaceum*)
+- Hope Peperomia (*Peperomia 'Hope'*)
+- Inch Plant (*Tradescantia zebrina*)
+- Jade Pothos (*Epipremnum aureum 'Jade'*)
+- Lipstick Plant (*Aeschynanthus radicans*)
+- Lucky Bamboo (*Dracaena sanderiana*)
+- Mini Monstera (*Rhaphidophora tetrasperma*)
+- Money Tree (*Pachira aquatica*)
+- Monkey Mask (*Monstera adansonii*)
+- Moss Terrarium (*Bryophyta*)
+- Nerve Plant (*Fittonia albivenis*)
+- Ox Tongue (*Gasteria spp.*)
+- Persian Shield (*Strobilanthes dyerianus*)
+- Pink Princess Philodendron (*Philodendron erubescens 'Pink Princess'*)
+- Purple Passion Plant (*Gynura aurantiaca*)
+- Radiator Plant (*Peperomia spp.*)
+- Regal Shield (*Alocasia 'Regal Shield'*)
+- Rubber Plant (*Ficus elastica 'Ruby'*)
+- Satin Pothos (*Scindapsus pictus*)
+- Snake Plant (*Dracaena trifasciata 'Laurentii'*)
+- Snake Plant (*Dracaena trifasciata 'Moonshine'*)
+- Snake Plant (*Dracaena trifasciata 'Zeylanica'*)
+- Spider Plant (*Chlorophytum comosum*)
+- Split-Leaf Philodendron (*Thaumatophyllum bipinnatifidum*)
+- Swiss Cheese Plant (*Monstera deliciosa*)
+- Thai Constellation Monstera (*Monstera deliciosa 'Thai Constellation'*)
+- Tiger Aloe (*Gonialoe variegata*)
+- Tiger Tooth Aloe (*Aloe juvenna*)
+- Umbrella Plant (*Schefflera arboricola*)
+- Variegated Baby Rubber Plant (*Peperomia obtusifolia 'Variegata'*)
+- Variegated Million Hearts (*Dischidia ruscifolia 'Variegata'*)
+- Weeping Fig (*Ficus benjamina*)
+- White Bird of Paradise (*Strelitzia nicolai*)
+- ZZ Plant (*Zamioculcas zamiifolia*)
 
 Each has its own drawing and care preset (see
 [`species.py`](custom_components/lil_wet_guys/species.py)). For anything else
