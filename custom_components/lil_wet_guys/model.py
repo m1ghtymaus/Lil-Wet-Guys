@@ -83,6 +83,17 @@ def temperature_problem(value: float | None, low: float, high: float) -> str | N
     return None
 
 
+# Fertilizer goes in with two waterings in a row, then one is plain water to
+# rinse out the salts it leaves behind.
+FEEDS = 2
+FEED_CYCLE = FEEDS + 1
+
+
+def feed_step(waterings: int) -> int:
+    """Where the next watering falls in the cycle: 1-2 with fertilizer, 3 plain water."""
+    return waterings % FEED_CYCLE + 1
+
+
 class MoistureWatch:
     """Spot a watering in a stream of soil-moisture readings.
 

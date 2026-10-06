@@ -32,6 +32,9 @@ SECTION_SENSORS: Final = "sensors"
 CONF_TEMPERATURE_UNIT: Final = "temperature_unit"
 UNIT_AUTO: Final = "auto"  # follow Home Assistant's unit system
 TEMPERATURE_UNITS: Final = [UNIT_AUTO, "celsius", "fahrenheit"]
+CONF_FERTILIZER: Final = "fertilizer"  # follow the fertilizer cycle and show its reminders
+
+FERTILIZER: Final = "Foliage Focus"
 
 SPECIES_OTHER: Final = "other"
 LIGHT_LEVELS: Final = ["direct", "bright_indirect", "medium", "low"]

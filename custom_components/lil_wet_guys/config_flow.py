@@ -38,6 +38,7 @@ from .backup import (
 )
 from .const import (
     CONF_BASE_DAYS,
+    CONF_FERTILIZER,
     CONF_LAST_WATERED,
     CONF_LIGHT,
     CONF_MOISTURE_JUMP,
@@ -145,6 +146,9 @@ class BackupFlow(OptionsFlow):
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     )
                 ),
+                vol.Required(
+                    CONF_FERTILIZER, default=self.config_entry.options.get(CONF_FERTILIZER, False)
+                ): selector.BooleanSelector(),
             }
         )
         return self.async_show_form(step_id="settings", data_schema=schema)

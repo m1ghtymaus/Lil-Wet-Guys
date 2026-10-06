@@ -35,6 +35,7 @@ from homeassistant.util.unit_conversion import TemperatureConverter
 from . import model
 from .const import (
     CONF_BASE_DAYS,
+    CONF_FERTILIZER,
     CONF_LAST_WATERED,
     CONF_LIGHT,
     CONF_MOISTURE_JUMP,
@@ -60,7 +61,7 @@ from .species import OTHER, SPECIES, Species
 _LOGGER = logging.getLogger(__name__)
 
 
-class _VersionedStore(Store[dict[str, dict[str, str]]]):
+class _VersionedStore(Store[dict[str, dict[str, Any]]]):
     """The on-disk store, with a place to upgrade data saved by older versions."""
 
     async def _async_migrate_func(self, old_major_version: int, old_minor_version: int, old_data: dict) -> dict:
@@ -70,12 +71,12 @@ class _VersionedStore(Store[dict[str, dict[str, str]]]):
 
 
 class PlantStore:
-    """When each plant was last watered, and its notes, keyed by subentry id."""
+    """When each plant was last watered, its notes and fertilizer count, keyed by subentry id."""
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Create the store; call async_load before use."""
         self._store = _VersionedStore(hass, STORAGE_VERSION, STORAGE_KEY)
-        self._data: dict[str, dict[str, str]] = {}
+        self._data: dict[str, dict[str, Any]] = {}
 
     async def async_load(self) -> None:
         """Read the saved data."""
@@ -100,6 +101,26 @@ class PlantStore:
     def set_notes(self, plant_id: str, notes: str) -> None:
         """Save the plant's notes."""
         self._data.setdefault(plant_id, {})["notes"] = notes
+        self._store.async_delay_save(lambda: self._data, 1)
+
+    def waterings(self, plant_id: str) -> int:
+        """Return how many waterings the fertilizer cycle has counted."""
+        return int(self._data.get(plant_id, {}).get("waterings", 0))
+
+    def watered_before(self, plant_id: str) -> datetime | None:
+        """Return the last-watered time from before the latest counted watering."""
+        raw = self._data.get(plant_id, {}).get("watered_before")
+        return dt_util.parse_datetime(raw) if raw else None
+
+    @callback
+    def set_waterings(self, plant_id: str, count: int, before: datetime | None) -> None:
+        """Save the fertilizer count and the time to go back to if the latest watering is undone."""
+        data = self._data.setdefault(plant_id, {})
+        data["waterings"] = count
+        if before is None:
+            data.pop("watered_before", None)
+        else:
+            data["watered_before"] = dt_util.as_utc(before).isoformat()
         self._store.async_delay_save(lambda: self._data, 1)
 
     @callback
@@ -231,6 +252,16 @@ class Plant:
         return temperature_unit(self.hass, self._entry)
 
     @property
+    def fertilizer_on(self) -> bool:
+        """Whether the fertilizer setting is on."""
+        return bool(self._entry.options.get(CONF_FERTILIZER))
+
+    @property
+    def feeding(self) -> bool:
+        """Whether this plant follows the fertilizer cycle (moss is never fed)."""
+        return self.fertilizer_on and self.species.feed_ml > 0
+
+    @property
     def photo_file(self) -> str | None:
         """Stored photo file name, if the plant has a photo."""
         return self.config.get(CONF_PHOTO_FILE)
@@ -266,6 +297,11 @@ class Plant:
     def status(self) -> str:
         """happy, thirsty, wilting or ghost."""
         return model.status_for(self.days_overdue)
+
+    @property
+    def feed_step(self) -> int:
+        """Where the next watering falls in the fertilizer cycle: 1-2 feed, 3 plain water."""
+        return model.feed_step(self._store.waterings(self.id))
 
     @property
     def heat(self) -> str | None:
@@ -324,9 +360,35 @@ class Plant:
     @callback
     def async_set_last_watered(self, when: datetime) -> None:
         """Record a watering (or correct when the last one was)."""
-        self.last_watered = dt_util.as_utc(when)
+        when = dt_util.as_utc(when)
+        if self.feeding:
+            self._count_watering(when)
+        self.last_watered = when
         self._store.set_last_watered(self.id, self.last_watered)
         self._schedule()
+        self._notify()
+
+    @callback
+    def _count_watering(self, when: datetime) -> None:
+        """Keep the fertilizer count in step with a new last-watered time.
+
+        A later time is a new watering. Going back to the time from before the
+        latest watering (the card's Undo) takes it off again; anything in between
+        only corrects when the latest watering happened.
+        """
+        count = self._store.waterings(self.id)
+        before = self._store.watered_before(self.id)
+        if when > self.last_watered:
+            self._store.set_waterings(self.id, count + 1, self.last_watered)
+        elif before is not None and when <= before:
+            self._store.set_waterings(self.id, max(0, count - 1), None)
+
+    @callback
+    def async_set_feed_step(self, step: int) -> None:
+        """Put the next watering at this point of the fertilizer cycle, to get back in step."""
+        if not 1 <= step <= model.FEED_CYCLE:
+            raise ValueError(f"Unknown fertilizer step: {step}")
+        self._store.set_waterings(self.id, step - 1, None)
         self._notify()
 
     @callback

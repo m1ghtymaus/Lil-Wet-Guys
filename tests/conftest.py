@@ -42,13 +42,16 @@ def plant_data(**overrides: Any) -> dict[str, Any]:
     return data
 
 
-def make_entry(plants: dict[str, tuple[str, dict[str, Any]]] | None = None) -> MockConfigEntry:
+def make_entry(
+    plants: dict[str, tuple[str, dict[str, Any]]] | None = None, options: dict[str, Any] | None = None
+) -> MockConfigEntry:
     """Build a Lil Wet Guys entry holding the given plants (id -> (name, data))."""
     plants = plants if plants is not None else {PLANT_ID: ("Pothos", plant_data())}
     return MockConfigEntry(
         domain=DOMAIN,
         title="Lil Wet Guys",
         data={},
+        options=options or {},
         subentries_data=[
             {
                 "data": data,

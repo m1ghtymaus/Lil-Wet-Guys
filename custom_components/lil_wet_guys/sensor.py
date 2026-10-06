@@ -13,9 +13,9 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util.unit_conversion import TemperatureConverter
 
 from . import LilWetGuysConfigEntry
-from .const import DOMAIN
+from .const import DOMAIN, FERTILIZER
 from .entity import PlantEntity
-from .model import STATUSES
+from .model import FEEDS, STATUSES
 
 
 async def async_setup_entry(
@@ -99,4 +99,11 @@ class StatusSensor(PlantEntity, SensorEntity):
             attrs["temperature_entity"] = self._sibling("binary_sensor", "temperature")
         if plant.moisture_sensor:
             attrs["moisture"] = plant.moisture
+        if plant.fertilizer_on:
+            attrs["fertilizer"] = FERTILIZER
+            attrs["fertilizer_dose"] = plant.species.feed_ml  # ml per litre; 0 means don't feed it
+            if plant.feeding:
+                attrs["fertilizer_step"] = plant.feed_step  # up to fertilizer_feeds with it, then plain water
+                attrs["fertilizer_feeds"] = FEEDS
+                attrs["fertilizer_entity"] = self._sibling("select", "fertilizer")
         return attrs

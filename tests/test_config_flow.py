@@ -109,7 +109,9 @@ async def test_temperature_unit_setting(hass: HomeAssistant) -> None:
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "settings"})
     assert result["step_id"] == "settings"
-    result = await hass.config_entries.options.async_configure(result["flow_id"], {"temperature_unit": "fahrenheit"})
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"temperature_unit": "fahrenheit", "fertilizer": False}
+    )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert entry.options["temperature_unit"] == "fahrenheit"
@@ -127,6 +129,21 @@ async def test_temperature_unit_setting(hass: HomeAssistant) -> None:
     await hass.config_entries.subentries.async_configure(result["flow_id"], DETAILS | {"temp_min": 50, "temp_max": 86})
     aloe = next(s for s in entry.subentries.values() if s.title == "Aloe")
     assert aloe.data["temp_min"] == pytest.approx(10)
+
+
+async def test_fertilizer_setting(hass: HomeAssistant) -> None:
+    """Configure → Settings turns the fertilizer reminders on for every plant."""
+    entry = await setup_entry(hass, make_entry())
+    assert "fertilizer" not in hass.states.get("sensor.pothos_status").attributes
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "settings"})
+    assert result["data_schema"]({})["fertilizer"] is False
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"temperature_unit": "auto", "fertilizer": True}
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.pothos_status").attributes["fertilizer_step"] == 1
+    assert hass.states.get("select.pothos_next_watering").state == "feed_1"
 
 
 async def test_other_plant_picks_a_drawing(hass: HomeAssistant) -> None:

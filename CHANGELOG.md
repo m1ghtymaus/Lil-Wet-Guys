@@ -3,6 +3,16 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.10.0 — 2026-10-05
+
+### Added
+- **Fertilizer reminders**, a new setting under Configure → Settings (off by
+  default). Plants follow a two-on, one-off cycle: Foliage Focus with two
+  waterings in a row, then one of plain water. Each plant's popup says what its
+  next watering should be and how much to mix in (3–5 ml per litre, depending on
+  the plant), and a **Next watering** setting on each plant puts it back in step.
+  The moss terrarium is never fed.
+
 ## 0.9.1 — 2026-10-03
 
 ### Changed

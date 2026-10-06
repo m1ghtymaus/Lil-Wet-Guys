@@ -98,3 +98,8 @@ def test_moisture_watering_is_debounced() -> None:
     assert not watch.add(T0 + timedelta(minutes=40), 45)
     watch.add(T0 + timedelta(hours=3), 25)
     assert watch.add(T0 + timedelta(hours=3, minutes=5), 40)
+
+
+def test_feed_cycle_is_two_on_one_off() -> None:
+    """Fertilizer with two waterings in a row, then one of plain water, and round again."""
+    assert [model.feed_step(n) for n in range(7)] == [1, 2, 3, 1, 2, 3, 1]

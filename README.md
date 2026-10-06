@@ -99,10 +99,20 @@ and restart. What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Settings
 
-**Settings → Devices & services → Lil Wet Guys → Configure → Settings** has
-**Temperature unit**: the same as Home Assistant, Celsius or Fahrenheit. It's
-used for every plant's comfortable temperatures, in the add and edit forms, on
-its entities and as the dashboard card's default.
+**Settings → Devices & services → Lil Wet Guys → Configure → Settings** has:
+
+- **Temperature unit**: the same as Home Assistant, Celsius or Fahrenheit. It's
+  used for every plant's comfortable temperatures, in the add and edit forms, on
+  its entities and as the dashboard card's default.
+- **Fertilizer reminders** (off by default): feed with Foliage Focus for two
+  waterings in a row, then give one of plain water to rinse the soil. Each
+  plant's popup on the dashboard says what its next watering should be and how
+  much to mix in: 3 ml per litre for slow growers that burn easily (succulents,
+  snake plants, peperomias), 5 ml for hungry aroids and alocasias, 4 ml for the
+  rest. The moss terrarium is never fed. Every watering moves the cycle on,
+  including ones spotted by a moisture sensor, and the card's Undo takes it back.
+  If a plant gets out of step, change its **Next watering** setting on its
+  device page.
 
 ## Moving plants to another Home Assistant
 

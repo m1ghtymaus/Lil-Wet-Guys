@@ -28,6 +28,8 @@ BUTTON = "button.pothos_watered"
 LAST = "datetime.pothos_last_watered"
 NOTES = "text.pothos_notes"
 LIGHT = "select.pothos_light"
+FEED = "select.pothos_next_watering"
+FERTILIZER = {"fertilizer": True}
 
 
 async def test_entities_and_device(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
@@ -236,3 +238,82 @@ async def test_unload(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None
     assert await hass.config_entries.async_unload(entry.entry_id)
     saved = hass_storage[DOMAIN]["data"][PLANT_ID]["last_watered"]
     assert dt_util.utcnow() - dt_util.parse_datetime(saved) < timedelta(minutes=1)
+
+
+async def _water(hass: HomeAssistant, freezer: FrozenDateTimeFactory) -> None:
+    freezer.tick(timedelta(days=1))
+    await hass.services.async_call("button", "press", {ATTR_ENTITY_ID: BUTTON}, blocking=True)
+
+
+async def test_fertilizer_is_off_by_default(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
+    """Without the setting there's no reminder and no Next watering entity."""
+    watered_ago(hass_storage, 2)
+    await setup_entry(hass, make_entry())
+    assert "fertilizer" not in hass.states.get(STATUS).attributes
+    assert hass.states.get(FEED) is None
+
+
+async def test_fertilizer_cycle(
+    hass: HomeAssistant, hass_storage: dict[str, Any], freezer: FrozenDateTimeFactory
+) -> None:
+    """Each watering moves the cycle on: two with fertilizer, then plain water."""
+    watered_ago(hass_storage, 2)
+    await setup_entry(hass, make_entry(options=FERTILIZER))
+    attrs = hass.states.get(STATUS).attributes
+    assert attrs["fertilizer"] == "Foliage Focus"
+    assert attrs["fertilizer_dose"] == 5  # pothos are hungry
+    assert attrs["fertilizer_feeds"] == 2
+    assert attrs["fertilizer_entity"] == FEED
+    assert er.async_get(hass).async_get(FEED).entity_category is EntityCategory.CONFIG
+
+    steps = []
+    for _ in range(4):
+        steps.append((hass.states.get(STATUS).attributes["fertilizer_step"], hass.states.get(FEED).state))
+        await _water(hass, freezer)
+    assert steps == [(1, "feed_1"), (2, "feed_2"), (3, "plain_water"), (1, "feed_1")]
+
+
+async def test_undo_takes_the_watering_back_off(
+    hass: HomeAssistant, hass_storage: dict[str, Any], freezer: FrozenDateTimeFactory
+) -> None:
+    """Undo (back to the previous time) steps back; correcting the time doesn't."""
+    watered_ago(hass_storage, 2)
+    await setup_entry(hass, make_entry(options=FERTILIZER))
+    previous = hass.states.get(LAST).state
+    await _water(hass, freezer)
+    assert hass.states.get(FEED).state == "feed_2"
+
+    # "I actually watered it an hour ago": still the same watering.
+    when = dt_util.utcnow() - timedelta(hours=1)
+    await hass.services.async_call(
+        "datetime", "set_value", {ATTR_ENTITY_ID: LAST, "datetime": when.isoformat()}, blocking=True
+    )
+    assert hass.states.get(FEED).state == "feed_2"
+
+    # The card's Undo puts back the time from before the watering.
+    await hass.services.async_call("datetime", "set_value", {ATTR_ENTITY_ID: LAST, "datetime": previous}, blocking=True)
+    assert hass.states.get(FEED).state == "feed_1"
+
+
+async def test_next_watering_can_be_put_back_in_step(
+    hass: HomeAssistant, hass_storage: dict[str, Any], freezer: FrozenDateTimeFactory
+) -> None:
+    """Choosing what the next watering is restarts the count from there."""
+    watered_ago(hass_storage, 2)
+    await setup_entry(hass, make_entry(options=FERTILIZER))
+    await hass.services.async_call(
+        "select", "select_option", {ATTR_ENTITY_ID: FEED, "option": "plain_water"}, blocking=True
+    )
+    assert hass.states.get(STATUS).attributes["fertilizer_step"] == 3
+    await _water(hass, freezer)
+    assert hass.states.get(FEED).state == "feed_1"
+
+
+async def test_moss_is_not_fed(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
+    """The terrarium says it needs no fertilizer and has no cycle to follow."""
+    watered_ago(hass_storage, 2)
+    await setup_entry(hass, make_entry({PLANT_ID: ("Pothos", plant_data(species="moss_terrarium"))}, FERTILIZER))
+    attrs = hass.states.get(STATUS).attributes
+    assert attrs["fertilizer_dose"] == 0
+    assert "fertilizer_step" not in attrs
+    assert hass.states.get(FEED) is None

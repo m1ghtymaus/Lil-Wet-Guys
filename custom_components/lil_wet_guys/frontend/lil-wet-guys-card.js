@@ -63,6 +63,13 @@ function span(days) {
   return `${Math.floor(d)} days`;
 }
 
+/** What the next watering should be: fertilizer for a few in a row, then plain water. */
+function fertilizerText(a) {
+  if (!a.fertilizer_dose) return 'Not needed';
+  if (a.fertilizer_step > a.fertilizer_feeds) return `Next watering: <b>plain water</b> · a rest after ${esc(a.fertilizer_feeds)} feeds`;
+  return `Next watering: <b>${esc(a.fertilizer)}</b>, ${esc(a.fertilizer_dose)} ml per litre · ${esc(a.fertilizer_step)} of ${esc(a.fertilizer_feeds)}`;
+}
+
 function countdown(overdue) {
   if (overdue < 0) return `Water in ${span(overdue)}`;
   if (overdue < 1 / 24) return 'Water now';
@@ -563,6 +570,7 @@ class LilWetGuysCard extends HTMLElement {
       ['Watering', `Every ${esc(a.interval_days)} days in ${esc(LIGHT[a.light] || a.light)}`
         + (a.interval_days !== a.base_days ? ` (${esc(a.base_days)} in bright, indirect light)` : '')],
       ['Last watered', `${esc(lastText)} · ${esc(lastDate)}`],
+      ...(a.fertilizer ? [['Fertilizer', fertilizerText(a)]] : []),
       ['Comfortable', `<span data-temp-range data-min="${minC}" data-max="${maxC}">${inUnit(minC, unit)}–${inUnit(maxC, unit)} °${unit}</span>${unitToggle}`],
     ];
     if (a.temperature_entity) {
