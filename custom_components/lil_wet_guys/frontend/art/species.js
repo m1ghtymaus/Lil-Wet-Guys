@@ -250,7 +250,7 @@ export const SPECIES = {
   },
   ming_aralia: {
     name: 'Ming Aralia', latin: 'Polyscias fruticosa', rig: 'tree', form: 'aralia', drop: 0.5,
-    braid: 30, count: 8, sprigs: 3, trunk: '#b7a787', stem: '#5f7a42', sprig: '#86c255',
+    braid: 30, count: 8, trunk: '#b7a787', stem: '#5f7a42',
     leaf: { shape: 'aralia', L: 17, W: 9.5, color: '#2f6634', ribColor: '#4f8a45', stalk: '#5f7a42', gloss: true },
   },
   moss_terrarium: {

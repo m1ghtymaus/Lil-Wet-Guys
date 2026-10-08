@@ -115,6 +115,10 @@ and restart. What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
   including ones spotted by a moisture sensor, and the card's Undo takes it back.
   If a plant gets out of step, change its **Next watering** setting on its
   device page.
+- **Holiday decorations** (off by default): dresses the dashboard card's
+  bookshelf up for the season. From 1 October to 1 November its add-ons turn to
+  Halloween (pumpkins, a cauldron, a witch's hat, bats and cobwebs) with little
+  ghosts floating about the shelves.
 
 ## Moving plants to another Home Assistant
 

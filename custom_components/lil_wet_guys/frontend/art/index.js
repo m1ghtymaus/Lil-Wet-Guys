@@ -48,7 +48,7 @@ function rand(seed, i, salt) {
 // What can differ between two plants of the same kind: how many stems and leaves
 // they have, how long and how widely spread they are, their overall size, and
 // which way they face.
-const COUNTS = ['count', 'top', 'tuft', 'topLeaves', 'vines', 'perVine', 'hangs', 'arches', 'perStem', 'sprigs', 'nodes'];
+const COUNTS = ['count', 'top', 'tuft', 'topLeaves', 'vines', 'perVine', 'hangs', 'arches', 'perStem', 'nodes'];
 const LENGTHS = ['len', 'topLen', 'vineLen', 'h'];
 
 /**

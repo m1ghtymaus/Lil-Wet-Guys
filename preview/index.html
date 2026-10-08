@@ -183,6 +183,7 @@
     <button id="shuffle" type="button">Shuffle the surprises</button>
     <label class="whimsy"><span>Less whimsy</span><input id="whimsy" type="range" min="0" max="4" step="0.5" value="1" aria-label="Whimsy: surprises per plant"><span>More whimsy</span></label>
     <label class="whimsy"><input id="dividers" type="checkbox" checked> Dividers</label>
+    <label class="whimsy">Holiday <select id="holiday"><option value="none">None</option><option value="halloween">Halloween</option></select></label>
     <label class="whimsy">Wood <select id="wood">
       <option value="walnut">Walnut</option><option value="oak">Oak</option><option value="maple">Maple</option>
       <option value="cherry">Cherry</option><option value="mahogany">Mahogany</option><option value="ebony">Ebony</option>
@@ -265,6 +266,9 @@
     card.setConfig({ ...config });
   };
   document.getElementById('wood').addEventListener('change', woodChanged);
+  document.getElementById('holiday').addEventListener('change', (e) => {
+    card.setConfig({ ...config, holiday: (config.holiday = e.target.value) });
+  });
   document.getElementById('woodColor').addEventListener('input', () => {
     document.getElementById('wood').value = 'custom';
     woodChanged();

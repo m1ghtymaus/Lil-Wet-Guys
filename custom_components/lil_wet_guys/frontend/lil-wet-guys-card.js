@@ -3,7 +3,7 @@
 // or tap the plant for its photo, care details, light setting and notes.
 
 import { ART_CSS, LIMB_STYLES, SPECIES, drawPlant } from './art/index.js';
-import { FLOOR, drawBookshelf, rng, woodPalette } from './art/shelf.js';
+import { BAT_SVG, FLOOR, GHOST_SVG, drawBookshelf, holidayOn, rng, woodPalette } from './art/shelf.js';
 
 const DAY = 86400000;
 const GHOST_AT = 3;
@@ -118,6 +118,16 @@ ha-card.shelf { padding: 0; overflow: hidden; background: #4e3326; }
 .glow { position: absolute; width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2); border-radius: 50%; background: radial-gradient(circle, #fffef2 0 9%, var(--c) 16%, color-mix(in srgb, var(--c) 35%, transparent) 34%, transparent 70%); opacity: .35; will-change: opacity, transform; animation: lwg-firefly 3.4s ease-in-out infinite; }
 @keyframes lwg-firefly { 0%, 100% { opacity: .3; transform: translate(0, 0); } 50% { opacity: 1; transform: translate(3px, -5px); } }
 @media (prefers-reduced-motion: reduce) { .glow { animation: none; opacity: .8; } }
+/* Halloween: ghosts bob and sway about the shelves; bats flit past, flapping. */
+.spook { position: absolute; width: var(--d); height: calc(var(--d) * 1.07); margin: calc(var(--d) * -.54) 0 0 calc(var(--d) / -2); opacity: .93; will-change: transform; animation: lwg-spook 5.5s ease-in-out infinite; }
+.spook svg, .flit svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.spook.flip svg { transform: scaleX(-1); }
+@keyframes lwg-spook { 0%, 100% { transform: translate(0, 0) rotate(-6deg); } 50% { transform: translate(6px, -10px) rotate(6deg); } }
+.flit { position: absolute; width: var(--d); height: calc(var(--d) / 2); margin: calc(var(--d) / -4) 0 0 calc(var(--d) / -2); will-change: transform; animation: lwg-flit 8s ease-in-out infinite; }
+.flit svg { transform-origin: 50% 40%; animation: lwg-flap .32s ease-in-out infinite alternate; }
+@keyframes lwg-flit { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(18px, -9px); } 50% { transform: translate(34px, 3px); } 75% { transform: translate(14px, 8px); } }
+@keyframes lwg-flap { from { transform: scaleY(1); } to { transform: scaleY(.45); } }
+@media (prefers-reduced-motion: reduce) { .spook, .flit, .flit svg { animation: none; } }
 .shelf .header { position: relative; width: fit-content; max-width: calc(100% - 24px); box-sizing: border-box; margin: -6px auto 14px; padding: 3px 14px; background: #f7f0dc; color: #2f2a26; border: 2px solid #2f2a26; border-radius: 8px; font-size: 17px; font-weight: 600; text-align: center; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
 .shelf .grid { position: relative; gap: 6px; }
 .shelf .tile { background: none; border-radius: 0; padding: 0 2px 5px; }
@@ -347,6 +357,12 @@ class LilWetGuysCard extends HTMLElement {
         reshelve = true;
       }
     }
+    // Turning holiday decorations on or off redraws the shelf.
+    const festive = plants.some((p) => p.st.attributes.holidays);
+    if (festive !== this._festive) {
+      this._festive = festive;
+      reshelve = true;
+    }
     if (reshelve) this._queueShelf();
     if (this._openId) this._fillDetails(this._openId);
   }
@@ -407,7 +423,7 @@ class LilWetGuysCard extends HTMLElement {
     }
     const pad = getComputedStyle(box);
     const g = {
-      w, h, scale, rows, dividers, wood, whimsy: Number(this._config.whimsy ?? 1),
+      w, h, scale, rows, dividers, wood, whimsy: Number(this._config.whimsy ?? 1), holiday: this._holiday(),
       left: parseFloat(pad.paddingLeft), right: parseFloat(pad.paddingRight),
       top: grid.offsetTop - 2, bottom: parseFloat(pad.paddingBottom),
     };
@@ -418,9 +434,25 @@ class LilWetGuysCard extends HTMLElement {
     for (const layer of [svg, props]) layer.setAttribute('viewBox', `0 0 ${w} ${h}`);
     svg.innerHTML = shelf.svg;
     props.innerHTML = shelf.props;
-    // Fireflies twinkle as their own little layers, so the shelf itself never repaints.
-    lights.innerHTML = shelf.glows.map((f) => `<i class="glow" style="left:${f.x.toFixed(1)}px;top:${f.y.toFixed(1)}px;`
-      + `--d:${f.size.toFixed(1)}px;--c:${f.color};animation-delay:-${f.delay.toFixed(2)}s"></i>`).join('');
+    // Fireflies, ghosts and bats move as their own little layers, so the shelf itself
+    // never repaints.
+    lights.innerHTML = shelf.glows.map((f) => {
+      const at = `left:${f.x.toFixed(1)}px;top:${f.y.toFixed(1)}px;--d:${f.size.toFixed(1)}px;animation-delay:-${f.delay.toFixed(2)}s`;
+      if (f.kind === 'ghost') return `<i class="spook${f.flip ? ' flip' : ''}" style="${at};animation-duration:${f.dur.toFixed(1)}s">${GHOST_SVG}</i>`;
+      if (f.kind === 'bat') return `<i class="flit" style="${at};animation-duration:${f.dur.toFixed(1)}s">${BAT_SVG}</i>`;
+      return `<i class="glow" style="${at};--c:${f.color}"></i>`;
+    }).join('');
+  }
+
+  /**
+   * The holiday the bookshelf dresses up for: today's, if the integration's Holiday
+   * decorations setting is on (each plant's status carries it). The card's own
+   * `holiday` option ('halloween' or 'none') overrides it, for previews.
+   */
+  _holiday() {
+    if (this._config.holiday) return this._config.holiday === 'none' ? null : this._config.holiday;
+    const on = [...this._tiles.keys()].some((id) => this._hass?.states[id]?.attributes.holidays);
+    return on ? holidayOn(new Date()) : null;
   }
 
   _updateTile(tile, p) {

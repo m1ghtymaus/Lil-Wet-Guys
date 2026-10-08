@@ -34,6 +34,7 @@ CONF_TEMPERATURE_UNIT: Final = "temperature_unit"
 UNIT_AUTO: Final = "auto"  # follow Home Assistant's unit system
 TEMPERATURE_UNITS: Final = [UNIT_AUTO, "celsius", "fahrenheit"]
 CONF_FERTILIZER: Final = "fertilizer"  # follow the fertilizer cycle and show its reminders
+CONF_HOLIDAYS: Final = "holidays"  # dress the card's bookshelf up for the season
 
 FERTILIZER: Final = "Foliage Focus"
 

@@ -1019,8 +1019,7 @@ function araliaLeaf(ctx, x, y, a, lf, n, id) {
 
 function aralia(ctx) {
   // Ming aralia: three stems plaited into a short, fat, pale trunk with a swollen
-  // base, under a tall, dense crown of leaves made of spiny-toothed leaflets, with
-  // bright, finely cut parsley-like tufts of new growth peeking out from the middle.
+  // base, under a tall, dense crown of leaves made of spiny-toothed leaflets.
   const { p, d } = ctx;
   const lf = p.leaf;
   let back = '';
@@ -1048,6 +1047,15 @@ function aralia(ctx) {
     back += stem(ctx, pts, p.stem, 1.5);
     branches.push({ i, c, pts });
   }
+  // A skirt of leaves low round the top of the trunk, so the crown doesn't sit on
+  // bare stems.
+  const nLow = ctx.n(5, 0);
+  for (let j = 0; j < nLow; j++) {
+    const id = 700 + j * 10;
+    if (ctx.drops(id)) { ctx.fell(lf); continue; }
+    const c = fan(j, nLow) + ctx.jit(j, 'lc', 0.08);
+    back += araliaLeaf(ctx, top.x + c * 9, top.y + 2 - 6 * ctx.r(j, 'ly'), c * 1.55 + ctx.jit(j, 'la', 0.15), lf, 3 + (j % 2) * 2, id);
+  }
   const along = ctx.n(4, 0);
   for (const { i, c, pts } of branches) {
     for (let k = 0; k < along; k++) {
@@ -1061,25 +1069,6 @@ function aralia(ctx) {
     if (!ctx.drops(i * 60 + 50)) back += araliaLeaf(ctx, e.x, e.y, e.a, lf, 5, i * 60 + 50);
   }
 
-  // Parsley-like tufts low in the middle of the crown.
-  const fine = { shape: 'lobed', lobes: 3, depth: 0.55, L: 6.5, W: 5.5, color: p.sprig, rib: false };
-  const ns = ctx.n(p.sprigs ?? 4, 0);
-  for (let i = 0; i < ns; i++) {
-    const id = 900 + i * 10;
-    if (ctx.drops(id, 0.5)) continue;
-    const c = fan(i, ns);
-    const a0 = c * 0.9 + ctx.jit(i, 'sa', 0.1);
-    const pts = curve(top.x + c * 8, top.y - 6 - 8 * ctx.r(i, 'sy'), a0, a0 * 1.3 + sgn(a0) * d * 0.8, 12 + 5 * ctx.r(i, 'sl'), 5, 1.2);
-    back += stem(ctx, pts, p.stem, 1);
-    for (let k = 1; k <= 2; k++) {
-      const q = at(pts, k / 3);
-      for (const ls of [-1, 1]) {
-        back += leaf(ctx, q.x, q.y, droopTo(q.a + ls * 0.9, d * 0.5), { ...fine, k: id + k * 2 + (ls > 0 ? 1 : 0) });
-      }
-    }
-    const e = pts[pts.length - 1];
-    back += leaf(ctx, e.x, e.y, e.a, { ...fine, L: 7.5, k: id + 9 });
-  }
   return { back };
 }
 

@@ -515,6 +515,150 @@ function cobweb() {
   return `<path d="${d}" fill="none" stroke="${THREAD}" stroke-opacity=".6" stroke-width=".8" stroke-linecap="round"/>`;
 }
 
+/* ------------------------------------------------------------ Halloween */
+
+/** Which holiday the shelf dresses up for on a date, if any: Halloween runs 1 October to 1 November. */
+export function holidayOn(date) {
+  const m = date.getMonth(), d = date.getDate();
+  if (m === 9 || (m === 10 && d === 1)) return 'halloween';
+  return null;
+}
+
+/** A little sheet ghost, arms up, for the card to float about (GHOST_SVG stands alone). */
+const GHOST = '<path d="M-8.6 -2Q-13 -4 -12.4 -8.4M8.6 -2Q13 -4 12.4 -8.4" fill="none" stroke="#2f2a26" stroke-width="4.4" stroke-linecap="round"/>'
+  + '<path d="M-8.6 -2Q-13 -4 -12.4 -8.4M8.6 -2Q13 -4 12.4 -8.4" fill="none" stroke="#fbfaf6" stroke-width="2.2" stroke-linecap="round"/>'
+  + '<path d="M-9 9V-3Q-9 -13.5 0 -13.5Q9 -13.5 9 -3V9Q6.8 12.4 4.5 9Q2.2 12.4 0 9Q-2.2 12.4 -4.5 9Q-6.8 12.4 -9 9Z" fill="#fbfaf6" stroke="#2f2a26" stroke-width="1.7" stroke-linejoin="round"/>'
+  + '<ellipse cx="-3.3" cy="-4.4" rx="1.6" ry="2.3" fill="#2f2a26"/><ellipse cx="3.3" cy="-4.4" rx="1.6" ry="2.3" fill="#2f2a26"/>'
+  + '<circle cx="-3.8" cy="-5.2" r=".55" fill="#fff"/><circle cx="2.8" cy="-5.2" r=".55" fill="#fff"/>'
+  + '<ellipse cx="0" cy="1" rx="1.5" ry="1.9" fill="#2f2a26"/>'
+  + '<circle cx="-6" cy="-.8" r="1.5" fill="#f6a5b5" fill-opacity=".75"/><circle cx="6" cy="-.8" r="1.5" fill="#f6a5b5" fill-opacity=".75"/>';
+export const GHOST_SVG = `<svg viewBox="-14 -15 28 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${GHOST}</svg>`;
+
+/** A small bat, wings spread, as a path centred on (0, 0) about 18 wide. */
+const BAT = 'M0 -1.8Q1.6 -3.8 3 -3Q4.8 -5.4 8.6 -4.6Q7.2 -2.4 9 0Q6.4 -.6 5.2 1.2Q3.4 .2 2 2.2Q1 1 0 2.4'
+  + 'Q-1 1 -2 2.2Q-3.4 .2 -5.2 1.2Q-6.4 -.6 -9 0Q-7.2 -2.4 -8.6 -4.6Q-4.8 -5.4 -3 -3Q-1.6 -3.8 0 -1.8Z';
+const batShape = (fill = '#3f3450') => `<path d="${BAT}" fill="${fill}" stroke="${LINE}" stroke-width=".9" stroke-linejoin="round"/>`
+  + `<path d="M-1.6 -2.2L-1.2 -4.2L-.4 -2.6M1.6 -2.2L1.2 -4.2L.4 -2.6" fill="${fill}" stroke="${LINE}" stroke-width=".7" stroke-linejoin="round"/>`
+  + '<circle cx="-.8" cy="-1" r=".45" fill="#ffd84a"/><circle cx=".8" cy="-1" r=".45" fill="#ffd84a"/>';
+
+/** A flying bat for the card to flit about (standalone SVG). */
+export const BAT_SVG = `<svg viewBox="-10 -6 20 10" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${batShape()}</svg>`;
+
+/**
+ * A pumpkin sitting on y = 0, r wide either side of centre: one squat, lobed body with
+ * curved ribs, a dimple at the top, a stubby curved stem and a curl of vine.
+ */
+function pumpkin(x, r, color, { stem = '#7a6a3a', vine = true } = {}) {
+  const H = r * 1.42; // height
+  const X = (k) => f1(x + k * r), Y = (k) => f1(-k * H);
+  const rib = shade(color, -0.2), lit = shade(color, 0.22);
+  // The outline: flat-ish bottom, bulging sides, tucked in at the stem.
+  const body = `M${X(0)} ${Y(0.04)}C${X(0.36)} ${Y(-0.04)} ${X(0.96)} ${Y(0.02)} ${X(1)} ${Y(0.46)}`
+    + `C${X(1.03)} ${Y(0.86)} ${X(0.72)} ${Y(1.02)} ${X(0.36)} ${Y(0.94)}C${X(0.2)} ${Y(0.9)} ${X(0.08)} ${Y(0.86)} ${X(0)} ${Y(0.88)}`
+    + `C${X(-0.08)} ${Y(0.86)} ${X(-0.2)} ${Y(0.9)} ${X(-0.36)} ${Y(0.94)}C${X(-0.72)} ${Y(1.02)} ${X(-1.03)} ${Y(0.86)} ${X(-1)} ${Y(0.46)}`
+    + `C${X(-0.96)} ${Y(0.02)} ${X(-0.36)} ${Y(-0.04)} ${X(0)} ${Y(0.04)}Z`;
+  // Ribs: each lobe's edge, curving out with the body.
+  let ribs = '';
+  for (const k of [-0.62, -0.26, 0.26, 0.62]) {
+    const bulge = k * 1.32;
+    ribs += `M${X(k * 0.45)} ${Y(0.87)}Q${X(bulge)} ${Y(0.46)} ${X(k * 0.5)} ${Y(0.04)}`;
+  }
+  let s = `<path d="${body}" fill="${color}" stroke="${LINE}" stroke-width="1.5" stroke-linejoin="round"/>`
+    + `<path d="${ribs}" fill="none" stroke="${rib}" stroke-width="1.3" stroke-linecap="round"/>`
+    + `<path d="M${X(-0.1)} ${Y(0.76)}Q${X(-0.2)} ${Y(0.46)} ${X(-0.1)} ${Y(0.18)}" fill="none" stroke="${lit}" stroke-width="${f1(Math.max(1.2, r * 0.16))}" stroke-linecap="round" stroke-opacity=".8"/>`;
+  // The stem, leaning over, and a curl of vine.
+  const st = `M${X(-0.04)} ${Y(0.88)}Q${X(-0.03)} ${Y(1.06)} ${X(0.13)} ${Y(1.14)}`;
+  s += `<path d="${st}" fill="none" stroke="${LINE}" stroke-width="${f1(r * 0.17 + 2)}" stroke-linecap="round"/>`
+    + `<path d="${st}" fill="none" stroke="${stem}" stroke-width="${f1(r * 0.17)}" stroke-linecap="round"/>`;
+  if (vine) {
+    s += `<path d="M${X(-0.02)} ${Y(0.95)}Q${X(-0.34)} ${Y(1)} ${X(-0.38)} ${Y(1.12)}Q${X(-0.38)} ${Y(1.22)} ${X(-0.27)} ${Y(1.18)}"`
+      + ` fill="none" stroke="#5f7f3a" stroke-width="1" stroke-linecap="round"/>`;
+  }
+  return s;
+}
+
+function pumpkins(rand) {
+  // A little heap: a big orange pumpkin, a white one leaning on it, a small one in front.
+  const pale = rand() < 0.5 ? '#efe7d2' : '#a9bf72';
+  return pumpkin(9.5, 7, pale, { stem: '#8a8a5a', vine: false })
+    + pumpkin(-4, 9.5, '#ee8424')
+    + pumpkin(-12.5, 4.4, '#f4a23c', { vine: false });
+}
+
+function cauldron() {
+  // A little black cauldron on stubby legs, bubbling green.
+  return halo(0, -20, 16, '#8cff6a')
+    + `<path d="M-7 -2L-8.6 1M7 -2L8.6 1" stroke="${LINE}" stroke-width="2.6" stroke-linecap="round"/>`
+    + `<path d="M-11.4 -14.4Q-13 -2 0 -1.4Q13 -2 11.4 -14.4Z" fill="#2f2b35" stroke="${LINE}" stroke-width="1.5" stroke-linejoin="round"/>`
+    + `<path d="M-7.6 -11Q-8 -5.6 -4.4 -4" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.6" stroke-linecap="round"/>`
+    + `<ellipse cx="0" cy="-14.4" rx="12.4" ry="3.2" fill="#3d3844" stroke="${LINE}" stroke-width="1.5"/>`
+    + `<ellipse cx="0" cy="-14.8" rx="10" ry="2" fill="#78d94a"/>`
+    + `<path d="M5 -14Q5.6 -10.4 4.6 -9.2Q3.6 -10.6 4.2 -14Z" fill="#78d94a" stroke="${LINE}" stroke-width=".8"/>`
+    + [[-3.4, -18.6, 1.9], [2.6, -21, 1.4], [0.4, -24.6, 1]].map(([x, y, r]) =>
+      `<circle cx="${x}" cy="${y}" r="${r}" fill="#a7f07a" stroke="${LINE}" stroke-width=".7"/>`).join('');
+}
+
+function witchHat() {
+  // A pointy witch's hat with a buckled band, its tip flopped over.
+  const felt = '#4b3468';
+  return `<ellipse cx="0" cy="-2.4" rx="14.5" ry="3.4" fill="${felt}" stroke="${LINE}" stroke-width="1.5"/>`
+    + `<path d="M-8 -3.6Q-6.6 -15 -2.4 -22.8Q1.6 -29.4 9.6 -27Q4.4 -24.6 3.8 -18.4Q4.4 -10 8 -3.6Z" fill="${felt}" stroke="${LINE}" stroke-width="1.5" stroke-linejoin="round"/>`
+    + `<path d="M-7.4 -5.4Q0 -7.8 7.6 -5.4L7 -8.8Q0 -10.8 -6.8 -8.8Z" fill="#e8892e" stroke="${LINE}" stroke-width="1.1" stroke-linejoin="round"/>`
+    + `<rect x="-2.3" y="-9.9" width="4.6" height="4.2" rx=".6" fill="none" stroke="#ffd84a" stroke-width="1.3"/>`;
+}
+
+function headstone() {
+  // A little headstone with a crack and some moss, a tuft of grass at its foot.
+  return `<path d="M-8 0V-13.6Q-8 -21 0 -21Q8 -21 8 -13.6V0Z" fill="#aaa69f" stroke="${LINE}" stroke-width="1.5" stroke-linejoin="round"/>`
+    + `<path d="M-4.6 -14.6H4.6M-3.4 -11H3.4M-4 -7.4H4" stroke="#7d7a74" stroke-width="1.3" stroke-linecap="round"/>`
+    + `<path d="M3.6 -20.6L2.2 -17.6L3.6 -15.8L2.6 -13.6" fill="none" stroke="${LINE}" stroke-width=".9" stroke-linejoin="round"/>`
+    + `<path d="M-8 -16Q-6.4 -19.6 -3.4 -19.8Q-5.8 -17.6 -8 -12Z" fill="#7da34f"/>`
+    + `<path d="M-11 0Q-10.4 -4 -9.2 -5M-9.6 0Q-9 -3.4 -7.6 -4.2M9 0Q9.6 -3.6 11 -4.6M10.4 0Q11 -2.6 12.4 -3.2" fill="none" stroke="#5f8f3a" stroke-width="1.3" stroke-linecap="round"/>`;
+}
+
+function spookyCandles() {
+  // Three drippy candles in purple, black and bone, burning low.
+  let s = halo(0, -24, 20, '#ffb347');
+  [[-6.4, 17, '#5b3f78'], [0.6, 24, '#2f2b35'], [7.4, 12, '#ece4cf']].forEach(([x, hgt, wax]) => {
+    s += `<rect x="${f1(x - 2.7)}" y="${-hgt}" width="5.4" height="${hgt}" rx="1" fill="${wax}" stroke="${LINE}" stroke-width="1.2"/>`
+      + `<path d="M${f1(x - 2.7)} ${f1(-hgt + 1.4)}Q${f1(x - 2.4)} ${f1(-hgt + 5)} ${f1(x - 1.4)} ${f1(-hgt + 3)}Q${f1(x - 0.6)} ${f1(-hgt + 6.4)} ${f1(x + 0.4)} ${f1(-hgt + 2.4)}"`
+      + ` fill="none" stroke="${shade(wax, 0.25)}" stroke-width="1.3" stroke-linecap="round"/>`
+      + `<path d="M${f1(x)} ${-hgt}V${f1(-hgt - 2)}" stroke="${LINE}" stroke-width="1"/>`
+      + `<path d="M${f1(x)} ${f1(-hgt - 8.6)}Q${f1(x + 2.8)} ${f1(-hgt - 4.4)} ${f1(x)} ${f1(-hgt - 2.2)}Q${f1(x - 2.8)} ${f1(-hgt - 4.4)} ${f1(x)} ${f1(-hgt - 8.6)}Z" fill="#ffc94a" stroke="${LINE}" stroke-width=".9" stroke-linejoin="round"/>`;
+  });
+  return s;
+}
+
+function hangingBat() {
+  // A bat asleep upside down, hanging by its feet from the shelf above.
+  const fur = '#463a58', wing = '#352b46';
+  let s = `<path d="M-1.4 0V2.8M1.4 0V2.8" stroke="${LINE}" stroke-width="1.2" stroke-linecap="round"/>`;
+  for (const sd of [-1, 1]) {
+    s += `<path d="M${sd * 1} 2.2Q${sd * 8.6} 3.6 ${sd * 6.8} 12Q${sd * 5.2} 16.6 ${sd * 1} 15.4Z" fill="${wing}" stroke="${LINE}" stroke-width="1.2" stroke-linejoin="round"/>`;
+  }
+  return s + `<ellipse cx="0" cy="8" rx="4" ry="5.6" fill="${fur}" stroke="${LINE}" stroke-width="1.2"/>`
+    + `<path d="M-3.2 15.6L-2.4 19.2L-.8 16.6M3.2 15.6L2.4 19.2L.8 16.6" fill="${fur}" stroke="${LINE}" stroke-width="1" stroke-linejoin="round"/>`
+    + `<circle cx="0" cy="14.4" r="3.7" fill="${fur}" stroke="${LINE}" stroke-width="1.2"/>`
+    + `<path d="M-2.4 13.6Q-1.4 14.4 -.6 13.6M.6 13.6Q1.4 14.4 2.4 13.6" fill="none" stroke="#f4e9c8" stroke-width=".8" stroke-linecap="round"/>`
+    + `<path d="M-.9 12.2L-.5 11.2L-.1 12.2M.1 12.2L.5 11.2L.9 12.2" fill="#fff" stroke="${LINE}" stroke-width=".4"/>`;
+}
+
+function batBunting(len) {
+  // Strings of paper bats and pumpkins hanging from the shelf above.
+  let s = '';
+  [[-8, 1], [0, 0.74], [8, 0.9]].forEach(([x, f], i) => {
+    const l = len * f;
+    s += `<path d="M${x} 0V${f1(l)}" stroke="#d9c7a3" stroke-width=".9"/>`;
+    for (let k = 0; k < 3; k++) {
+      const y = l * (0.3 + 0.32 * k);
+      s += (i + k) % 2
+        ? `<g transform="translate(${x} ${f1(y)}) scale(.55)">${batShape('#2f2b35')}</g>`
+        : `<circle cx="${x}" cy="${f1(y + 0.6)}" r="2.6" fill="#f08a24" stroke="${LINE}" stroke-width=".8"/><path d="M${x} ${f1(y - 2)}V${f1(y - 3.2)}" stroke="#6f7f3a" stroke-width="1"/>`;
+    }
+  });
+  return s;
+}
+
 /** A vine winding up a post, with heart leaves. Pixels in, pixels out. */
 function postVine(x, y0, y1, postW, s, rand) {
   const ph = rand() * Math.PI * 2;
@@ -830,20 +974,77 @@ export function drawBookshelf(g, rand) {
     },
   };
 
+  // Halloween's own surprises, with the spooky ones from the everyday set.
+  const hangFrom = (at) => (at.r === 0 ? top : rows[at.r - 1].bottom);
+  const stand = (draw, k, width, flips = true) => () => {
+    const at = claim(width * k);
+    if (!at) return false;
+    shelfProps += place(draw(), at.x, at.row.floor, k, { flip: flips && rand() < 0.5 ? -1 : 1 });
+    return true;
+  };
+  const HALLOWEEN = {
+    pumpkins: stand(() => pumpkins(rand), S(2), 36),
+    cauldron: stand(cauldron, S(1.9), 28),
+    witchHat: stand(witchHat, S(1.9), 32),
+    headstone: stand(headstone, S(1.8), 26),
+    spookyCandles: stand(spookyCandles, S(1.8), 24),
+    hangingBat: () => {
+      const k = S(1.9), at = claim(18 * k);
+      if (!at) return false;
+      wall += place(hangingBat(), at.x, hangFrom(at), k);
+      return true;
+    },
+    batBunting: () => {
+      const k = S(1.7), at = claim(30 * k);
+      if (!at) return false;
+      wall += place(batBunting(between(0.2, 0.32) * (at.row.floor - hangFrom(at)) / k + 6), at.x, hangFrom(at), k);
+      return true;
+    },
+    spider: ITEMS.spider,
+    cobweb: ITEMS.cobweb,
+    potions: ITEMS.potions,
+    books: ITEMS.books,
+  };
+  const halloween = g.holiday === 'halloween';
+  const pool = halloween ? HALLOWEEN : ITEMS;
+
   // A different handful every time, always starting with something magical: whimsy
   // surprises per plant, as many as there's room for. Once every kind has had a turn
   // they come round again, so a very whimsical shelf can have two of a thing.
   const whimsy = Math.min(4, Math.max(0, g.whimsy ?? 1));
   const wanted = Math.round(whimsy * rows.reduce((n, row) => n + row.pots.length, 0));
-  let queue = wanted ? [shuffled(MAGIC, rand)[0]] : [];
+  let queue = wanted ? [halloween ? 'pumpkins' : shuffled(MAGIC, rand)[0]] : [];
   let placed = 0;
   for (let tries = 0; placed < wanted && tries < wanted * 3 + 10; tries++) {
-    if (!queue.length) queue = shuffled([...Object.keys(ITEMS), 'books', 'books'], rand);
-    if (ITEMS[queue.shift()]()) placed++;
+    if (!queue.length) queue = shuffled([...Object.keys(pool), ...(halloween ? ['pumpkins', 'cobweb'] : ['books', 'books'])], rand);
+    if (pool[queue.shift()]()) placed++;
+  }
+
+  // At Halloween, little ghosts float about every shelf and a bat or two flits past,
+  // with a few orange and purple wisps in place of the fireflies.
+  if (halloween) {
+    const lively = Math.min(1.5, whimsy);
+    rows.forEach((row, r) => {
+      const from = r === 0 ? top : rows[r - 1].bottom;
+      const n = Math.round((2.5 + rand() * 2) * lively);
+      for (let i = 0; i < n; i++) {
+        glows.push({
+          kind: 'ghost', x: x0 + ((i + 0.1 + rand() * 0.8) / n) * (x1 - x0), y: between(from + 16, row.floor - 30),
+          size: S(between(36, 50)), delay: between(0, 6), dur: between(4.5, 7), flip: rand() < 0.5,
+        });
+      }
+      if (rand() < 0.6 * lively) {
+        glows.push({ kind: 'bat', x: between(x0 + 20, x1 - 60), y: between(from + 12, from + 40), size: S(between(34, 42)), delay: between(0, 8), dur: between(6, 9) });
+      }
+      for (let i = 0; i < Math.round(1.5 * lively); i++) {
+        glows.push({ x: between(x0 + 10, x1 - 10), y: between(from + 10, row.floor - 20), size: S(between(22, 30)), delay: between(0, 3.4), color: pick(['#ffa63d', '#c58bff']) });
+      }
+    });
   }
 
   // Fireflies drifting about every shelf, fewer on a less whimsical one.
   rows.forEach((row, r) => {
+    if (halloween) return;
     const from = r === 0 ? top : rows[r - 1].bottom;
     const n = Math.round((3 + rand() * 2) * Math.min(1.5, whimsy));
     for (let i = 0; i < n; i++) {
@@ -940,5 +1141,14 @@ export function propGallery() {
     ['moon-swing', 'Moon swing', moonSwing(14), 1.7, [-17, -2, 34, 30]],
     ['cobweb', 'Cobweb', cobweb(), 2.2, [-2, -2, 30, 30]],
     ['vine', 'Climbing vine', postVine(0, 30, -30, 10, 1, rng(4)), 1.8, [-14, -34, 28, 68]],
+    ['ghost', 'Floating ghost (Halloween)', GHOST, 1.6, [-14, -15, 28, 30]],
+    ['pumpkins', 'Pumpkins (Halloween)', pumpkins(fixed(0.2)), 2, [-19, -20, 38, 22]],
+    ['cauldron', 'Cauldron (Halloween)', cauldron(), 1.9, [-16, -36, 32, 38]],
+    ['witch-hat', 'Witch\u2019s hat (Halloween)', witchHat(), 1.9, [-16, -30, 32, 32]],
+    ['headstone', 'Headstone (Halloween)', headstone(), 1.8, [-14, -23, 28, 25]],
+    ['spooky-candles', 'Spooky candles (Halloween)', spookyCandles(), 1.8, [-20, -46, 40, 48]],
+    ['hanging-bat', 'Sleeping bat (Halloween)', hangingBat(), 1.9, [-10, -2, 20, 24]],
+    ['flying-bat', 'Flying bat (Halloween)', batShape(), 2, [-10, -6, 20, 10]],
+    ['bat-bunting', 'Bat bunting (Halloween)', batBunting(24), 1.7, [-14, -2, 28, 30]],
   ].map(([id, label, svg, scale, box]) => ({ id, label, svg, scale, box }));
 }

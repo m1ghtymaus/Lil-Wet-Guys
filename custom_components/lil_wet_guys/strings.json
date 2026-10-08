@@ -221,11 +221,13 @@
         "title": "Settings",
         "data": {
           "temperature_unit": "Temperature unit",
-          "fertilizer": "Fertilizer reminders"
+          "fertilizer": "Fertilizer reminders",
+          "holidays": "Holiday decorations"
         },
         "data_description": {
           "temperature_unit": "Used for every plant's comfortable temperatures: in the add and edit forms, on its entities and as the dashboard card's default. A card's own setting, or the °C/°F switch in a plant's popup, can still override it on the dashboard.",
-          "fertilizer": "Feed with Foliage Focus two waterings in a row, then give one of plain water. Each plant's popup on the dashboard says which the next watering should be, and how much to mix in for that plant (3–5 ml per litre). Each plant also gets a **Next watering** setting to put it back in step."
+          "fertilizer": "Feed with Foliage Focus two waterings in a row, then give one of plain water. Each plant's popup on the dashboard says which the next watering should be, and how much to mix in for that plant (3–5 ml per litre). Each plant also gets a **Next watering** setting to put it back in step.",
+          "holidays": "Dress the dashboard card's bookshelf up for the season: from 1 October to 1 November its add-ons turn to Halloween, with little ghosts floating about. Only shows with the card's bookshelf background."
         }
       },
       "import_plants": {

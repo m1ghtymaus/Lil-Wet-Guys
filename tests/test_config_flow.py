@@ -146,6 +146,21 @@ async def test_fertilizer_setting(hass: HomeAssistant) -> None:
     assert hass.states.get("select.pothos_next_watering").state == "feed_1"
 
 
+async def test_holidays_setting(hass: HomeAssistant) -> None:
+    """Configure → Settings turns holiday decorations on; the card learns it from each status."""
+    entry = await setup_entry(hass, make_entry())
+    assert "holidays" not in hass.states.get("sensor.pothos_status").attributes
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "settings"})
+    assert result["data_schema"]({})["holidays"] is False
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"temperature_unit": "auto", "holidays": True}
+    )
+    await hass.async_block_till_done()
+    assert entry.options["holidays"] is True
+    assert hass.states.get("sensor.pothos_status").attributes["holidays"] is True
+
+
 async def test_other_plant_picks_a_drawing(hass: HomeAssistant) -> None:
     """A plant without a preset asks which shape to draw."""
     entry = await setup_entry(hass, make_entry({}))

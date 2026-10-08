@@ -3,6 +3,20 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.12.0 — 2026-10-07
+
+### Added
+- **Holiday decorations**, a new setting under Configure → Settings (off by
+  default). With the card's bookshelf background, the bookshelf dresses up for
+  the season: from 1 October to 1 November its add-ons turn to Halloween, with
+  pumpkins, a bubbling cauldron, a witch's hat, a headstone, spooky candles,
+  sleeping bats, bat bunting and cobwebs, and little ghosts floating about every
+  shelf with the odd bat flitting past.
+
+### Changed
+- The Ming Aralia no longer has bright, parsley-like tufts in its crown, and has
+  a skirt of leaves low round the top of its trunk instead of bare stems.
+
 ## 0.11.0 — 2026-10-07
 
 ### Added

@@ -37,6 +37,7 @@ from .const import (
     CONF_BASE_DAYS,
     CONF_FERTILIZER,
     CONF_FULLNESS,
+    CONF_HOLIDAYS,
     CONF_LAST_WATERED,
     CONF_LIGHT,
     CONF_MOISTURE_JUMP,
@@ -262,6 +263,11 @@ class Plant:
     def fertilizer_on(self) -> bool:
         """Whether the fertilizer setting is on."""
         return bool(self._entry.options.get(CONF_FERTILIZER))
+
+    @property
+    def holidays(self) -> bool:
+        """Whether the dashboard card dresses its bookshelf up for the season."""
+        return bool(self._entry.options.get(CONF_HOLIDAYS))
 
     @property
     def feeding(self) -> bool:

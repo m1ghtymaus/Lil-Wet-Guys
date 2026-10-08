@@ -40,6 +40,7 @@ from .const import (
     CONF_BASE_DAYS,
     CONF_FERTILIZER,
     CONF_FULLNESS,
+    CONF_HOLIDAYS,
     CONF_LAST_WATERED,
     CONF_LIGHT,
     CONF_MOISTURE_JUMP,
@@ -149,6 +150,9 @@ class BackupFlow(OptionsFlow):
                 ),
                 vol.Required(
                     CONF_FERTILIZER, default=self.config_entry.options.get(CONF_FERTILIZER, False)
+                ): selector.BooleanSelector(),
+                vol.Required(
+                    CONF_HOLIDAYS, default=self.config_entry.options.get(CONF_HOLIDAYS, False)
                 ): selector.BooleanSelector(),
             }
         )

@@ -100,6 +100,8 @@ class StatusSensor(PlantEntity, SensorEntity):
             attrs["temperature_entity"] = self._sibling("binary_sensor", "temperature")
         if plant.moisture_sensor:
             attrs["moisture"] = plant.moisture
+        if plant.holidays:
+            attrs["holidays"] = True  # the card themes its bookshelf for today's holiday
         if plant.fertilizer_on:
             attrs["fertilizer"] = FERTILIZER
             attrs["fertilizer_dose"] = plant.species.feed_ml  # ml per litre; 0 means don't feed it
