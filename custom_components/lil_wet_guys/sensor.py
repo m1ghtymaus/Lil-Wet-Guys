@@ -76,6 +76,7 @@ class StatusSensor(PlantEntity, SensorEntity):
             "shape": plant.shape,
             "pot_color": plant.pot_color,
             "light": plant.light,
+            "fullness": plant.fullness,
             "base_days": plant.base_days,
             "interval_days": plant.interval_days,
             "last_watered": plant.last_watered.isoformat(),

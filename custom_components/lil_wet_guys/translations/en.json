@@ -162,6 +162,11 @@
         "name": "Photo"
       }
     },
+    "number": {
+      "fullness": {
+        "name": "Fullness"
+      }
+    },
     "select": {
       "light": {
         "name": "Light",

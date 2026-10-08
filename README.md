@@ -20,6 +20,8 @@ Each plant is its own device with these entities:
 | `button.<plant>_watered` | Press after watering; the countdown starts again. |
 | `datetime.<plant>_last_watered` | When it was last watered. Change it if you watered yesterday and forgot to press the button. |
 | `select.<plant>_light` | How much light the plant gets where it lives (see below). Changing it moves the next watering straight away. Also editable in the card's plant popup. |
+| `number.<plant>_fullness` | How full the plant's drawing is, from 0% (a single leaf) through 100% (as usual) to 200% (overgrown). Past 100% plants mature the way they really do: pups, branching vines, aerial roots, runner babies, flowers or berries. |
+| `select.<plant>_next_watering` | Only with fertilizer reminders on: whether the next watering is fertilizer or plain water (see Settings). |
 | `text.<plant>_notes` | Free-text notes (up to 255 characters). Also editable in the card's plant popup. |
 | `image.<plant>_photo` | The plant's photo, if you added one. |
 | `binary_sensor.<plant>_temperature` | On when the room is too cold or hot for the plant (only if you linked a thermometer). Its `heat` attribute (also on the status sensor) is `sweating` when it's a little too hot and `scorching` when it's 5 °C (9 °F) or more over the plant's highest comfortable temperature. |
@@ -160,6 +162,7 @@ To change a plant later, use the pencil next to it on the integration page
 - Jade Pothos (*Epipremnum aureum 'Jade'*)
 - Lipstick Plant (*Aeschynanthus radicans*)
 - Lucky Bamboo (*Dracaena sanderiana*)
+- Ming Aralia (*Polyscias fruticosa*)
 - Mini Monstera (*Rhaphidophora tetrasperma*)
 - Money Tree (*Pachira aquatica*)
 - Monkey Mask (*Monstera adansonii*)

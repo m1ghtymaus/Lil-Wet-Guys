@@ -36,6 +36,7 @@ from . import model
 from .const import (
     CONF_BASE_DAYS,
     CONF_FERTILIZER,
+    CONF_FULLNESS,
     CONF_LAST_WATERED,
     CONF_LIGHT,
     CONF_MOISTURE_JUMP,
@@ -48,6 +49,7 @@ from .const import (
     CONF_TEMP_MIN,
     CONF_TEMP_SENSOR,
     CONF_TEMPERATURE_UNIT,
+    DEFAULT_FULLNESS,
     DEFAULT_MOISTURE_JUMP,
     DEFAULT_POT_COLOR,
     LIGHT_LEVELS,
@@ -232,6 +234,11 @@ class Plant:
         return self.config.get(CONF_LIGHT, self.species.light)
 
     @property
+    def fullness(self) -> int:
+        """How full the drawing is, in % of its usual leaves (0 a single leaf, 200 overgrown)."""
+        return int(self.config.get(CONF_FULLNESS, DEFAULT_FULLNESS))
+
+    @property
     def base_days(self) -> float:
         """Watering interval in bright, indirect light."""
         return float(self.config.get(CONF_BASE_DAYS, self.species.base_days))
@@ -403,12 +410,26 @@ class Plant:
             raise ValueError(f"Unknown light level: {light}")
         if light == self.light:
             return
-        self.config = MappingProxyType({**self.config, CONF_LIGHT: light})
+        self._save_setting(CONF_LIGHT, light)
+        self._schedule()
+        self._notify()
+
+    @callback
+    def async_set_fullness(self, fullness: int) -> None:
+        """Change how full the plant is drawn; saved like the light, without a reload."""
+        if fullness == self.fullness:
+            return
+        self._save_setting(CONF_FULLNESS, int(fullness))
+        self._notify()
+
+    @callback
+    def _save_setting(self, key: str, value: Any) -> None:
+        # The running plant is updated first, so the update listener finds nothing
+        # to reload.
+        self.config = MappingProxyType({**self.config, key: value})
         self.hass.config_entries.async_update_subentry(
             self._entry, self._entry.subentries[self.id], data=dict(self.config)
         )
-        self._schedule()
-        self._notify()
 
     @property
     def notes(self) -> str:

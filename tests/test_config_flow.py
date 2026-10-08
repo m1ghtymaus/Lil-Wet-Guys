@@ -215,8 +215,8 @@ async def test_bad_photo_is_rejected(hass: HomeAssistant, tmp_path: Path) -> Non
 
 
 async def test_reconfigure_updates_the_plant(hass: HomeAssistant) -> None:
-    """Editing changes the name and details and reloads the plant."""
-    entry = await setup_entry(hass, make_entry())
+    """Editing changes the name and details and reloads the plant, keeping its fullness."""
+    entry = await setup_entry(hass, make_entry({PLANT_ID: ("Pothos", plant_data(fullness=60))}))
     result = await entry.start_subentry_reconfigure_flow(hass, PLANT_ID)
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
@@ -230,6 +230,7 @@ async def test_reconfigure_updates_the_plant(hass: HomeAssistant) -> None:
     subentry = entry.subentries[PLANT_ID]
     assert subentry.title == "Big pothos"
     assert subentry.data["light"] == "low"
+    assert subentry.data["fullness"] == 60  # set on the device page, not in this form
     assert hass.states.get("sensor.pothos_status").attributes["interval_days"] == 12
 
 

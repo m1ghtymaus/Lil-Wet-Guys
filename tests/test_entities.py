@@ -29,6 +29,7 @@ LAST = "datetime.pothos_last_watered"
 NOTES = "text.pothos_notes"
 LIGHT = "select.pothos_light"
 FEED = "select.pothos_next_watering"
+FULLNESS = "number.pothos_fullness"
 FERTILIZER = {"fertilizer": True}
 
 
@@ -217,6 +218,29 @@ async def test_light_can_be_changed(hass: HomeAssistant, hass_storage: dict[str,
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     assert hass.states.get(LIGHT).state == "low"
+
+
+async def test_fullness_can_be_changed(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:
+    """The Fullness slider starts at 100%, saves without a reload and reaches the card."""
+    watered_ago(hass_storage, 2)
+    entry = await setup_entry(hass, make_entry())
+    state = hass.states.get(FULLNESS)
+    assert float(state.state) == 100
+    assert state.attributes["min"] == 0
+    assert state.attributes["max"] == 200
+    assert er.async_get(hass).async_get(FULLNESS).entity_category is EntityCategory.CONFIG
+    assert hass.states.get(STATUS).attributes["fullness"] == 100
+    plant = entry.runtime_data.plants[PLANT_ID]
+
+    await hass.services.async_call("number", "set_value", {ATTR_ENTITY_ID: FULLNESS, "value": 170}, blocking=True)
+    await hass.async_block_till_done()
+    assert entry.runtime_data.plants[PLANT_ID] is plant  # changed in place, not reloaded
+    assert entry.subentries[PLANT_ID].data["fullness"] == 170
+    assert hass.states.get(STATUS).attributes["fullness"] == 170
+
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert float(hass.states.get(FULLNESS).state) == 170
 
 
 async def test_removing_a_plant(hass: HomeAssistant, hass_storage: dict[str, Any]) -> None:

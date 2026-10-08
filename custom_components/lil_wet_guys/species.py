@@ -69,7 +69,7 @@ SPECIES: dict[str, Species] = {
     ),
     "golden_pothos": Species(
         "Golden Pothos", "Epipremnum aureum", "medium", 8, 60, 85,
-        "Water when the top 1–2 inches of soil are dry.",
+        "Water when the top 1–2 inches of soil are dry. The brighter the light, the more yellow in the leaves.",
         feed_ml=5,
     ),
     "heartleaf_philodendron": Species(
@@ -241,6 +241,11 @@ SPECIES: dict[str, Species] = {
         "Regal Shield", "Alocasia 'Regal Shield'", "bright_indirect", 6, 65, 85,
         "Water when the top 2 inches are dry. Drinks more in summer, less in winter; keep it warm and humid.",
         feed_ml=5,
+    ),
+    "ming_aralia": Species(
+        "Ming Aralia", "Polyscias fruticosa", "bright_indirect", 7, 60, 85,
+        "Keep it evenly moist: water when the top inch is dry. It drops leaves if moved or chilled. "
+        "Check under the leaves for spider mites (fine webbing, tiny moving dots).",
     ),
     "moss_terrarium": Species(
         "Moss Terrarium", "Bryophyta", "medium", 14, 60, 75,

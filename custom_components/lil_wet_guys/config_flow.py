@@ -39,6 +39,7 @@ from .backup import (
 from .const import (
     CONF_BASE_DAYS,
     CONF_FERTILIZER,
+    CONF_FULLNESS,
     CONF_LAST_WATERED,
     CONF_LIGHT,
     CONF_MOISTURE_JUMP,
@@ -385,6 +386,8 @@ class PlantFlow(ConfigSubentryFlow):
         }
         if species == SPECIES_OTHER:
             data[CONF_SHAPE] = user_input.get(CONF_SHAPE) or GENERIC_SHAPES[0]
+        if previous and CONF_FULLNESS in previous:
+            data[CONF_FULLNESS] = previous[CONF_FULLNESS]  # set from the device page, not this form
         for key in (CONF_TEMP_SENSOR, CONF_MOISTURE_SENSOR):
             if sensors.get(key):
                 data[key] = sensors[key]

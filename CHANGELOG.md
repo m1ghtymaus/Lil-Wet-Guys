@@ -3,6 +3,68 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.11.0 — 2026-10-07
+
+### Added
+- Ming Aralia (Polyscias fruticosa): a fat, braided trunk under a dense crown of
+  spiny-toothed leaflets with parsley-like new growth, and a care preset that
+  reminds you to check for spider mites.
+- **Fullness**, a slider on each plant's device page that sets how grown-up the
+  plant is: from a single leaf (0%) through the usual drawing (100%) to
+  overgrown (200%). Plants grow up the way they really do:
+  - Young plants have their juvenile leaves: monsteras, the mini monstera and
+    the Thai Constellation start as solid hearts and split with age; the monkey
+    mask gains rows of holes; the split-leaf philodendron's lobes deepen; the
+    arrowhead plant's leaves divide into three; umbrella plants and the money
+    tree go from 3 leaflets to up to 10; climbing aroids' leaves grow bigger.
+  - Swiss Cheese Plants and Thai Constellations start as a loose clump of leaves
+    on long arching stalks; overgrown, they're trained up a moss pole, climbing
+    it with aerial roots, one long root dropping to the soil, and leaves held out
+    from the pole, big and well split at the bottom, smaller toward the top. The
+    mini monstera climbs a moss pole too once it's overgrown.
+  - Dragon trees start as a grassy clump and become tufts on tall bare canes;
+    the rubber plant grows taller, bare at the bottom; neither branches unless
+    pruned.
+  - Clumping plants spread by pups instead of piling on leaves: snake plants,
+    aloes, gasteria, alocasias (which also show the next leaf still rolled), ZZs
+    (with a new stalk pushing up furled), banana, bird of paradise, arrowhead
+    and spider plant.
+  - The spider plant only sends out runners once it's mature, with white flowers
+    and babies along them.
+  - Mature plants flower: snake plant and aloe spikes, gasteria's arching pink
+    stalk, lipstick plant clusters at the vine tips, Easter cactus, purple
+    passion, inch plant, peperomia and nerve plant spikes, and million hearts.
+  - And more: vines branch and grow aerial roots; inch plant, purple passion and
+    Persian shield turn leggy or woody; bird of paradise and banana leaves split
+    along their veins; the nerve plant creeps over the rim; lucky bamboo sprouts
+    side shoots; Easter cactus chains fork and go woody at the base; the
+    asparagus fern sets berries and pushes up tubers; the terrarium moss sends
+    up spore stalks.
+
+### Changed
+- No two plants look exactly alike: each one gets its own number of stems and
+  leaves, its own height, spread and size, and faces left or right, so two
+  plants of the same type are easy to tell apart.
+- Leaves vary in angle and size, so plants look less regimented. Plants whose
+  leaves really are orderly, like the Easter Cactus, ZZ plants, Umbrella Plant
+  and Money Tree, keep them neat.
+- Pothos, Monkey Mask, Purple Passion Plant, Dragon Tail Plant, Inch Plant, Hope
+  Peperomia, Radiator Plant, Lipstick Plant and Heartleaf Philodendron are
+  fuller. On trailing plants the top now runs on into the hanging vines, which
+  grow out of the clump instead of hanging off the rim on their own.
+- Monstera leaves are redrawn: young ones are true hearts, and the splits follow
+  the veins up and out. Mini monstera leaves are lopsided ovals with a few deep
+  splits, placed differently on each side and on every leaf. Monstera leaves sit
+  in front of the pot, higher ones over lower ones.
+- Satin Pothos spots are irregular silvery splotches that stay on the leaf.
+- The Thai Constellation's leaves no longer have a white glare line.
+- Golden Pothos's care note now mentions that brighter light brings out more
+  yellow in its leaves.
+
+### Fixed
+- The Small Tree drawing (for plants without a preset) has coloured leaf stalks
+  again.
+
 ## 0.10.0 — 2026-10-05
 
 ### Added

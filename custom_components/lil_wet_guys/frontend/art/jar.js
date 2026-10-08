@@ -31,8 +31,11 @@ export function terrarium(ctx) {
   }
 
   // Moss: overlapping cushions, lowest first. They sink and brown as it dries.
-  const sink = 1 - 0.25 * d;
-  const mounds = [[70, 15, 17.9, 1], [130, 14, 16.5, 2], [100, 20, 22.5, 0], [84, 11, 12, 2], [116, 12, 13.5, 1]];
+  // A sparse jar keeps only its middle cushions; an overgrown one grows taller.
+  const sink = (1 - 0.25 * d) * (1 + 0.3 * Math.max(0, ctx.full - 1));
+  const all = [[70, 15, 17.9, 1], [130, 14, 16.5, 2], [100, 20, 22.5, 0], [84, 11, 12, 2], [116, 12, 13.5, 1]];
+  const keep = all.map(([x], i) => [Math.abs(x - 100), i]).sort((u, v) => u[0] - v[0]).slice(0, Math.min(all.length, ctx.n(all.length)));
+  const mounds = all.filter((_, i) => keep.some(([, k]) => k === i));
   for (const [i, [x, rw, h, ci]] of mounds.entries()) {
     const top = 216 - h * sink;
     const color = ctx.fill(p.moss[ci]);
@@ -50,6 +53,21 @@ export function terrarium(ctx) {
       s += `<circle cx="${f1(sx)}" cy="${f1(sy)}" r="1.2" fill="${shade(color, 0.22)}"/>`;
     }
   }
+  // Overgrown moss sends up spore stalks: thin red-brown threads, each nodding
+  // under a tiny capsule.
+  const nSpore = Math.round(Math.max(0, ctx.full - 1) * 16);
+  let stalks = '', caps = '';
+  for (let k = 0; k < nSpore; k++) {
+    const x = 64 + 72 * ctx.r(k, 'spx');
+    const y = 202 + 8 * ctx.r(k, 'spy');
+    const h = 9 + 7 * ctx.r(k, 'sph');
+    const lean = (ctx.r(k, 'spl') - 0.5) * 6;
+    const [tx, ty] = [x + lean, y - h];
+    stalks += `M${f1(x)} ${f1(y)}Q${f1(x + lean * 0.2)} ${f1(y - h * 0.6)} ${f1(tx)} ${f1(ty)}`;
+    caps += `<ellipse cx="${f1(tx + Math.sign(lean || 1) * 1.2)}" cy="${f1(ty + 0.6)}" rx="1.4" ry="2.1" transform="rotate(${f1(Math.sign(lean || 1) * 55)} ${f1(tx)} ${f1(ty)})" fill="${ctx.fill('#8a6a2e')}" stroke="${ctx.line}" stroke-width=".7"/>`;
+  }
+  if (nSpore) s += `<path d="${stalks}" fill="none" stroke="${ctx.fill('#a0573a')}" stroke-width="1" stroke-linecap="round"/>${caps}`;
+
   // A pebble and a tiny toadstool among the moss.
   s += `<ellipse cx="121" cy="212" rx="5" ry="3.4" fill="#b7bcc0" stroke="${ctx.line}" stroke-width="1.4"/>`
     + `<path d="M76.6 208V200.5H79.4V208Z" fill="#f4ead2" stroke="${ctx.line}" stroke-width="1.2"/>`

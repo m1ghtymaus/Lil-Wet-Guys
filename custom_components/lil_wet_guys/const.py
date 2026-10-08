@@ -22,6 +22,7 @@ CONF_TEMP_SENSOR: Final = "temperature_sensor"
 CONF_MOISTURE_SENSOR: Final = "moisture_sensor"
 CONF_MOISTURE_JUMP: Final = "moisture_jump"
 CONF_LAST_WATERED: Final = "last_watered"  # only used when the plant is added
+CONF_FULLNESS: Final = "fullness"  # % of the drawing's usual leaves: 0 a single leaf, 200 overgrown
 
 # Form-only keys.
 CONF_PHOTO: Final = "photo"  # uploaded file id
@@ -40,6 +41,7 @@ SPECIES_OTHER: Final = "other"
 LIGHT_LEVELS: Final = ["direct", "bright_indirect", "medium", "low"]
 DEFAULT_POT_COLOR: Final = [200, 100, 60]
 DEFAULT_MOISTURE_JUMP: Final = 10
+DEFAULT_FULLNESS: Final = 100
 
 STORAGE_KEY: Final = DOMAIN
 STORAGE_VERSION: Final = 1

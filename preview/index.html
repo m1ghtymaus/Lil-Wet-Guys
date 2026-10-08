@@ -127,7 +127,7 @@
 <div class="wrap">
   <header>
     <h1>Lil Wet Guys Drawings</h1>
-    <p class="lede">All 48 of your houseplants, one card each, drawn the way the dashboard will show them. Drag the day marker past the watering date to watch them dry out. Three days late, they turn into ghosts.</p>
+    <p class="lede">All 50 of your houseplants, one card each, drawn the way the dashboard will show them. Drag the day marker past the watering date to watch them dry out. Three days late, they turn into ghosts.</p>
   </header>
 
   <section class="controls" aria-label="Preview controls">
@@ -153,6 +153,10 @@
         <button type="button" class="quiet" data-heat="sweating" aria-pressed="false">Too warm: sweating</button>
         <button type="button" class="quiet" data-heat="scorching" aria-pressed="false">Far too hot: scorching</button>
       </div>
+    </div>
+    <div class="row">
+      <label class="label" for="fullness">Fullness</label>
+      <label class="whimsy"><span>A single leaf</span><input id="fullness" type="range" min="0" max="200" step="10" value="100"><span>Overgrown</span></label>
     </div>
     <div class="row">
       <span class="label" id="potlabel">Pot colour</span>
@@ -331,6 +335,7 @@
     alocasia_polly: [7, 'Bright indirect', '65–85'],
     alocasia_chienlii: [7, 'Bright indirect', '65–85'],
     alocasia_regal_shield: [6, 'Bright indirect', '65–85'],
+    ming_aralia: [7, 'Bright indirect', '60–85'],
   };
   // Your plants, one entry each. Duplicates get their own card and a slightly different shape.
   const MINE = [
@@ -343,7 +348,7 @@
     'epipremnum_pinnatum', 'inch_plant', 'white_bird_of_paradise', 'monstera_deliciosa',
     'monstera_thai_constellation', 'zz_plant_raven', 'jade_pothos', 'alocasia_frydek', 'money_tree',
     'mini_monstera', 'nerve_plant', 'million_hearts_variegated', 'moss_terrarium',
-    'persian_shield', 'purple_passion', 'alocasia_polly', 'alocasia_chienlii', 'alocasia_regal_shield',
+    'persian_shield', 'purple_passion', 'alocasia_polly', 'alocasia_chienlii', 'alocasia_regal_shield', 'ming_aralia', 'golden_pothos',
   ];
 
   const POTS = [
@@ -351,7 +356,8 @@
     ['Mustard', '#d9a52b'], ['Blush', '#e8a9a4'], ['Charcoal', '#3b3b3d'], ['Cobalt', '#2d5fb8'],
   ];
 
-  const state = { day: -1, pot: 'mixed', heat: null };
+  const state = { day: -1, pot: 'mixed', heat: null, fullness: 100 };
+  document.getElementById('fullness').addEventListener('input', (e) => { state.fullness = Number(e.target.value); schedule(); });
   document.querySelectorAll('#room button').forEach((b) => b.addEventListener('click', () => {
     state.heat = b.dataset.heat || null;
     document.querySelectorAll('#room button').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
@@ -436,7 +442,7 @@
     const ghost = d >= 3;
     for (const el of cards) {
       const pot = state.pot === 'mixed' ? POTS[Number(el.dataset.i) % POTS.length][1] : state.pot;
-      el.querySelector('.art').innerHTML = drawPlant({ species: el.dataset.id, potColor: pot, dryness, ghost, heat: state.heat, seed: el.dataset.seed });
+      el.querySelector('.art').innerHTML = drawPlant({ species: el.dataset.id, potColor: pot, dryness, ghost, heat: state.heat, seed: el.dataset.seed, fullness: state.fullness });
     }
     for (const b of sw.children) b.setAttribute('aria-pressed', String(b.dataset.pot === state.pot));
   }

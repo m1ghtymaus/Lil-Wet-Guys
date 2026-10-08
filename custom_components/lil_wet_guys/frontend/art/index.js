@@ -1,6 +1,7 @@
 // Entry point: drawPlant() turns a species + pot colour + dryness into SVG.
 
 import { GHOST_LINE, OUTLINE, clamp, dryColor, ghostify } from './color.js';
+import { f1 } from './geom.js';
 import { LIMB_STYLES, drawArms, drawFeet } from './limbs.js';
 import { jarBack, jarFront } from './jar.js';
 import { ground, heatHaze, potBack, potFront } from './pot.js';
@@ -44,13 +45,111 @@ function rand(seed, i, salt) {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
-function makeCtx(def, d, ghost, seedStr, heat = null) {
+// What can differ between two plants of the same kind: how many stems and leaves
+// they have, how long and how widely spread they are, their overall size, and
+// which way they face.
+const COUNTS = ['count', 'top', 'tuft', 'topLeaves', 'vines', 'perVine', 'hangs', 'arches', 'perStem', 'sprigs', 'nodes'];
+const LENGTHS = ['len', 'topLen', 'vineLen', 'h'];
+
+/**
+ * A setting that changes as a plant grows up, from [[fullness, value], ...] stops:
+ * numbers ease between stops (whole numbers stay whole); anything else switches at
+ * each stop.
+ */
+function stage(stops, full) {
+  if (full <= stops[0][0]) return stops[0][1];
+  for (let i = 1; i < stops.length; i++) {
+    const [f0, v0] = stops[i - 1], [f1, v1] = stops[i];
+    if (full > f1) continue;
+    if (typeof v0 !== 'number') return full >= f1 ? v1 : v0;
+    const v = v0 + ((v1 - v0) * (full - f0)) / (f1 - f0);
+    return Number.isInteger(v0) && Number.isInteger(v1) ? Math.round(v) : v;
+  }
+  return stops[stops.length - 1][1];
+}
+
+/** Keep the `k` most central of a list of stems, canes or leaf angles, in their order. */
+function central(list, k) {
+  const off = (v) => Math.abs(typeof v === 'number' ? v : v.x ?? v.a ?? 0);
+  const keep = new Set(list.map((v, i) => [off(v), i]).sort((u, v) => u[0] - v[0]).slice(0, k).map(([, i]) => i));
+  return list.filter((_, i) => keep.has(i));
+}
+
+/**
+ * This plant's own take on its species: varied by its seed (no seed, no variation)
+ * and grown to its fullness (0 a single leaf, 1 as written, 2 overgrown).
+ */
+function individual(def, seed, full) {
+  const out = { ...def };
+  // Many plants change shape as they grow up (def.ages): young monsteras have no
+  // splits, young scheffleras fewer leaflets, and so on.
+  for (const [k, stops] of Object.entries(def.ages ?? {})) {
+    if (k === 'leaf') {
+      out.leaf = { ...out.leaf };
+      for (const [lk, ls] of Object.entries(stops)) out.leaf[lk] = stage(ls, full);
+    } else out[k] = stage(stops, full);
+  }
+  // Counts scale in the rigs (ctx.n); here, fixed lists of stems lose their outer
+  // ones, and trailing stems reach further the fuller the plant.
+  for (const k of ['stems', 'canes', 'stalks', 'leafAngles']) {
+    if (Array.isArray(def[k]) && full < 1) out[k] = central(def[k], Math.max(1, Math.round(def[k].length * full)));
+  }
+  const reach = full < 1 ? 0.75 + 0.25 * full : 1 + 0.2 * (full - 1);
+  for (const k of ['topLen', 'vineLen']) if (typeof def[k] === 'number') out[k] = def[k] * reach;
+  if (!seed) return { def: out, flip: false, size: 1 };
+  const s = hashStr(seed);
+  const r = (i) => rand(s, i, 'individual');
+  COUNTS.forEach((k, i) => {
+    if (typeof out[k] === 'number') out[k] = Math.max(k === 'topLeaves' || k === 'tuft' || k === 'nodes' ? 0 : 1, out[k] + Math.round((r(i) - 0.5) * 2.4));
+  });
+  LENGTHS.forEach((k, i) => {
+    const f = 0.88 + 0.24 * r(20 + i);
+    if (typeof out[k] === 'number') out[k] *= f;
+    else if (Array.isArray(out[k])) out[k] = out[k].map((v) => v * f);
+  });
+  if (typeof def.spread === 'number') out.spread = def.spread * (0.9 + 0.2 * r(30));
+  if (Array.isArray(out.stems)) {
+    out.stems = out.stems.map((st, i) => ({ ...st, h: st.h * (0.86 + 0.28 * r(40 + i)), a: st.a + (r(50 + i) - 0.5) * 0.24 }));
+  }
+  // A jar's moss has to stay put inside the glass, so jars only ever face the other way.
+  const size = def.container === 'jar' ? 1 : 0.94 + 0.12 * r(31);
+  return { def: out, flip: r(32) < 0.5, size };
+}
+
+/**
+ * Pups: plants that spread by offsets grow little copies of themselves beside the
+ * main clump once they're fuller than usual, up to def.pups of them at 190%.
+ */
+function pups(def, species, seed, d, ghost, heat, full) {
+  const n = def.pups ? Math.round(def.pups * clamp((full - 1) / 0.9, 0, 1)) : 0;
+  const first = rand(hashStr(`${species}|${seed}`), 0, 'pupside') < 0.5 ? -1 : 1;
+  let s = '';
+  for (let j = 0; j < n; j++) {
+    const tier = Math.floor(j / 2);
+    const x = (j % 2 ? -first : first) * (27 + 8 * tier);
+    const sc = 0.58 - 0.1 * tier;
+    // A pup is a young plant of its own: juvenile leaves and its own variety.
+    const young = individual(SPECIES[species] ?? SPECIES.generic_leafy, `${seed}|pup${j}`, 0.45).def;
+    const ctx = makeCtx({ ...young, pups: 0 }, d, ghost, `${species}|${seed}|pup${j}`, heat, 0.45);
+    ctx.pup = true;
+    const { back = '', front = '' } = RIGS[def.rig](ctx);
+    s += `<g transform="translate(${f1(100 + x)} 167) scale(${sc}) translate(-100 -167)">${back}${front}</g>`;
+  }
+  return s;
+}
+
+function makeCtx(def, d, ghost, seedStr, heat = null, full = 1) {
   const seed = hashStr(seedStr);
   const dryHue = def.dryHue ?? 36;
   return {
     p: def,
     d,
     ghost,
+    full,
+    // Young plants have smaller leaves; mature ones bigger (much bigger for climbing aroids).
+    grow: full < 1 ? 0.8 + 0.2 * full : 1 + (def.leafGrowth ?? 0.08) * Math.min(1, full - 1),
+    /** How many of something this plant grows at its fullness: `base` as drawn, never fewer than `min`. */
+    n: (base, min = 1) => Math.max(min, Math.round(base * full)),
     heat: ghost ? null : heat, // 'sweating' or 'scorching' when the room is too hot
     fallen: [],
     line: ghost ? GHOST_LINE : OUTLINE,
@@ -90,21 +189,30 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
  * @param {boolean} o.ghost    past saving
  * @param {string} o.heat     'sweating' or 'scorching' when the room is too hot for it
  * @param {string} o.seed      varies angles between plants of the same species
+ * @param {number} o.fullness  % of the usual leaves: 0 a single leaf, 100 as drawn, 200 overgrown
  * @param {string} o.label     accessible name
  * @param {number|object|boolean} o.limbs  arms and feet: true picks a pose from the seed (default), a LIMB_STYLES index or style picks one, false draws none
  * @param {boolean} o.layered  return stacked SVG layers in a <div> instead of one <svg>. Moving
  *   whole layers lets the browser animate on the GPU instead of redrawing every path each frame.
  */
 export function drawPlant({
-  species, potColor = '#c8643c', dryness = 0, ghost = false, heat = null, seed = '', label = '', limbs = true, layered = false,
+  species, potColor = '#c8643c', dryness = 0, ghost = false, heat = null, seed = '', fullness = 100, label = '', limbs = true,
+  layered = false,
 } = {}) {
-  const def = SPECIES[species] ?? SPECIES.generic_leafy;
+  const full = clamp((Number(fullness) || 0) / 100, 0, 2);
+  const { def, flip, size } = individual(SPECIES[species] ?? SPECIES.generic_leafy, seed, full);
   const d = ghost ? 0 : clamp(dryness);
-  const ctx = makeCtx(def, d, ghost, `${species}|${seed}`, heat);
-  const { back = '', front = '' } = RIGS[def.rig](ctx);
+  const ctx = makeCtx(def, d, ghost, `${species}|${seed}`, heat, full);
+  const drawn = RIGS[def.rig](ctx);
+  // Pups stand behind the main clump, except under big leaves held up on stalks,
+  // which would hide them; there they go in front (still behind the pot's rim).
+  const young = pups(def, species, seed, d, ghost, heat, full);
+  const back = def.rig === 'upright_leaf' || def.form === 'bird' ? (drawn.back ?? '') + young : young + (drawn.back ?? '');
+  const front = drawn.front ?? '';
   const state = ghost ? 'pt-ghost' : d === 0 ? 'pt-happy' : 'pt-dry';
   const delay = `animation-delay:-${(ctx.r(0, 'sway') * 5.5).toFixed(2)}s`;
-  const scale = def.scale && def.scale !== 1 ? ` transform="translate(100 167) scale(${def.scale}) translate(-100 -167)"` : '';
+  const k = +((def.scale ?? 1) * size).toFixed(3);
+  const scale = k !== 1 || flip ? ` transform="translate(100 167) scale(${flip ? -k : k} ${k}) translate(-100 -167)"` : '';
   const style = pickStyle(limbs, seed, def);
   const plantOpacity = ghost ? ' opacity=".88"' : '';
   // Plants sway; moss shut in a jar doesn't (def.still).

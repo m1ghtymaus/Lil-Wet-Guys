@@ -23,22 +23,99 @@ function lobed(L, W, lobes = 5, depth = 0.45) {
 }
 
 /** Monstera leaf: a broad heart with slits cut in from the edge toward the midrib. */
-const monsteraEdge = (W, t) => (W / 2) * Math.pow(Math.sin(Math.PI * (0.12 + 0.88 * t)), 0.62);
-const monsteraY = (L, t) => -L * t + L * 0.14 * Math.pow(1 - t, 2.5);
-const monsteraSlits = (slits) => Array.from({ length: slits }, (_, j) => 0.17 + j * (0.64 / (slits - 1)));
-
-function monstera(L, W, slits = 4, depth = 0.4, gap = 0.035) {
-  const env = (t) => monsteraEdge(W, t);
-  const y = (t) => monsteraY(L, t);
-  const right = [[env(0.04), y(0.04)]];
-  for (const t of monsteraSlits(slits)) {
-    right.push([env(t - gap), y(t - gap)]);
-    right.push([env(t) * depth, y(t) - L * 0.035]); // bottom of the slit, angled toward the tip
-    right.push([env(t + gap), y(t + gap)]);
+/**
+ * Walk along a leaf's right-hand edge, given as [x, y] fractions of W and L from the
+ * base lobe to the tip: at fraction t of the way, the edge's half-width and height.
+ */
+function edgeWalk(points) {
+  const lens = [0];
+  for (let i = 1; i < points.length; i++) {
+    lens.push(lens[i - 1] + Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]));
   }
-  right.push([env(0.93), y(0.93)]);
+  const total = lens[lens.length - 1];
+  return (t) => {
+    const d = Math.min(1, Math.max(0, t)) * total;
+    let i = 1;
+    while (i < lens.length - 1 && lens[i] < d) i++;
+    const u = (d - lens[i - 1]) / (lens[i] - lens[i - 1] || 1);
+    return [points[i - 1][0] + (points[i][0] - points[i - 1][0]) * u, points[i - 1][1] + (points[i][1] - points[i - 1][1]) * u];
+  };
+}
+// Monstera deliciosa: a heart, widest low down, the two rounded lobes hanging below
+// the notch where the stalk joins, tapering to a pointed tip.
+const HEART = edgeWalk([[0.1, 0.06], [0.26, 0.13], [0.42, 0.09], [0.5, -0.05], [0.5, -0.22], [0.45, -0.4],
+  [0.36, -0.57], [0.25, -0.72], [0.14, -0.85], [0.06, -0.94], [0, -1]]);
+// Grown up, the leaf is broader and rounder, almost an oval with a short tip.
+const BROAD = edgeWalk([[0.12, 0.05], [0.3, 0.1], [0.45, 0.04], [0.52, -0.12], [0.53, -0.32], [0.5, -0.52],
+  [0.42, -0.7], [0.3, -0.84], [0.15, -0.94], [0, -1]]);
+const monsteraEdge = (W, t) => HEART(t)[0] * W;
+const monsteraY = (L, t) => HEART(t)[1] * L;
+const monsteraSlits = (slits) => (slits === 1 ? [0.45] : Array.from({ length: slits }, (_, j) => 0.24 + j * (0.58 / (slits - 1))));
+
+/**
+ * A split leaf: the margin traced from base to tip and cut by `slits` narrow notches,
+ * each reaching in to `depth` of the half-width (0 = right to the midrib). The first
+ * splits on a young leaf are shallow; they deepen as the plant matures.
+ */
+function splitLeaf(L, W, env, y, slits, depth, gap, notch = 0.03) {
+  const cuts = monsteraSlits(slits);
+  const deep = slits <= 2 ? Math.max(depth, 0.55) : depth;
+  const pts = [];
+  for (let t = 0; t < 0.97; t += 0.03) {
+    if (!cuts.some((c) => Math.abs(t - c) < gap * 1.3)) pts.push([t, env(t), y(t)]);
+  }
+  for (const c of cuts) {
+    // A wedge, open at the margin so the background shows through.
+    pts.push([c - gap, env(c - gap), y(c - gap)]);
+    // The split follows a vein, which runs from the midrib up and out to the
+    // margin, so its inner end sits lower than its opening.
+    pts.push([c, env(c) * deep, y(c) + L * 0.05]);
+    pts.push([c + gap, env(c + gap), y(c + gap)]);
+  }
+  pts.sort((u, v) => u[0] - v[0]);
+  const right = pts.map(([, x, yy]) => [x, yy]);
   const left = right.map(([x, yy]) => [-x, yy]).reverse();
-  return smooth([[0, L * 0.03], ...right, [0, -L], ...left], true);
+  return smooth([[0, L * notch], ...right, [0, -L], ...left], true);
+}
+
+/** Monstera deliciosa: a broad heart with rounded lobes at the stalk; splits come with age. */
+const monstera = (L, W, slits = 4, depth = 0.32, gap = 0.032) => {
+  const edge = slits >= 3 ? BROAD : HEART;
+  return splitLeaf(L, W, (t) => edge(t)[0] * W, (t) => edge(t)[1] * L, slits, depth, gap, -0.04);
+};
+
+/**
+ * Mini monstera (Rhaphidophora tetrasperma): an oval leaf, a little lopsided, cut on
+ * each side by a few thin splits that run along the veins almost to the midrib,
+ * leaving broad segments. The two sides are split in different places, and every
+ * leaf (k) differently.
+ */
+function tetra(L, W, slits = 2, k = 0) {
+  const rnd = (i) => {
+    let h = Math.imul(((k + 1) * 2654435761) ^ ((i + 7) * 40503), 2246822519) >>> 0;
+    h ^= h >>> 15;
+    return (h % 1000) / 1000;
+  };
+  const env = (t, sd) => (W / 2) * (sd > 0 ? 1 : 0.9) * Math.pow(Math.sin(Math.PI * (0.1 + 0.9 * t)), 0.6);
+  const y = (t) => -L * t + L * 0.04 * (1 - t) ** 2;
+  const gap = 0.055;
+  const half = (sd) => {
+    const cuts = [];
+    for (let j = 0; j < slits; j++) {
+      cuts.push(0.24 + ((j + (sd > 0 ? 0.35 : 0.8)) / slits) * 0.6 + (rnd(j * 2 + (sd > 0 ? 0 : 1)) - 0.5) * 0.07);
+    }
+    const pts = [];
+    for (let t = 0.02; t < 0.96; t += 0.03) {
+      if (!cuts.some((c) => Math.abs(t - c) < gap * 1.6)) pts.push([t, sd * env(t, sd), y(t)]);
+    }
+    for (const c of cuts) {
+      pts.push([c - gap, sd * env(c - gap, sd), y(c - gap)]);
+      pts.push([c, sd * W * 0.07, y(c) + L * 0.07]); // near the midrib, lower than the opening
+      pts.push([c + gap, sd * env(c + gap, sd), y(c + gap)]);
+    }
+    return pts.sort((u, v) => u[0] - v[0]).map(([, x, yy]) => [x, yy]);
+  };
+  return smooth([[0, L * 0.02], ...half(1), [0, -L], ...half(-1).reverse()], true);
 }
 
 /**
@@ -164,19 +241,39 @@ export const SHAPES = {
   lobed: (L, W, o) => lobed(L, W, o.lobes, o.depth),
   holes: (L, W) => SHAPES.oval(L, W),
   monstera: (L, W, o) => monstera(L, W, o.slits, o.depth, o.gap),
+  tetra: (L, W, o) => tetra(L, W, o.slits, o.k),
   // Persian shield: a long pointed oval with fine teeth.
   serrate: (L, W) => polyline(mirror(L, W, toothed((t) => 0.5 * Math.pow(Math.sin(Math.PI * t), 0.85), 13, 0.035))),
   // Purple passion: a pointed oval, widest low down, with irregular jagged teeth.
   dentate: (L, W) => polyline(mirror(L, W, toothed((t) => 0.5 * Math.pow(Math.sin(Math.PI * Math.pow(t, 0.68)), 0.8), 7,
     (i) => (i % 2 ? 0.05 : 0.1)))),
   polly: (L, W) => smooth(mirror(L, W, pollyHalf().right), true),
+  // Ming aralia: a pointed leaflet, widest low down, with sharp forward-pointing
+  // teeth up its upper two thirds.
+  aralia: (L, W) => polyline(mirror(L, W, [[0, 0], [0.18, -0.06], [0.36, -0.17], [0.46, -0.3], [0.5, -0.43], [0.37, -0.45],
+    [0.43, -0.58], [0.29, -0.6], [0.33, -0.72], [0.19, -0.74], [0.19, -0.86], [0.09, -0.88], [0, -1]])),
   // Alocasia 'Regal Shield': a broad shield with rounded lobes at the base.
   regal: (L, W) => smooth(mirror(L, W, [[0, 0.02], [0.12, 0.15], [0.3, 0.25], [0.45, 0.14], [0.5, -0.06],
     [0.47, -0.26], [0.4, -0.46], [0.3, -0.64], [0.18, -0.8], [0.08, -0.92], [0, -1]]), true),
+  // Arrowhead plant, grown up: the leaf divides into three segments from one point.
+  trifid: (L, W) => [[0, 1, 0.5], [-1.2, 0.62, 0.4], [1.2, 0.62, 0.4]].map(([a, l, w]) => {
+    const c = Math.cos(a), s = Math.sin(a);
+    const pts = mirror(L * l, W * w, [[0, 0], [0.3, -0.14], [0.5, -0.42], [0.36, -0.72], [0.14, -0.92], [0, -1]]);
+    return smooth(pts.map(([x, y]) => [x * c - y * s, x * s + y * c]), true);
+  }).reverse().join(''),
   // Alocasia chienlii: a long, narrow arrowhead with a gently wavy edge.
   sagittate: (L, W) => smooth(mirror(L, W, [[0, 0.02], [0.08, 0.17], [0.2, 0.3], [0.33, 0.17], [0.37, -0.04],
     [0.35, -0.2], [0.31, -0.36], [0.28, -0.5], [0.22, -0.64], [0.17, -0.77], [0.09, -0.9], [0, -1]]), true),
 };
+
+/** Half-width of SHAPES.heart as a fraction of W, at height t (0 base, 1 tip). */
+function heartHalf(t) {
+  const pts = [[0, 0.34], [0.1, 0.46], [0.3, 0.53], [0.5, 0.46], [0.69, 0.33], [0.85, 0.16], [1, 0]];
+  const i = pts.findIndex(([pt]) => pt >= t);
+  if (i <= 0) return pts[0][1];
+  const [t0, h0] = pts[i - 1], [t1, h1] = pts[i];
+  return h0 + ((h1 - h0) * (t - t0)) / (t1 - t0);
+}
 
 function variegate(ctx, o, L, W, shape, sw) {
   const k = o.k ?? 0;
@@ -197,11 +294,30 @@ function variegate(ctx, o, L, W, shape, sw) {
       return s;
     }
     case 'spots': {
+      // Satin pothos: irregular silvery splotches of mixed sizes, stretched along
+      // the side veins and kept inside the heart-shaped outline.
       let s = '';
-      for (let i = 0; i < 7; i++) {
-        const x = (ctx.r(k * 11 + i, 'px') - 0.5) * W * 0.62;
-        const y = -L * (0.2 + 0.56 * ctx.r(k * 11 + i, 'py'));
-        s += `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(W * 0.055)}" ry="${f1(W * 0.045)}" fill="${vc}"/>`;
+      const n = 9 + Math.floor(ctx.r(k, 'pn') * 4);
+      for (let i = 0; i < n; i++) {
+        const id = k * 17 + i;
+        const t = 0.1 + 0.7 * ctx.r(id, 'py');
+        const rr = W * (0.03 + 0.05 * ctx.r(id, 'pr') ** 1.5);
+        const inner = W * 0.06; // clear of the midrib
+        const room = heartHalf(t) * W * 0.86 - rr * 1.1;
+        if (room <= inner) continue;
+        const sd = ctx.r(id, 'ps') < 0.5 ? -1 : 1;
+        const cx = sd * (inner + (room - inner) * ctx.r(id, 'px'));
+        const cy = -L * t;
+        const tilt = sd * (0.7 + 0.3 * ctx.r(id, 'pa'));
+        const [c, sn] = [Math.cos(tilt), Math.sin(tilt)];
+        const pts = [];
+        for (let j = 0; j < 6; j++) {
+          const th = (j / 6) * Math.PI * 2;
+          const rj = rr * (0.7 + 0.5 * ctx.r(id * 7 + j, 'pj'));
+          const ex = Math.cos(th) * rj * 0.6, ey = Math.sin(th) * rj * 1.3;
+          pts.push([cx + ex * c - ey * sn, cy + ex * sn + ey * c]);
+        }
+        s += `<path d="${smooth(pts, true)}" fill="${vc}"/>`;
       }
       return s;
     }
@@ -339,8 +455,15 @@ function variegate(ctx, o, L, W, shape, sw) {
  */
 export function leaf(ctx, x, y, a, o) {
   const d = o.dry != null ? o.dry : ctx.d;
-  const L = o.L * (1 - 0.1 * d);
-  const W = o.W * (1 - 0.3 * d * (o.curl ?? 1));
+  // No two leaves sit quite the same: each tilts and sizes a little differently
+  // (the species' wobble, in radians; 0 for plants whose leaves are very orderly).
+  const wob = o.k == null || !ctx.p ? 0 : ctx.p.wobble ?? 0.22;
+  const vs = wob ? 1 + (ctx.r(o.k, 'wsz') - 0.5) * wob : 1;
+  if (wob) a += (ctx.r(o.k, 'wob') - 0.5) * 2 * wob;
+  // Leaves grow with the plant (ctx.grow), except chained segments that must meet.
+  const grow = o.chain ? 1 : ctx.grow ?? 1;
+  const L = o.L * vs * grow * (1 - 0.1 * d);
+  const W = o.W * vs * grow * (1 - 0.3 * d * (o.curl ?? 1));
   const shape = SHAPES[o.shape] ?? SHAPES.oval;
   const sw = f1(clamp(L / 15, 1, 2.1));
   const paint = (hex) => (o.dry != null ? ctx.fillD(hex, o.dry) : ctx.fill(hex));
@@ -349,11 +472,12 @@ export function leaf(ctx, x, y, a, o) {
   s += `<path d="${shape(L, W, o)}" fill="${paint(base)}" stroke="${ctx.line}" stroke-width="${sw}" stroke-linejoin="round"/>`;
   if (o.variType && o.dry == null) s += variegate(ctx, o, L, W, shape, sw);
   if (o.shape === 'holes' || (o.shape === 'monstera' && o.windows !== false)) {
-    // Monstera windows: shaded ovals between the midrib and the margin.
+    // Monstera windows: shaded ovals between the midrib and the margin, in more
+    // rows the older the plant (o.holeRows).
     const hc = shade(paint(o.color), -0.3);
     const windows = o.shape === 'holes'
-      ? [[0.3, 1, 0.2], [0.5, 1, 0.2], [0.69, 0.75, 0.2]]
-      : [[0.36, 0.55, 0.12], [0.6, 0.5, 0.11]];
+      ? [[0.3, 1, 0.2], [0.5, 1, 0.2], [0.69, 0.75, 0.2], [0.15, 0.7, 0.16]].slice(0, o.holeRows ?? 3)
+      : [[0.36, 0.55, 0.12], [0.6, 0.5, 0.11], [0.79, 0.36, 0.08]].slice(0, o.holeRows ?? 2);
     for (const [ht, hs, hx0] of windows) {
       for (const hx of [-1, 1]) {
         s += `<ellipse cx="${f1(hx * W * hx0)}" cy="${f1(-L * ht)}" rx="${f1(W * 0.1 * hs)}" ry="${f1(L * 0.065 * hs)}" fill="${hc}" stroke="${ctx.line}" stroke-width=".8"/>`;
@@ -518,6 +642,19 @@ export function strapLeaf(ctx, pts, o) {
       tp += `M${f1(ex)} ${f1(ey)}L${f1(ix)} ${f1(iy)}`;
     }
     s += `<path d="${tp}" fill="none" stroke="${line}" stroke-width="1.2" stroke-linecap="round"/>`;
+  }
+  // Natural splits along the veins (o.splits): older bird of paradise and banana
+  // leaves tear from the edge in toward the midrib.
+  if (o.splits && !ctx.ghost) {
+    let sp = '';
+    for (let i = 0; i < o.splits; i++) {
+      const t = 0.18 + 0.66 * ctx.r(id * 17 + i, 'sp');
+      const sd = ctx.r(id * 17 + i, 'ss') < 0.5 ? -1 : 1;
+      const [ex, ey] = side(at(pts, Math.min(0.97, t + 0.05)), (sd * wf(t)) / 2);
+      const [ix, iy] = side(at(pts, t), (sd * wf(t)) * 0.06);
+      sp += `M${f1(ex)} ${f1(ey)}L${f1(ix)} ${f1(iy)}`;
+    }
+    s += `<path d="${sp}" fill="none" stroke="${line}" stroke-width="1.3" stroke-linecap="round"/>`;
   }
   if (o.wrinkle && !ctx.ghost && d > 0.3) {
     let wp = '';
