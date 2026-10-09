@@ -193,6 +193,7 @@ To change a plant later, use the pencil next to it on the integration page
 - Variegated Baby Rubber Plant (*Peperomia obtusifolia 'Variegata'*)
 - Variegated Million Hearts (*Dischidia ruscifolia 'Variegata'*)
 - Weeping Fig (*Ficus benjamina*)
+- White Princess Philodendron (*Philodendron erubescens 'White Princess'*)
 - White Bird of Paradise (*Strelitzia nicolai*)
 - ZZ Plant (*Zamioculcas zamiifolia*)
 

@@ -3,6 +3,13 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.13.0 — 2026-10-09
+
+### Added
+- White Princess Philodendron (Philodendron erubescens 'White Princess'): the
+  Pink Princess's sister, with brighter green, slightly narrower leaves splashed
+  with white on green stems, and a care preset.
+
 ## 0.12.0 — 2026-10-07
 
 ### Added

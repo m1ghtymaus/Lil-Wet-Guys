@@ -85,6 +85,13 @@ export const SPECIES = {
     h: 104, count: 6, stem: '#7a3b4a', root: '#8a6a50', young: '#e67fa3', leafGrowth: 0.2,
     leaf: { shape: 'heart', L: 43, W: 28, color: '#2d3f28', vari: '#f08fb0', variType: 'splash', ribColor: '#5a3a48', gloss: true },
   },
+  white_princess_philodendron: {
+    // The Pink Princess's sister: brighter green leaves, a little narrower and more
+    // pointed, splashed with clean white instead of pink, on green stems.
+    name: 'White Princess Philodendron', latin: "Philodendron erubescens 'White Princess'", rig: 'tree', form: 'climber',
+    h: 104, count: 6, stem: '#5f7f45', root: '#8a6a50', young: '#e8eedb', leafGrowth: 0.2,
+    leaf: { shape: 'heart', L: 44, W: 24, color: '#2e5a30', vari: '#f5f2e6', variType: 'splash', ribColor: '#4f6f42', gloss: true },
+  },
   rubber_plant_ruby: {
     name: 'Rubber Plant', latin: "Ficus elastica 'Ruby'", rig: 'tree', form: 'rubber',
     h: 100, count: 7, trunk: '#7a6a4f', sheath: '#c2344d', wobble: 0.1,

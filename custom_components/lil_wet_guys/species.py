@@ -106,6 +106,11 @@ SPECIES: dict[str, Species] = {
         "Water when the top inch of soil is dry.",
         feed_ml=5,
     ),
+    "white_princess_philodendron": Species(
+        "White Princess Philodendron", "Philodendron erubescens 'White Princess'", "bright_indirect", 7, 65, 85,
+        "Water when the top inch of soil is dry. Bright light keeps the white variegation coming.",
+        feed_ml=5,
+    ),
     "rubber_plant_ruby": Species(
         "Rubber Plant", "Ficus elastica 'Ruby'", "bright_indirect", 10, 60, 85,
         "Water when the top 2 inches of soil are dry.",
