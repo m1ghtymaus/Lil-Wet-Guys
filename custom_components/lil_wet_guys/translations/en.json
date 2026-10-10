@@ -30,6 +30,13 @@
             "species": "Pick **Other** if your plant isn't listed; you'll choose a drawing and fill in its care yourself."
           }
         },
+        "cutting": {
+          "title": "{name}",
+          "description": "Which plant is this a cutting of? It's drawn as a baby of that plant rooting in a jar of water, and its comfortable temperatures come from it.",
+          "data": {
+            "cutting": "Cutting of"
+          }
+        },
         "details": {
           "title": "{name}",
           "description": "Care details for {species}. The watering interval is for bright, indirect light; the light setting shortens it in direct sun and stretches it in lower light.",
@@ -68,6 +75,7 @@
           "title": "Edit {name}",
           "description": "Changing the plant type doesn't overwrite the care details below. To reset the countdown, use the plant's **Last watered** entity or its **Watered** button.",
           "data": {
+            "cutting": "Cutting of",
             "name": "Name",
             "species": "Plant type",
             "light": "Light where it lives",

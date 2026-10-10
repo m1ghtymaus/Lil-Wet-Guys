@@ -72,6 +72,12 @@ SPECIES: dict[str, Species] = {
         "Water when the top 1–2 inches of soil are dry. The brighter the light, the more yellow in the leaves.",
         feed_ml=5,
     ),
+    "marble_queen_pothos": Species(
+        "Marble Queen Pothos", "Epipremnum aureum 'Marble Queen'", "bright_indirect", 8, 60, 85,
+        "Water when the top 1–2 inches of soil are dry. Bright light keeps its cream marbling; "
+        "it grows more slowly than golden pothos.",
+        feed_ml=4,
+    ),
     "heartleaf_philodendron": Species(
         "Heartleaf Philodendron", "Philodendron hederaceum", "bright_indirect", 8, 60, 85,
         "Water when the top inch of soil is dry.",
@@ -114,6 +120,10 @@ SPECIES: dict[str, Species] = {
     "rubber_plant_ruby": Species(
         "Rubber Plant", "Ficus elastica 'Ruby'", "bright_indirect", 10, 60, 85,
         "Water when the top 2 inches of soil are dry.",
+    ),
+    "rubber_plant_tineke": Species(
+        "Rubber Plant", "Ficus elastica 'Tineke'", "bright_indirect", 10, 60, 85,
+        "Water when the top 2 inches of soil are dry. Bright light keeps its cream and pink colouring.",
     ),
     "satin_pothos": Species(
         "Satin Pothos", "Scindapsus pictus", "bright_indirect", 10, 65, 85,
@@ -252,6 +262,12 @@ SPECIES: dict[str, Species] = {
         "Keep it evenly moist: water when the top inch is dry. It drops leaves if moved or chilled. "
         "Check under the leaves for spider mites (fine webbing, tiny moving dots).",
     ),
+    "propagation": Species(
+        "Propagation", "Cutting in water", "bright_indirect", 7, 60, 85,
+        "Keep the node under water: top it up as it drops and change it every week. "
+        "Pot it up in soil once the roots are 2–3 inches long.",
+        feed_ml=0,
+    ),
     "moss_terrarium": Species(
         "Moss Terrarium", "Bryophyta", "medium", 14, 60, 75,
         "Mist lightly when the moss looks pale or the glass stops fogging up. Keep it out of direct sun.",
@@ -272,5 +288,8 @@ GENERIC_SHAPES: list[str] = [
     "generic_spiky",
     "generic_tree",
 ]
+
+# What a propagation can be a cutting of: any plant, but not the jars themselves.
+CUTTABLE: dict[str, Species] = {k: v for k, v in SPECIES.items() if k not in ("propagation", "moss_terrarium")}
 
 OTHER = Species("Other Plant", "", "bright_indirect", 7, 60, 80, "")

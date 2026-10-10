@@ -10,9 +10,11 @@ import pytest
 from PIL import Image
 
 from custom_components.lil_wet_guys.const import DOMAIN, PHOTO_DIR, SUBENTRY_PLANT
+from custom_components.lil_wet_guys.species import SPECIES
 from homeassistant.config_entries import SOURCE_USER
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import device_registry as dr
 from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
 
 from .conftest import PLANT_ID, make_entry, plant_data, setup_entry
@@ -82,6 +84,50 @@ async def test_add_plant_from_preset(hass: HomeAssistant) -> None:
     assert subentry.data["moisture_jump"] == 12
     assert subentry.data["last_watered"].startswith("2026-09-01")
     assert "photo_file" not in subentry.data
+
+
+async def test_add_propagation(hass: HomeAssistant) -> None:
+    """A propagation asks which plant the cutting is from, and is named and drawn after it."""
+    hass.config.units = US_CUSTOMARY_SYSTEM
+    entry = await setup_entry(hass, make_entry({}, {"fertilizer": True}))
+    result = await hass.config_entries.subentries.async_init(
+        (entry.entry_id, SUBENTRY_PLANT), context={"source": SOURCE_USER}
+    )
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], {"name": "Baby monstera", "species": "propagation"}
+    )
+    assert result["step_id"] == "cutting"
+    result = await hass.config_entries.subentries.async_configure(result["flow_id"], {"cutting": "monstera_deliciosa"})
+    assert result["step_id"] == "details"
+    suggested = {str(k): k.description.get("suggested_value") for k in result["data_schema"].schema if k.description}
+    assert suggested["base_days"] == 7  # a fresh jar of water every week
+    assert suggested["temp_min"] == SPECIES["monstera_deliciosa"].temp_min_f  # the cutting's own range
+
+    result = await hass.config_entries.subentries.async_configure(result["flow_id"], DETAILS)
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    subentry = next(iter(entry.subentries.values()))
+    assert subentry.data["species"] == "propagation"
+    assert subentry.data["cutting"] == "monstera_deliciosa"
+    attrs = hass.states.get("sensor.baby_monstera_status").attributes
+    assert attrs["shape"] == "propagation"
+    assert attrs["cutting"] == "monstera_deliciosa"
+    assert attrs["species_name"] == "Swiss Cheese Plant cutting"
+    assert attrs["fertilizer_dose"] == 0  # a cutting in water isn't fed
+    assert "fertilizer_step" not in attrs
+    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, subentry.subentry_id)})
+    assert device.model == "Propagation: Swiss Cheese Plant (Monstera deliciosa)"
+
+    # Editing it can change what it's a cutting of.
+    result = await entry.start_subentry_reconfigure_flow(hass, subentry.subentry_id)
+    assert "cutting" in {str(k) for k in result["data_schema"].schema}
+    user_input = {k: v for k, v in DETAILS.items() if k != "last_watered"}
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], user_input | {"name": "Baby pothos", "species": "propagation", "cutting": "golden_pothos"}
+    )
+    assert result["reason"] == "reconfigure_successful"
+    await hass.async_block_till_done()
+    assert entry.subentries[subentry.subentry_id].data["cutting"] == "golden_pothos"
 
 
 async def test_fahrenheit_is_stored_as_celsius(hass: HomeAssistant) -> None:

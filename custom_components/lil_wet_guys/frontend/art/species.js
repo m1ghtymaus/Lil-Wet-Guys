@@ -47,7 +47,12 @@ export const SPECIES = {
   golden_pothos: {
     name: 'Golden Pothos', latin: 'Epipremnum aureum', rig: 'trailing',
     top: 9, topLen: 30, topLeaves: 1, tuft: 4, vines: 5, vineLen: 74, perVine: 7, stem: '#6a9a3f', wobble: 0.38, roots: true, leafGrowth: 0.25,
-    leaf: { shape: 'heart', L: 22, W: 18, color: '#3f8f3a', vari: '#ecd95a', variType: 'streaks', gloss: true },
+    leaf: { shape: 'heart', L: 22, W: 18, color: '#3f8f3a', vari: '#e8d65c', variType: 'marble', marble: 0.8, gloss: true },
+  },
+  marble_queen_pothos: {
+    name: 'Marble Queen Pothos', latin: "Epipremnum aureum 'Marble Queen'", rig: 'trailing',
+    top: 11, topLen: 28, topLeaves: 1, tuft: 6, vines: 5, vineLen: 68, perVine: 8, stem: '#86a868', roots: true, leafGrowth: 0.25, wobble: 0.3,
+    leaf: { shape: 'heart', L: 21, W: 17, color: '#3b7a3a', vari: '#f2eedb', variType: 'marble', gloss: true },
   },
   heartleaf_philodendron: {
     name: 'Heartleaf Philodendron', latin: 'Philodendron hederaceum', rig: 'trailing',
@@ -96,6 +101,11 @@ export const SPECIES = {
     name: 'Rubber Plant', latin: "Ficus elastica 'Ruby'", rig: 'tree', form: 'rubber',
     h: 100, count: 7, trunk: '#7a6a4f', sheath: '#c2344d', wobble: 0.1,
     leaf: { shape: 'oval', L: 52, W: 33, color: '#3b5f3a', vari: '#f1d2c6', variType: 'edge', edgeScale: 0.74, ribColor: '#d0607a', gloss: true },
+  },
+  rubber_plant_tineke: {
+    name: 'Rubber Plant', latin: "Ficus elastica 'Tineke'", rig: 'tree', form: 'rubber',
+    h: 100, count: 7, trunk: '#8a7a5c', sheath: '#e6a7a2', wobble: 0.1,
+    leaf: { shape: 'oval', L: 52, W: 33, color: '#355f37', mid: '#a3b98a', vari: '#f3eccd', variType: 'tricolor', edgeScale: 0.44, ribColor: '#e7c4b4', gloss: true },
   },
   satin_pothos: {
     name: 'Satin Pothos', latin: 'Scindapsus pictus', rig: 'trailing',
@@ -259,6 +269,11 @@ export const SPECIES = {
     name: 'Ming Aralia', latin: 'Polyscias fruticosa', rig: 'tree', form: 'aralia', drop: 0.5,
     braid: 30, count: 8, trunk: '#b7a787', stem: '#5f7a42',
     leaf: { shape: 'aralia', L: 17, W: 9.5, color: '#2f6634', ribColor: '#4f8a45', stalk: '#5f7a42', gloss: true },
+  },
+  propagation: {
+    // A cutting rooting in a jar of water; the plant it's from is chosen per plant
+    // (drawPlant's cutting), this one if none is.
+    name: 'Propagation', latin: 'Cutting in water', rig: 'cutting', container: 'vase', cut: 'golden_pothos',
   },
   moss_terrarium: {
     name: 'Moss Terrarium', latin: 'Bryophyta', rig: 'terrarium', container: 'jar', still: true, dryHue: 45,

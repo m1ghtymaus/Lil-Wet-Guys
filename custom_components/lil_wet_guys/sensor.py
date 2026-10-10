@@ -16,6 +16,7 @@ from . import LilWetGuysConfigEntry
 from .const import DOMAIN, FERTILIZER
 from .entity import PlantEntity
 from .model import FEEDS, STATUSES
+from .species import SPECIES
 
 
 async def async_setup_entry(
@@ -72,7 +73,10 @@ class StatusSensor(PlantEntity, SensorEntity):
         attrs: dict[str, Any] = {
             "lil_wet_guys": True,
             "species": plant.species_id,
-            "species_name": plant.species.name if plant.species_id != "other" else None,
+            "species_name": (
+                f"{SPECIES[plant.cutting].name} cutting" if plant.cutting
+                else plant.species.name if plant.species_id != "other" else None
+            ),
             "shape": plant.shape,
             "pot_color": plant.pot_color,
             "light": plant.light,
@@ -100,6 +104,8 @@ class StatusSensor(PlantEntity, SensorEntity):
             attrs["temperature_entity"] = self._sibling("binary_sensor", "temperature")
         if plant.moisture_sensor:
             attrs["moisture"] = plant.moisture
+        if plant.cutting:
+            attrs["cutting"] = plant.cutting  # the card draws a baby of this plant in the jar
         if plant.holidays:
             attrs["holidays"] = True  # the card themes its bookshelf for today's holiday
         if plant.fertilizer_on:

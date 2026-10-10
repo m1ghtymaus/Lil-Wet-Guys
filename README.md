@@ -166,6 +166,7 @@ To change a plant later, use the pencil next to it on the integration page
 - Jade Pothos (*Epipremnum aureum 'Jade'*)
 - Lipstick Plant (*Aeschynanthus radicans*)
 - Lucky Bamboo (*Dracaena sanderiana*)
+- Marble Queen Pothos (*Epipremnum aureum 'Marble Queen'*)
 - Ming Aralia (*Polyscias fruticosa*)
 - Mini Monstera (*Rhaphidophora tetrasperma*)
 - Money Tree (*Pachira aquatica*)
@@ -175,10 +176,12 @@ To change a plant later, use the pencil next to it on the integration page
 - Ox Tongue (*Gasteria spp.*)
 - Persian Shield (*Strobilanthes dyerianus*)
 - Pink Princess Philodendron (*Philodendron erubescens 'Pink Princess'*)
+- Propagation (*Cutting in water*): choose which plant it's a cutting of
 - Purple Passion Plant (*Gynura aurantiaca*)
 - Radiator Plant (*Peperomia spp.*)
 - Regal Shield (*Alocasia 'Regal Shield'*)
 - Rubber Plant (*Ficus elastica 'Ruby'*)
+- Rubber Plant (*Ficus elastica 'Tineke'*)
 - Satin Pothos (*Scindapsus pictus*)
 - Snake Plant (*Dracaena trifasciata 'Laurentii'*)
 - Snake Plant (*Dracaena trifasciata 'Moonshine'*)
@@ -196,6 +199,12 @@ To change a plant later, use the pencil next to it on the integration page
 - White Princess Philodendron (*Philodendron erubescens 'White Princess'*)
 - White Bird of Paradise (*Strelitzia nicolai*)
 - ZZ Plant (*Zamioculcas zamiifolia*)
+
+**Propagation** is for a cutting rooting in water: pick it, then choose which
+plant it's a cutting of. It's drawn as a baby of that plant in a jar of water,
+takes that plant's comfortable temperatures, and counts down to its weekly fresh
+water. Its **Fullness** grows its roots and leaves, from a fresh cutting (one
+leaf, no roots) to one ready to pot up.
 
 Each has its own drawing and care preset (see
 [`species.py`](custom_components/lil_wet_guys/species.py)). For anything else

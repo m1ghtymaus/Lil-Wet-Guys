@@ -3,6 +3,27 @@
 Versions follow MAJOR.MINOR.PATCH: patch for fixes, minor for new features, major
 when updating needs you to do something.
 
+## 0.14.0 — 2026-10-09
+
+### Added
+- **Propagation**, a plant type for a cutting rooting in water. Adding one asks
+  which plant it's a cutting of; it's drawn as a baby of that plant in a little
+  jar of water, with its stem running down to roots in the water, takes that
+  plant's comfortable temperatures and counts down to fresh water every week.
+  Fullness grows its roots and leaves, from a fresh single-leaf cutting to one
+  ready to pot up; as it dries out the water level drops and the cutting wilts.
+- Ficus elastica 'Tineke', listed as Rubber Plant (Ficus elastica 'Tineke'):
+  the Ruby's cream-variegated sister, with a dark green middle, a grey-green band
+  and a cream edge on each leaf, pale pink midribs and a pink new-leaf sheath.
+- Marble Queen Pothos (Epipremnum aureum 'Marble Queen'): heart-shaped leaves
+  streaked and flecked with cream along the veins, some far more cream than
+  green, on trailing vines, with a care preset.
+
+### Changed
+- Golden Pothos leaves are marbled like the Marble Queen's, with golden-yellow
+  streaks and flecks along the veins (less than a Marble Queen carries) instead
+  of straight stripes.
+
 ## 0.13.0 — 2026-10-09
 
 ### Added

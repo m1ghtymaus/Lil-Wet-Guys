@@ -35,6 +35,7 @@ from homeassistant.util.unit_conversion import TemperatureConverter
 from . import model
 from .const import (
     CONF_BASE_DAYS,
+    CONF_CUTTING,
     CONF_FERTILIZER,
     CONF_FULLNESS,
     CONF_HOLIDAYS,
@@ -56,10 +57,11 @@ from .const import (
     LIGHT_LEVELS,
     PHOTO_DIR,
     SPECIES_OTHER,
+    SPECIES_PROPAGATION,
     STORAGE_KEY,
     STORAGE_VERSION,
 )
-from .species import OTHER, SPECIES, Species
+from .species import CUTTABLE, OTHER, SPECIES, Species
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -215,6 +217,21 @@ class Plant:
     def species(self) -> Species:
         """Care preset (a neutral one for plants without a preset)."""
         return SPECIES.get(self.species_id, OTHER)
+
+    @property
+    def cutting(self) -> str | None:
+        """For a propagation, the species id of the plant the cutting is from."""
+        if self.species_id != SPECIES_PROPAGATION:
+            return None
+        cutting = self.config.get(CONF_CUTTING)
+        return cutting if cutting in CUTTABLE else "golden_pothos"
+
+    @property
+    def model(self) -> str:
+        """What kind of plant it is, as its device shows it."""
+        if self.cutting:
+            return f"Propagation: {SPECIES[self.cutting].label}"
+        return self.species.label
 
     @property
     def shape(self) -> str:

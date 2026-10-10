@@ -25,7 +25,7 @@ class PlantEntity(Entity):
             identifiers={(DOMAIN, plant.id)},
             name=plant.name,
             manufacturer=MANUFACTURER,
-            model=plant.species.label,
+            model=plant.model,
         )
 
     async def async_added_to_hass(self) -> None:

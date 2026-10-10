@@ -22,6 +22,7 @@ CONF_TEMP_SENSOR: Final = "temperature_sensor"
 CONF_MOISTURE_SENSOR: Final = "moisture_sensor"
 CONF_MOISTURE_JUMP: Final = "moisture_jump"
 CONF_LAST_WATERED: Final = "last_watered"  # only used when the plant is added
+CONF_CUTTING: Final = "cutting"  # for a propagation: the species the cutting is from
 CONF_FULLNESS: Final = "fullness"  # % of the drawing's usual leaves: 0 a single leaf, 200 overgrown
 
 # Form-only keys.
@@ -39,6 +40,7 @@ CONF_HOLIDAYS: Final = "holidays"  # dress the card's bookshelf up for the seaso
 FERTILIZER: Final = "Foliage Focus"
 
 SPECIES_OTHER: Final = "other"
+SPECIES_PROPAGATION: Final = "propagation"  # a cutting rooting in water
 LIGHT_LEVELS: Final = ["direct", "bright_indirect", "medium", "low"]
 DEFAULT_POT_COLOR: Final = [200, 100, 60]
 DEFAULT_MOISTURE_JUMP: Final = 10

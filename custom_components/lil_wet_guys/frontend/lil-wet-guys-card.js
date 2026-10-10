@@ -461,11 +461,11 @@ class LilWetGuysCard extends HTMLElement {
     const status = statusOf(p.overdue);
     // Not keyed on last_updated: temperature or moisture updates don't change the drawing,
     // and redrawing would restart its animation.
-    const key = [p.a.next_watering, p.a.shape, p.a.pot_color, p.a.fullness, p.name, ghost, Math.round(dryness * 100), p.a.heat, this._config.limbs].join('|');
+    const key = [p.a.next_watering, p.a.shape, p.a.cutting, p.a.pot_color, p.a.fullness, p.name, ghost, Math.round(dryness * 100), p.a.heat, this._config.limbs].join('|');
     if (this._keys.get(p.id) !== key) {
       this._keys.set(p.id, key);
       tile.querySelector('.art').innerHTML = drawPlant({
-        species: p.a.shape, potColor: p.a.pot_color, dryness, ghost, heat: p.a.heat, seed: p.id, fullness: p.a.fullness ?? 100,
+        species: p.a.shape, potColor: p.a.pot_color, dryness, ghost, heat: p.a.heat, seed: p.id, fullness: p.a.fullness ?? 100, cutting: p.a.cutting,
         limbs: this._config.limbs !== false && poseFor(p.id), label: p.name, layered: true,
       });
     }
@@ -576,7 +576,7 @@ class LilWetGuysCard extends HTMLElement {
     const name = this._name(id, st);
     const overdue = (Date.now() - new Date(a.next_watering).getTime()) / DAY;
     const status = statusOf(overdue);
-    const art = SPECIES[a.shape];
+    const art = SPECIES[a.cutting] ?? SPECIES[a.shape]; // a propagation shows the plant it's a cutting of
     const photo = a.photo_entity ? this._hass.states[a.photo_entity]?.attributes.entity_picture : null;
     const lang = this._hass.locale?.language || navigator.language;
     const last = new Date(a.last_watered);
@@ -592,10 +592,10 @@ class LilWetGuysCard extends HTMLElement {
     const unitToggle = `<span class="unit" role="group" aria-label="Temperature unit">${['C', 'F'].map((u) =>
       `<button type="button" data-act="unit" data-unit="${u}" aria-pressed="${u === unit}">°${u}</button>`).join('')}</span>`;
     const dryness = clamp(overdue / GHOST_AT, 0, 1);
-    const drawKey = [a.next_watering, a.shape, a.pot_color, a.fullness, overdue >= GHOST_AT, Math.round(dryness * 100), a.heat, this._config.limbs].join('|');
+    const drawKey = [a.next_watering, a.shape, a.cutting, a.pot_color, a.fullness, overdue >= GHOST_AT, Math.round(dryness * 100), a.heat, this._config.limbs].join('|');
     const drawing = () => drawPlant({
       species: a.shape, potColor: a.pot_color, dryness, ghost: overdue >= GHOST_AT, heat: a.heat,
-      seed: id, fullness: a.fullness ?? 100, limbs: this._config.limbs !== false && poseFor(id), label: name, layered: true,
+      seed: id, fullness: a.fullness ?? 100, cutting: a.cutting, limbs: this._config.limbs !== false && poseFor(id), label: name, layered: true,
     });
     const sub = a.species === 'other' ? '' : `${esc(a.species_name || art?.name || '')}${art?.latin ? ` (<i>${esc(art.latin)}</i>)` : ''}`;
     const rows = [

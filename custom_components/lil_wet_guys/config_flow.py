@@ -38,6 +38,7 @@ from .backup import (
 )
 from .const import (
     CONF_BASE_DAYS,
+    CONF_CUTTING,
     CONF_FERTILIZER,
     CONF_FULLNESS,
     CONF_HOLIDAYS,
@@ -63,12 +64,13 @@ from .const import (
     PHOTO_DIR,
     SECTION_SENSORS,
     SPECIES_OTHER,
+    SPECIES_PROPAGATION,
     SUBENTRY_PLANT,
     TEMPERATURE_UNITS,
     UNIT_AUTO,
 )
 from .plant import temperature_unit
-from .species import GENERIC_SHAPES, OTHER, SPECIES
+from .species import CUTTABLE, GENERIC_SHAPES, OTHER, SPECIES
 
 CONF_FILE = "file"  # import form: the uploaded export
 CONF_EXISTING = "existing"  # import form: skip or add plants whose name already exists
@@ -80,6 +82,11 @@ SPECIES_OPTIONS = [
     selector.SelectOptionDict(value=key, label=sp.label)
     for key, sp in sorted(SPECIES.items(), key=lambda item: item[1].label.lower())
 ] + [selector.SelectOptionDict(value=SPECIES_OTHER, label="Other (not listed)")]
+CUTTING_OPTIONS = [
+    selector.SelectOptionDict(value=key, label=sp.label)
+    for key, sp in sorted(CUTTABLE.items(), key=lambda item: item[1].label.lower())
+]
+DEFAULT_CUTTING = "golden_pothos"
 
 
 def save_photo(hass: HomeAssistant, file_id: str) -> str:
@@ -212,6 +219,7 @@ class PlantFlow(ConfigSubentryFlow):
         """Start with nothing chosen."""
         self._name = ""
         self._species = SPECIES_OTHER
+        self._cutting = DEFAULT_CUTTING
 
     # ------------------------------------------------------------------ add
 
@@ -220,6 +228,8 @@ class PlantFlow(ConfigSubentryFlow):
         if user_input is not None:
             self._name = user_input[CONF_NAME].strip()
             self._species = user_input[CONF_SPECIES]
+            if self._species == SPECIES_PROPAGATION:
+                return await self.async_step_cutting()
             return await self.async_step_details()
         return self.async_show_form(
             step_id="user",
@@ -229,6 +239,17 @@ class PlantFlow(ConfigSubentryFlow):
                     vol.Required(CONF_SPECIES): _species_selector(),
                 }
             ),
+        )
+
+    async def async_step_cutting(self, user_input: dict[str, Any] | None = None) -> SubentryFlowResult:
+        """For a propagation: which plant the cutting is from."""
+        if user_input is not None:
+            self._cutting = user_input[CONF_CUTTING]
+            return await self.async_step_details()
+        return self.async_show_form(
+            step_id="cutting",
+            data_schema=vol.Schema({vol.Required(CONF_CUTTING, default=self._cutting): _cutting_selector()}),
+            description_placeholders={"name": self._name},
         )
 
     async def async_step_details(self, user_input: dict[str, Any] | None = None) -> SubentryFlowResult:
@@ -243,7 +264,7 @@ class PlantFlow(ConfigSubentryFlow):
             step_id="details",
             data_schema=self.add_suggested_values_to_schema(schema, user_input or self._defaults(self._species)),
             errors=errors,
-            description_placeholders={"name": self._name, "species": _species_label(self._species)},
+            description_placeholders={"name": self._name, "species": _species_label(self._species, self._cutting)},
         )
 
     # ----------------------------------------------------------------- edit
@@ -256,15 +277,20 @@ class PlantFlow(ConfigSubentryFlow):
             values = dict(user_input)
             name = values.pop(CONF_NAME).strip()
             species = values.pop(CONF_SPECIES)
+            if CONF_CUTTING in values:
+                self._cutting = values.pop(CONF_CUTTING)
+            else:
+                self._cutting = subentry.data.get(CONF_CUTTING, DEFAULT_CUTTING)
             data, errors = await self._async_build(values, species, previous=subentry.data)
             if not errors:
                 return self.async_update_and_abort(self._get_entry(), subentry, title=name, data=data)
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_NAME): selector.TextSelector(),
-                vol.Required(CONF_SPECIES): _species_selector(),
-            }
-        ).extend(
+        fields: dict[Any, Any] = {
+            vol.Required(CONF_NAME): selector.TextSelector(),
+            vol.Required(CONF_SPECIES): _species_selector(),
+        }
+        if subentry.data.get(CONF_SPECIES) == SPECIES_PROPAGATION:
+            fields[vol.Required(CONF_CUTTING)] = _cutting_selector()
+        schema = vol.Schema(fields).extend(
             self._details_schema(
                 subentry.data.get(CONF_SPECIES, SPECIES_OTHER),
                 new=False,
@@ -340,11 +366,13 @@ class PlantFlow(ConfigSubentryFlow):
 
     def _defaults(self, species: str) -> dict[str, Any]:
         preset = SPECIES.get(species, OTHER)
+        # A cutting likes the same temperatures as the plant it came from.
+        temps = CUTTABLE.get(self._cutting, preset) if species == SPECIES_PROPAGATION else preset
         return {
             CONF_LIGHT: preset.light,
             CONF_BASE_DAYS: preset.base_days,
-            CONF_TEMP_MIN: round(TemperatureConverter.convert(preset.temp_min_f, F, self._unit)),
-            CONF_TEMP_MAX: round(TemperatureConverter.convert(preset.temp_max_f, F, self._unit)),
+            CONF_TEMP_MIN: round(TemperatureConverter.convert(temps.temp_min_f, F, self._unit)),
+            CONF_TEMP_MAX: round(TemperatureConverter.convert(temps.temp_max_f, F, self._unit)),
             CONF_POT_COLOR: DEFAULT_POT_COLOR,
             CONF_SHAPE: GENERIC_SHAPES[0],
             CONF_LAST_WATERED: dt_util.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -360,6 +388,7 @@ class PlantFlow(ConfigSubentryFlow):
         return {
             CONF_NAME: subentry.title,
             CONF_SPECIES: data.get(CONF_SPECIES, SPECIES_OTHER),
+            CONF_CUTTING: data.get(CONF_CUTTING, DEFAULT_CUTTING),
             CONF_LIGHT: data[CONF_LIGHT],
             CONF_BASE_DAYS: data[CONF_BASE_DAYS],
             CONF_TEMP_MIN: round(TemperatureConverter.convert(data[CONF_TEMP_MIN], C, self._unit), 1),
@@ -390,6 +419,8 @@ class PlantFlow(ConfigSubentryFlow):
         }
         if species == SPECIES_OTHER:
             data[CONF_SHAPE] = user_input.get(CONF_SHAPE) or GENERIC_SHAPES[0]
+        if species == SPECIES_PROPAGATION:
+            data[CONF_CUTTING] = self._cutting if self._cutting in CUTTABLE else DEFAULT_CUTTING
         if previous and CONF_FULLNESS in previous:
             data[CONF_FULLNESS] = previous[CONF_FULLNESS]  # set from the device page, not this form
         for key in (CONF_TEMP_SENSOR, CONF_MOISTURE_SENSOR):
@@ -421,7 +452,15 @@ def _species_selector() -> selector.SelectSelector:
     )
 
 
-def _species_label(species: str) -> str:
+def _cutting_selector() -> selector.SelectSelector:
+    return selector.SelectSelector(
+        selector.SelectSelectorConfig(options=CUTTING_OPTIONS, mode=selector.SelectSelectorMode.DROPDOWN)
+    )
+
+
+def _species_label(species: str, cutting: str | None = None) -> str:
+    if species == SPECIES_PROPAGATION and cutting in CUTTABLE:
+        return f"a {CUTTABLE[cutting].name} cutting in water"
     return SPECIES[species].label if species in SPECIES else "a plant without a preset"
 
 

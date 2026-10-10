@@ -321,6 +321,46 @@ function variegate(ctx, o, L, W, shape, sw) {
       }
       return s;
     }
+    case 'marble': {
+      // Marble Queen pothos: cream streaked and flecked all through the green, along
+      // the veins, kept inside the heart; some leaves far more cream than others.
+      // `marble` scales how much (golden pothos carry less than a Marble Queen).
+      const amount = (0.5 + ctx.r(k, 'mq')) * (o.marble ?? 1); // 0.5 .. 1.5
+      const widths = [W * 0.05, W * 0.085];
+      const streaks = ['', ''];
+      let flecks = '';
+      const n = Math.round(5 + 5 * amount);
+      for (let i = 0; i < n; i++) {
+        const id = k * 23 + i;
+        const t0 = 0.1 + 0.7 * ctx.r(id, 'mt');
+        const t1 = t0 + 0.06 + 0.1 * ctx.r(id, 'my');
+        const sd = ctx.r(id, 'ms') < 0.5 ? -1 : 1;
+        const w = i % 3 ? 0 : 1;
+        const x0 = sd * W * (0.04 + 0.16 * ctx.r(id, 'm0')), y0 = -L * (t0 + 0.04 * ctx.r(id, 'm1'));
+        const x1 = sd * Math.max(W * 0.08, heartHalf(t1) * W * (0.45 + 0.35 * ctx.r(id, 'mx')) - widths[w]);
+        streaks[w] += `M${f1(x0)} ${f1(y0)}Q${f1((x0 + x1) / 2)} ${f1(y0 - L * 0.03)} ${f1(x1)} ${f1(-L * t1)}`;
+      }
+      for (let i = 0; i < Math.round(4 * amount); i++) {
+        const id = k * 31 + i;
+        const t = 0.15 + 0.65 * ctx.r(id, 'ft');
+        const x = (ctx.r(id, 'fx') * 2 - 1) * heartHalf(t) * W * 0.7;
+        flecks += `<ellipse cx="${f1(x)}" cy="${f1(-L * t)}" rx="${f1(W * 0.035)}" ry="${f1(W * 0.06)}" fill="${vc}" transform="rotate(${f1((x > 0 ? 40 : -40))} ${f1(x)} ${f1(-L * t)})"/>`;
+      }
+      // The creamiest leaves also carry a broad cream patch down one side.
+      let patch = '';
+      if (amount > 1.15) {
+        const sd = ctx.r(k, 'mp') < 0.5 ? -1 : 1;
+        patch = `<ellipse cx="${f1(sd * W * 0.2)}" cy="${f1(-L * 0.42)}" rx="${f1(W * 0.17)}" ry="${f1(L * 0.22)}" fill="${vc}" transform="rotate(${f1(sd * 18)} ${f1(sd * W * 0.2)} ${f1(-L * 0.42)})"/>`;
+      }
+      return patch + streaks.map((d, i) => (d ? `<path d="${d}" fill="none" stroke="${vc}" stroke-width="${f1(widths[i])}" stroke-linecap="round"/>` : '')).join('') + flecks;
+    }
+    case 'tricolor': {
+      // Ficus 'Tineke': a cream margin, then a band of soft grey-green, then a dark
+      // green middle, each a little off-centre so the edges look uneven.
+      const jx = (ctx.r(k, 'tx') - 0.5) * W * 0.07;
+      return `<path d="${shape(L * 0.86, W * 0.7, o)}" transform="translate(${f1(jx)} ${f1(-L * 0.07)})" fill="${ctx.fill(o.mid)}"/>`
+        + `<path d="${shape(L * 0.76, W * (o.edgeScale ?? 0.5), o)}" transform="translate(${f1(-jx)} ${f1(-L * 0.11)})" fill="${ctx.fill(o.color)}"/>`;
+    }
     case 'splash': {
       const r = ctx.r(k, 'splash');
       const sd = ctx.r(k, 'ss') < 0.5 ? -1 : 1;
@@ -467,7 +507,7 @@ export function leaf(ctx, x, y, a, o) {
   const shape = SHAPES[o.shape] ?? SHAPES.oval;
   const sw = f1(clamp(L / 15, 1, 2.1));
   const paint = (hex) => (o.dry != null ? ctx.fillD(hex, o.dry) : ctx.fill(hex));
-  const base = o.variType === 'edge' ? o.vari : o.color;
+  const base = o.variType === 'edge' || o.variType === 'tricolor' ? o.vari : o.color;
   let s = `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${deg(a)})">`;
   s += `<path d="${shape(L, W, o)}" fill="${paint(base)}" stroke="${ctx.line}" stroke-width="${sw}" stroke-linejoin="round"/>`;
   if (o.variType && o.dry == null) s += variegate(ctx, o, L, W, shape, sw);

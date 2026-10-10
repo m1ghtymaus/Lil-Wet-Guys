@@ -4,6 +4,7 @@ import { GHOST_LINE, OUTLINE, clamp, dryColor, ghostify } from './color.js';
 import { f1 } from './geom.js';
 import { LIMB_STYLES, drawArms, drawFeet } from './limbs.js';
 import { jarBack, jarFront } from './jar.js';
+import { MOUTH, cuttingRoots, vaseBack, vaseFront } from './vase.js';
 import { ground, heatHaze, potBack, potFront } from './pot.js';
 import { RIGS } from './rigs.js';
 import { SPECIES } from './species.js';
@@ -111,8 +112,8 @@ function individual(def, seed, full) {
   if (Array.isArray(out.stems)) {
     out.stems = out.stems.map((st, i) => ({ ...st, h: st.h * (0.86 + 0.28 * r(40 + i)), a: st.a + (r(50 + i) - 0.5) * 0.24 }));
   }
-  // A jar's moss has to stay put inside the glass, so jars only ever face the other way.
-  const size = def.container === 'jar' ? 1 : 0.94 + 0.12 * r(31);
+  // What's inside a jar has to stay put inside the glass, so jars only ever face the other way.
+  const size = def.container ? 1 : 0.94 + 0.12 * r(31);
   return { def: out, flip: r(32) < 0.5, size };
 }
 
@@ -136,6 +137,22 @@ function pups(def, species, seed, d, ghost, heat, full) {
     s += `<g transform="translate(${f1(100 + x)} 167) scale(${sc}) translate(-100 -167)">${back}${front}</g>`;
   }
   return s;
+}
+
+/**
+ * A cutting rooting in water: a baby of the chosen plant, scaled down and stood in
+ * the jar's mouth, its stem running down into the water to its roots. Fullness
+ * brings more roots and more leaves: a single leaf and no roots at 0%.
+ */
+function cuttingIn(def, cutting, seed, d, ghost, heat, full) {
+  const kind = SPECIES[cutting] && !SPECIES[cutting].container ? cutting : def.cut;
+  const baby = 0.15 + 0.35 * full;
+  const young = individual(SPECIES[kind], `${seed}|cutting`, baby).def;
+  const ctx = makeCtx({ ...young, pups: 0 }, d, ghost, `${kind}|${seed}|cutting`, heat, baby);
+  ctx.pup = true; // no runners or offsets on a cutting
+  const { back = '', front = '' } = RIGS[young.rig](ctx);
+  const stemColor = young.stem ?? young.strap?.color ?? young.leaf?.color ?? '#5f8f3a';
+  return { back: cuttingRoots(ctx, full, stemColor) + `<g transform="translate(100 ${MOUTH}) scale(.62) translate(-100 -167)">${back}${front}</g>` };
 }
 
 function makeCtx(def, d, ghost, seedStr, heat = null, full = 1) {
@@ -190,20 +207,21 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
  * @param {string} o.heat     'sweating' or 'scorching' when the room is too hot for it
  * @param {string} o.seed      varies angles between plants of the same species
  * @param {number} o.fullness  % of the usual leaves: 0 a single leaf, 100 as drawn, 200 overgrown
+ * @param {string} o.cutting   for a propagation, the species id of the plant the cutting is from
  * @param {string} o.label     accessible name
  * @param {number|object|boolean} o.limbs  arms and feet: true picks a pose from the seed (default), a LIMB_STYLES index or style picks one, false draws none
  * @param {boolean} o.layered  return stacked SVG layers in a <div> instead of one <svg>. Moving
  *   whole layers lets the browser animate on the GPU instead of redrawing every path each frame.
  */
 export function drawPlant({
-  species, potColor = '#c8643c', dryness = 0, ghost = false, heat = null, seed = '', fullness = 100, label = '', limbs = true,
-  layered = false,
+  species, potColor = '#c8643c', dryness = 0, ghost = false, heat = null, seed = '', fullness = 100, cutting = '', label = '',
+  limbs = true, layered = false,
 } = {}) {
   const full = clamp((Number(fullness) || 0) / 100, 0, 2);
   const { def, flip, size } = individual(SPECIES[species] ?? SPECIES.generic_leafy, seed, full);
   const d = ghost ? 0 : clamp(dryness);
   const ctx = makeCtx(def, d, ghost, `${species}|${seed}`, heat, full);
-  const drawn = RIGS[def.rig](ctx);
+  const drawn = def.rig === 'cutting' ? cuttingIn(def, cutting, seed, d, ghost, heat, full) : RIGS[def.rig](ctx);
   // Pups stand behind the main clump, except under big leaves held up on stalks,
   // which would hide them; there they go in front (still behind the pot's rim).
   const young = pups(def, species, seed, d, ghost, heat, full);
@@ -223,8 +241,8 @@ export function drawPlant({
   const stillArms = arms.filter((a) => !a.waving).map((a) => a.svg).join('');
   const wavingArms = arms.filter((a) => a.waving);
   // A pot hides the arms' roots behind its rim; a see-through jar has to be drawn over them.
-  const jar = def.container === 'jar';
-  const [back0, front0] = jar ? [jarBack, jarFront] : [potBack, potFront];
+  const jar = def.container === 'jar' || def.container === 'vase';
+  const [back0, front0] = def.container === 'vase' ? [vaseBack, vaseFront] : jar ? [jarBack, jarFront] : [potBack, potFront];
   const floor = ground(ctx);
   const inside = back0(ctx, potColor);
   const pot = `${front0(ctx, potColor)}${feet}${heatHaze(ctx)}`;
